@@ -1,0 +1,94 @@
+name: Bug report
+description: Something in an @beatoz package does not work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security vulnerabilities go through a private report, not an issue. See SECURITY.md.
+  - type: checkboxes
+    attributes:
+      label: Existing issues
+      options:
+        - label: I searched the existing issues and this has not been reported.
+          required: true
+  - type: dropdown
+    id: packages
+    attributes:
+      label: Packages
+      description: Every package involved.
+      multiple: true
+      options:
+        - "@beatoz/web3"
+        - "@beatoz/web3-abi"
+        - "@beatoz/web3-accounts"
+        - "@beatoz/web3-contract"
+        - "@beatoz/web3-core"
+        - "@beatoz/web3-errors"
+        - "@beatoz/web3-methods"
+        - "@beatoz/web3-providers-http"
+        - "@beatoz/web3-providers-ws"
+        - "@beatoz/web3-rpc"
+        - "@beatoz/web3-types"
+        - "@beatoz/web3-utils"
+        - "@beatoz/web3-validator"
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Package versions
+      description: The installed versions, from your lockfile or `npm ls @beatoz/web3`. Not `latest`.
+      placeholder: "@beatoz/web3 2.0.0, @beatoz/web3-accounts 2.0.0"
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: "22.13.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Where the code runs
+      multiple: true
+      options:
+        - Node.js (ES modules)
+        - Node.js (CommonJS, through require)
+        - Browser, through a bundler
+        - Other
+  - type: input
+    id: chain
+    attributes:
+      label: Chain and node
+      description: Mainnet, a testnet or a local node, and the beatoz-go version if you know it.
+      placeholder: "local node from beatoz/beatoz-re v1.16.0"
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Include the full error message.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: The smallest code that shows the problem. Leave out private keys and anything else secret.
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or node response
+      description: For a rejected transaction, the node's check_tx or deliver_tx log.
+      render: shell

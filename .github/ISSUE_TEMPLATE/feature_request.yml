@@ -1,0 +1,53 @@
+name: Feature request
+description: Something the SDK should do that it does not
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A change to anything a package exports is a compatibility promise, so it is agreed on here before a pull request is opened. See RELEASE.md for what counts as breaking.
+  - type: checkboxes
+    attributes:
+      label: Existing issues
+      options:
+        - label: I searched the existing issues and this has not been requested.
+          required: true
+  - type: dropdown
+    id: packages
+    attributes:
+      label: Packages
+      multiple: true
+      options:
+        - "@beatoz/web3"
+        - "@beatoz/web3-abi"
+        - "@beatoz/web3-accounts"
+        - "@beatoz/web3-contract"
+        - "@beatoz/web3-core"
+        - "@beatoz/web3-errors"
+        - "@beatoz/web3-methods"
+        - "@beatoz/web3-providers-http"
+        - "@beatoz/web3-providers-ws"
+        - "@beatoz/web3-rpc"
+        - "@beatoz/web3-types"
+        - "@beatoz/web3-utils"
+        - "@beatoz/web3-validator"
+        - Not sure
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you are trying to do, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What the SDK could offer. If the node already supports it, say where (an RPC method or a transaction type).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What you do instead today, and anything else you considered.

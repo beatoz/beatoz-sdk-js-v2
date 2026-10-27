@@ -70,6 +70,10 @@ npm run build:web
 
 You can find documents https://beatoz.gitbook.io/beatoz-sdk-js/docs-en
 
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for commit, issue and pull request rules, [RELEASE.md](./RELEASE.md) for versioning, and [SECURITY.md](./SECURITY.md) for reporting a vulnerability.
+
 ## License
 ```
 Copyright 2023 All BEATOZ Developers
