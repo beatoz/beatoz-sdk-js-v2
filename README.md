@@ -39,8 +39,8 @@ npm install @beatoz/web3
 ### Build sources
 
 ```bash
-git clone https://github.com/beatoz/beatoz-sdk-js.git
-cd beatoz-sdk-js
+git clone https://github.com/beatoz/beatoz-sdk-js-v2.git
+cd beatoz-sdk-js-v2
 npm install
 
 npm run build 
@@ -50,8 +50,8 @@ npm run build
 ### Browserify
 
 ```bash
-git clone https://github.com/beatoz/beatoz-sdk-js.git
-cd beatoz-sdk-js
+git clone https://github.com/beatoz/beatoz-sdk-js-v2.git
+cd beatoz-sdk-js-v2
 npm install
 
 # web build uses ems. So, pre-build is required.

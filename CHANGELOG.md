@@ -15,6 +15,11 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- Every package's `homepage` now points to
+  [beatoz/beatoz-sdk-js-v2](https://github.com/beatoz/beatoz-sdk-js-v2), where v2
+  is developed and released. v1 stays in beatoz/beatoz-sdk-js. See `RELEASE.md`
+  for which repository publishes which versions.
+
 - `@beatoz/web3-accounts`: **BREAKING:** Every transaction builder now requires
   `amount` and `gasPrice` to be decimal strings of digits, and encodes them the
   way the node does. Both went straight to bn.js before, which is lenient in

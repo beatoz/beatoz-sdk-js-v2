@@ -9,9 +9,9 @@
     "blockchain",
     "dapp"
   ],
-  "homepage": "https://github.com/beatoz/beatoz-sdk-js",
+  "homepage": "https://github.com/beatoz/beatoz-sdk-js-v2",
   "bugs": {
-    "url": "https://github.com/beatoz/beatoz-sdk-js",
+    "url": "https://github.com/beatoz/beatoz-sdk-js-v2",
     "email": "dev@beatoz.io"
   },
   "author": {

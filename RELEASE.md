@@ -234,6 +234,27 @@ The previous major stays on npm and keeps working: published versions are not
 removed, and a caret range does not cross a major, so existing installs are
 untouched. We do not backport to it, and we do not promise to.
 
+## Repositories
+
+v2 and later are developed and released from this repository,
+[beatoz/beatoz-sdk-js-v2](https://github.com/beatoz/beatoz-sdk-js-v2).
+[beatoz/beatoz-sdk-js](https://github.com/beatoz/beatoz-sdk-js) keeps v1 on its
+`main`. This repository's `main` began as that repository's `feature/sdk-v2`
+branch, pushed with its history intact, so commit hashes are the same in both.
+
+The packages keep their names. npm identifies a package by its name alone - the
+repository is only a link in `package.json` - so both repositories publish to
+the same `@beatoz/*` packages, and two rules keep them from colliding:
+
+- This repository publishes `2.x` and later. The v1 repository publishes `1.x`
+  only.
+- A `1.x` release is published with `npm publish --tag v1`. A plain
+  `npm publish` moves `latest` to whatever was just published, and a v1 patch
+  released that way would send every new install back to v1.
+
+Under [Support](#support) there are no v1 releases planned. The second rule is
+for the case where one is made anyway.
+
 ## Reviewing this policy
 
 Treating a type change as breaking is strict, and the cost lands on us: every
