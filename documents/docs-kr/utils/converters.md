@@ -18,8 +18,8 @@
 - [ToAscii](#ToAscii)
 - [ToNumber](#ToNumber)
 - [ToBigInt](#ToBigInt)
-- [FromFons](#FromFons)
-- [ToFons](#ToFons)
+- [FromWei](#FromWei)
+- [ToWei](#ToWei)
 - [ToChecksumAddress](#ToChecksumAddress)
 
 ---
@@ -28,10 +28,18 @@
 
 Beatoz의 다양한 단위 간의 비율을 저장하는 해시 테이블입니다.
 
+1 BEATOZ 미만의 단위는 `wei`, `kwei`, `mwei`, `gwei`, `szabo`, `finney` 입니다.
+
 ```ts
 export const beatozUnitMap = {
     nobeatoz: BigInt('0'),
-    fons: BigInt(1),
+    wei: BigInt(1),
+    kwei: expo10(3),
+    mwei: expo10(6),
+    gwei: expo10(9),
+    szabo: expo10(12),
+    finney: expo10(15),
+    beatoz: expo10(18),
     // ...
     tbeatoz: expo10(30),
 };
@@ -165,20 +173,20 @@ export const toNumber = (value: Numbers): bigint|number => {...}
 export const toBigInt = (value: unknown): bigint => {...}
 ```
 
-### FromFons
+### FromWei
 
-이 메서드는 주어진 fons 단위의 숫자를 다른 BEATOZ 단위로 변환합니다.
+이 메서드는 주어진 wei 단위의 숫자를 다른 BEATOZ 단위로 변환합니다.
 
 ```ts
-export const fromFons = (number: Numbers, unit: BeatozUnits): string => {...}
+export const fromWei = (number: Numbers, unit: BeatozUnits): string => {...}
 ```
 
-### ToFons
+### ToWei
 
-이 메서드는 지정된 BEATOZ 단위에서 주어진 숫자를 fons 단위로 변환합니다.
+이 메서드는 지정된 BEATOZ 단위에서 주어진 숫자를 wei 단위로 변환합니다.
 
 ```ts
-export const toFons = (number: Numbers, unit: BeatozUnits): string => {...}
+export const toWei = (number: Numbers, unit: BeatozUnits): string => {...}
 ```
 
 ### ToChecksumAddress

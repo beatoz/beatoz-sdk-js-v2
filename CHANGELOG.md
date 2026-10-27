@@ -15,6 +15,12 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-utils`, `@beatoz/web3`: **BREAKING:** The units below one BEATOZ
+  are `wei`, `kwei`, `mwei`, `gwei`, `szabo` and `finney`, one name per value,
+  at the values web3.js gives them. The converters are `fromWei` and `toWei`.
+  Units from one BEATOZ up are unchanged. Any other unit name fails as `invalid
+  unit`.
+
 - Every package's `homepage` now points to
   [beatoz/beatoz-sdk-js-v2](https://github.com/beatoz/beatoz-sdk-js-v2), where v2
   is developed and released. v1 stays in beatoz/beatoz-sdk-js. See `RELEASE.md`

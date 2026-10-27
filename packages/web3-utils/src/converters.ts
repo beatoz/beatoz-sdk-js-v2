@@ -38,20 +38,21 @@ import {
 const base = BigInt(10);
 const expo10 = (expo: number) => base ** BigInt(expo);
 
-/** @internal */
+/**
+ * Units below one BEATOZ use the Ethereum names, one name per value, at the
+ * values web3.js 4.x gives them: wei is the smallest unit. Units from one
+ * BEATOZ up are named after the coin.
+ *
+ * @internal
+ */
 export const beatozUnitMap = {
     nobeatoz: BigInt('0'),
-    fons: BigInt(1),
-    kfons: expo10(3),
-    Kfons: expo10(3),
-    mfons: expo10(6),
-    Mfons: expo10(6),
-    gfons: expo10(9),
-    Gfons: expo10(9),
-    tfons: expo10(12),
-    Tfons: expo10(12),
-    pfons: expo10(15),
-    Pfons: expo10(15),
+    wei: BigInt(1),
+    kwei: expo10(3),
+    mwei: expo10(6),
+    gwei: expo10(9),
+    szabo: expo10(12),
+    finney: expo10(15),
     beatoz: expo10(18),
     kbeatoz: expo10(21),
     grand: expo10(21),
@@ -365,25 +366,25 @@ export const toBigInt = (value: unknown): bigint => {
 };
 
 /**
- * Takes a number of fons and converts it to any other beatoz unit.
- * @param number - The value in fons
+ * Takes a number of wei and converts it to any other beatoz unit.
+ * @param number - The value in wei
  * @param unit - The unit to convert to
  * @returns - Returns the converted value in the given unit
  *
  * @example
  * ```ts
- * console.log(web3.utils.fromFons("1", "beatoz"));
+ * console.log(web3.utils.fromWei("1", "beatoz"));
  * > 0.000000000000000001
  * ```
  */
-export const fromFons = (number: Numbers, unit: BeatozUnits): string => {
+export const fromWei = (number: Numbers, unit: BeatozUnits): string => {
     const denomination = beatozUnitMap[unit];
 
     if (!denomination) {
         throw new InvalidUnitError(unit);
     }
 
-    // value in fons would always be integer
+    // value in wei would always be integer
     // 13456789, 1234
     const value = String(toNumber(number));
 
@@ -421,19 +422,19 @@ export const fromFons = (number: Numbers, unit: BeatozUnits): string => {
 };
 
 /**
- * Takes a number of a unit and converts it to fons.
+ * Takes a number of a unit and converts it to wei.
  *
  * @param number - The number to convert.
  * @param unit - {@link BeatozUnits} The unit of the number passed.
- * @returns The number converted to fons.
+ * @returns The number converted to wei.
  *
  * @example
  * ```ts
- * console.log(web3.utils.toFons("0.001", "beatoz"));
- * > 1000000000000000 //(fons)
+ * console.log(web3.utils.toWei("0.001", "beatoz"));
+ * > 1000000000000000 //(wei)
  * ```
  */
-export const toFons = (number: Numbers, unit: BeatozUnits): string => {
+export const toWei = (number: Numbers, unit: BeatozUnits): string => {
     validator.validate(['number'], [number]);
 
     const denomination = beatozUnitMap[unit];

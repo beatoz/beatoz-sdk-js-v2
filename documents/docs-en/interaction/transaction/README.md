@@ -79,7 +79,7 @@ const trxProto: TrxProto = TrxProtoBuilder.buildDelegateTrxProto({
     from: accountInfo.value.address,
     to: accountInfo.value.address,
     nonce: accountInfo.value.nonce,
-    amount: web3.utils.toFons('100', 'beatoz'),
+    amount: web3.utils.toWei('100', 'beatoz'),
     gas: 1000000,
     gasPrice: '250000000000',
 });

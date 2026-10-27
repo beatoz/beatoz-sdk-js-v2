@@ -15,11 +15,12 @@
 */
 import {
     asciiToHex,
+    beatozUnitMap,
     bytesToHex,
     fromAscii,
     fromDecimal,
     fromUtf8,
-    fromFons,
+    fromWei,
     hexToAscii,
     hexToBytes,
     hexToNumber,
@@ -33,7 +34,7 @@ import {
     toHex,
     toNumber,
     toUtf8,
-    toFons,
+    toWei,
     utf8ToHex,
     toChecksumAddress,
     bytesToUint8Array,
@@ -44,8 +45,8 @@ import {
     asciiToHexValidData,
     bytesToHexInvalidData,
     bytesToHexValidData,
-    fromFonsInvalidData,
-    fromFonsValidData,
+    fromWeiInvalidData,
+    fromWeiValidData,
     hexToAsciiValidData,
     hexToBytesInvalidData,
     hexToBytesValidData,
@@ -58,8 +59,9 @@ import {
     numberToHexValidData,
     toHexValidData,
     toHexInvalidData,
-    toFonsInvalidData,
-    toFonsValidData,
+    toWeiInvalidData,
+    toWeiValidData,
+    unitNames,
     utf8ToHexInvalidData,
     utf8ToHexValidData,
     toCheckSumValidData,
@@ -334,30 +336,45 @@ describe('converters', () => {
         });
     });
 
-    describe('fromFons', () => {
+    describe('fromWei', () => {
         describe('valid cases', () => {
-            it.each(fromFonsValidData)('%s', (input, output) => {
-                expect(fromFons(input[0], input[1])).toEqual(output);
+            it.each(fromWeiValidData)('%s', (input, output) => {
+                expect(fromWei(input[0], input[1])).toEqual(output);
             });
         });
 
         describe('invalid cases', () => {
-            it.each(fromFonsInvalidData)('%s', (input, output) => {
-                expect(() => fromFons(input[0], input[1])).toThrow(output);
+            it.each(fromWeiInvalidData)('%s', (input, output) => {
+                expect(() => fromWei(input[0], input[1])).toThrow(output);
             });
         });
     });
 
-    describe('toFons', () => {
+    describe('unit names', () => {
+        it('are exactly the expected set', () => {
+            expect(Object.keys(beatozUnitMap)).toEqual(unitNames);
+        });
+
+        it.each([['fromWei', fromWei], ['toWei', toWei]])(
+            '%s rejects a name outside the set',
+            (_, convert) => {
+                expect(() => convert('1', 'notaunit' as never)).toThrow(
+                    'Invalid value given "notaunit". Error: invalid unit.',
+                );
+            },
+        );
+    });
+
+    describe('toWei', () => {
         describe('valid cases', () => {
-            it.each(toFonsValidData)('%s', (input, output) => {
-                expect(toFons(output, input[1])).toEqual(input[0].toString());
+            it.each(toWeiValidData)('%s', (input, output) => {
+                expect(toWei(output, input[1])).toEqual(input[0].toString());
             });
         });
 
         describe('invalid cases', () => {
-            it.each(toFonsInvalidData)('%s', (input, output) => {
-                expect(() => toFons(input[0], input[1])).toThrow(output);
+            it.each(toWeiInvalidData)('%s', (input, output) => {
+                expect(() => toWei(input[0], input[1])).toThrow(output);
             });
         });
     });

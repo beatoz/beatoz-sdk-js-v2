@@ -240,63 +240,82 @@ export const toHexInvalidData: [any, string][] = [
 ];
 
 const conversionBaseData: [[Numbers, BeatozUnits], string][] = [
-    [[0, 'fons'], '0'],
-    [[123, 'fons'], '123'],
-    [['123', 'fons'], '123'],
-    [[BigInt(123), 'fons'], '123'],
-    [['1000', 'fons'], '1000'],
-    [['1', 'kfons'], '0.001'],
-    [['1', 'mfons'], '0.000001'],
-    [['1', 'gfons'], '0.000000001'],
+    [[0, 'wei'], '0'],
+    [[123, 'wei'], '123'],
+    [['123', 'wei'], '123'],
+    [[BigInt(123), 'wei'], '123'],
+    [['1000', 'wei'], '1000'],
+    [['1', 'kwei'], '0.001'],
+    [['1', 'mwei'], '0.000001'],
+    [['1', 'gwei'], '0.000000001'],
     [['1', 'beatoz'], '0.000000000000000001'],
     [['1', 'kbeatoz'], '0.000000000000000000001'],
     [['1', 'mbeatoz'], '0.000000000000000000000001'],
     [['1', 'gbeatoz'], '0.000000000000000000000000001'],
     [['1', 'tbeatoz'], '0.000000000000000000000000000001'],
-    [['1000', 'kfons'], '1'],
-    [['1000000', 'mfons'], '1'],
-    [['1000000000', 'gfons'], '1'],
+    [['1000', 'kwei'], '1'],
+    [['1000000', 'mwei'], '1'],
+    [['1000000000', 'gwei'], '1'],
     [['1000000000000000000', 'beatoz'], '1'],
     [['1000000000000000000000', 'kbeatoz'], '1'],
     [['1000000000000000000000000', 'mbeatoz'], '1'],
     [['1000000000000000000000000000', 'gbeatoz'], '1'],
-    [['12345678', 'gfons'], '0.012345678'],
-    [['76912345678', 'gfons'], '76.912345678'],
-    [['134439381738', 'gfons'], '134.439381738'],
+    [['12345678', 'gwei'], '0.012345678'],
+    [['76912345678', 'gwei'], '76.912345678'],
+    [['134439381738', 'gwei'], '134.439381738'],
     [['178373938391829348', 'beatoz'], '0.178373938391829348'],
-    [['879123456788877661', 'gfons'], '879123456.788877661'],
+    [['879123456788877661', 'gwei'], '879123456.788877661'],
+    [['1000000000000', 'szabo'], '1'],
+    [['1000000000000000', 'finney'], '1'],
 ];
 
-export const fromFonsValidData: [[Numbers, BeatozUnits], string][] = [
+export const fromWeiValidData: [[Numbers, BeatozUnits], string][] = [
     ...conversionBaseData,
-    [['0xff', 'fons'], '255'],
+    [['0xff', 'wei'], '255'],
 ];
 
-export const toFonsValidData: [[Numbers, BeatozUnits], string][] = [
+export const toWeiValidData: [[Numbers, BeatozUnits], string][] = [
     ...conversionBaseData,
-    [['255', 'fons'], '0xFF'],
+    [['255', 'wei'], '0xFF'],
 ];
 
-export const fromFonsInvalidData: [[any, any], string][] = [
+export const fromWeiInvalidData: [[any, any], string][] = [
     // eslint-disable-next-line no-useless-escape
-    [['123.34', 'kfons'], 'Invalid value given "123.34". Error: can not parse as number data.'],
+    [['123.34', 'kwei'], 'Invalid value given "123.34". Error: can not parse as number data.'],
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
-    [[null, 'kfons'], 'Invalid value given "undefined". Error: can not parse as number data.'],
-    [[undefined, 'kfons'], 'Invalid value given "undefined". Error: can not parse as number data.'],
-    [[{}, 'kfons'], 'Invalid value given "{}". Error: can not parse as number data'],
-    [['data', 'kfons'], 'Invalid value given "data". Error: can not parse as number data.'],
-    [['1234', 'ufons'], 'Invalid value given "ufons". Error: invalid unit.'],
+    [[null, 'kwei'], 'Invalid value given "undefined". Error: can not parse as number data.'],
+    [[undefined, 'kwei'], 'Invalid value given "undefined". Error: can not parse as number data.'],
+    [[{}, 'kwei'], 'Invalid value given "{}". Error: can not parse as number data'],
+    [['data', 'kwei'], 'Invalid value given "data". Error: can not parse as number data.'],
+    [['1234', 'uwei'], 'Invalid value given "uwei". Error: invalid unit.'],
 ];
 
-export const toFonsInvalidData: [[any, any], string][] = [
+export const toWeiInvalidData: [[any, any], string][] = [
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
-    [[null, 'kfons'], 'value at "/0" must pass "number" validation'],
-    [[undefined, 'kfons'], 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
-    [[{}, 'kfons'], 'value "[object Object]" at "/0" must pass "number" validation'],
-    [['data', 'kfons'], 'value "data" at "/0" must pass "number" validation'],
-    [['1234', 'ufons'], 'Invalid value given "ufons". Error: invalid unit.'],
+    [[null, 'kwei'], 'value at "/0" must pass "number" validation'],
+    [[undefined, 'kwei'], 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [[{}, 'kwei'], 'value "[object Object]" at "/0" must pass "number" validation'],
+    [['data', 'kwei'], 'value "data" at "/0" must pass "number" validation'],
+    [['1234', 'uwei'], 'Invalid value given "uwei". Error: invalid unit.'],
+];
+
+// Every unit name, in the order the map defines them. Nothing else is a unit.
+export const unitNames = [
+    'nobeatoz',
+    'wei',
+    'kwei',
+    'mwei',
+    'gwei',
+    'szabo',
+    'finney',
+    'beatoz',
+    'kbeatoz',
+    'grand',
+    'mbeatoz',
+    'gbeatoz',
+    'tbeatoz',
 ];
 export const toCheckSumValidData: [string, string][] = [
     ['0x0089d53f703f7e0843953d48133f74ce247184c2', '0x0089d53F703f7E0843953D48133f74cE247184c2'],

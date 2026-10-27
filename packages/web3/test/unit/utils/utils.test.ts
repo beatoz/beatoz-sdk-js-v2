@@ -26,7 +26,7 @@ describe('web3.beatoz.account check ', () => {
     });
 
     it('should callWeb3.utils method working', async () => {
-        const utilsTest = web3.utils.toFons('1', 'beatoz');
+        const utilsTest = web3.utils.toWei('1', 'beatoz');
         expect(utilsTest).toEqual('1000000000000000000');
     });
 });

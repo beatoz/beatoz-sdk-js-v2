@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The units below one BEATOZ are `wei`, `kwei`, `mwei`, `gwei`,
+  `szabo` and `finney`, one name per value, at the values web3.js gives them.
+  The converters are `fromWei` and `toWei`. Units from one BEATOZ up are
+  unchanged. Any other unit name fails as `invalid unit`.
+
 - **BREAKING:** The minimum Node version is 22.13, raised from 22.12. Two things
   set the floor and the higher one now wins: `require(esm)` - the reason these
   packages can ship ESM only - landed in 22.12, while ESLint 10, which this

@@ -18,8 +18,8 @@
 - [ToAscii](#ToAscii)
 - [ToNumber](#ToNumber)
 - [ToBigInt](#ToBigInt)
-- [FromFons](#FromFons)
-- [ToFons](#ToFons)
+- [FromWei](#FromWei)
+- [ToWei](#ToWei)
 - [ToChecksumAddress](#ToChecksumAddress)
 
 ---
@@ -28,10 +28,18 @@
 
 A hashtable that stores the ratio between different units of BEATOZ.
 
+Below one BEATOZ the units are `wei`, `kwei`, `mwei`, `gwei`, `szabo` and `finney`.
+
 ```ts
 export const beatozUnitMap = {
     nobeatoz: BigInt('0'),
-    fons: BigInt(1),
+    wei: BigInt(1),
+    kwei: expo10(3),
+    mwei: expo10(6),
+    gwei: expo10(9),
+    szabo: expo10(12),
+    finney: expo10(15),
+    beatoz: expo10(18),
     // ...
     tbeatoz: expo10(30),
 };
@@ -165,20 +173,20 @@ This method converts any given value into its bigint representation.
 export const toBigInt = (value: unknown): bigint => {...}
 ```
 
-### FromFons
+### FromWei
 
-This method converts a given number in fons into any other BEATOZ unit.
+This method converts a given number in wei into any other BEATOZ unit.
 
 ```ts
-export const fromFons = (number: Numbers, unit: BeatozUnits): string => {...}
+export const fromWei = (number: Numbers, unit: BeatozUnits): string => {...}
 ```
 
-### ToFons
+### ToWei
 
-This method converts a given number from a specified BEATOZ unit into fons.
+This method converts a given number from a specified BEATOZ unit into wei.
 
 ```ts
-export const toFons = (number: Numbers, unit: BeatozUnits): string => {...}
+export const toWei = (number: Numbers, unit: BeatozUnits): string => {...}
 ```
 
 ### ToChecksumAddress
