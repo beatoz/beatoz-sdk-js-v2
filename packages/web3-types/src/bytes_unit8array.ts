@@ -17,16 +17,27 @@
 import cryptojs from 'crypto-js';
 
 export class BytesUint8Array extends Uint8Array {
+    /**
+     * Reads hex digits, with or without a `0x` prefix, two per byte.
+     *
+     * Anything else is refused. A non-hex digit used to become 0 (parseInt
+     * gives NaN, which a Uint8Array stores as 0) and an odd length gained a
+     * leading zero, so a mistyped address was signed as a different address.
+     */
     static fromHex(hex: string): BytesUint8Array {
-        if (hex.startsWith('0x')) {
-            hex = hex.substring(2);
+        if (typeof hex !== 'string') {
+            throw Error(`hex must be a string, got ${typeof hex}`);
         }
-        if (hex.length % 2 !== 0) {
-            hex = '0' + hex;
+        const digits = hex.startsWith('0x') ? hex.substring(2) : hex;
+        if (!/^[0-9a-fA-F]*$/.test(digits)) {
+            throw Error(`invalid hex: ${JSON.stringify(hex)}`);
         }
-        const ret = new BytesUint8Array(hex.length / 2);
+        if (digits.length % 2 !== 0) {
+            throw Error(`hex must have an even number of digits: ${JSON.stringify(hex)}`);
+        }
+        const ret = new BytesUint8Array(digits.length / 2);
         for (let i = 0; i < ret.length; i++) {
-            ret[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+            ret[i] = parseInt(digits.substring(i * 2, i * 2 + 2), 16);
         }
         return ret;
     }

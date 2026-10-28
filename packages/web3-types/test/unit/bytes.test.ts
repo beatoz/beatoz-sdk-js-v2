@@ -23,6 +23,42 @@ describe('BytesUint8Array class tests', () => {
         expect(bytes.toHex()).toBe(hex.substring(2));
     });
 
+    test.each([
+        ['', ''],
+        ['0x', ''],
+        ['00', '00'],
+        ['0xABcd', 'abcd'],
+        ['0x' + 'ff'.repeat(20), 'ff'.repeat(20)],
+    ])('fromHex reads %j', (hex, bytes) => {
+        expect(BytesUint8Array.fromHex(hex).toHex()).toBe(bytes);
+    });
+
+    // Each of these used to be read without an error: a non-hex digit as 0 and
+    // an odd length with a leading zero, so 'zz' was 00 and '0xabc' was 0abc.
+    test.each([['zz'], ['0x0g'], ['0X12'], [' 12'], ['12 '], ['0x-1'], ['0x0x12']])(
+        'fromHex rejects %j',
+        (hex) => {
+            expect(() => BytesUint8Array.fromHex(hex)).toThrow(
+                `invalid hex: ${JSON.stringify(hex)}`,
+            );
+        },
+    );
+
+    test.each([['0xabc'], ['1'], ['0x' + 'f'.repeat(39)]])(
+        'fromHex rejects an odd number of digits, %j',
+        (hex) => {
+            expect(() => BytesUint8Array.fromHex(hex)).toThrow(
+                `hex must have an even number of digits: ${JSON.stringify(hex)}`,
+            );
+        },
+    );
+
+    test('fromHex rejects a value that is not a string', () => {
+        expect(() => BytesUint8Array.fromHex(12 as unknown as string)).toThrow(
+            'hex must be a string, got number',
+        );
+    });
+
     test('parse - hex', () => {
         const hex = '123abc';
         const bytes = BytesUint8Array.parse(hex, 'hex');

@@ -15,6 +15,18 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3-rpc`:
+  **BREAKING:** `BytesUint8Array.fromHex` accepts only hex digits, two per
+  byte, with or without a `0x` prefix, and throws on anything else: `invalid
+  hex: "zz"`, `hex must have an even number of digits: "0xabc"`. It never
+  failed before. A non-hex digit became 0 (`'zz'` read as `00`) and an odd
+  length gained a leading zero (`'0xabc'` read as `0abc`). The transaction
+  builders read `from`, `to`, the unstaking hash and contract data with it, so
+  a recipient address with one mistyped or dropped digit was signed as a
+  different 20-byte address, which the node accepts. `BytesUint8Array.parse`
+  with `'hex'` goes through the same check. Callers passing well-formed hex are
+  unaffected.
+
 - `@beatoz/web3-accounts`: **BREAKING:** Transaction payloads are typed per
   transaction type. `Transaction<T>` declared `payload?: object | T`, so any
   object compiled for any builder, a missing payload compiled too, and the
