@@ -2,7 +2,11 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"declaration": false,
-		"declarationMap": false
+		"declarationMap": false,
+		"noEmit": true,
+		"rootDir": "..",
+		"target": "es2020",
+		"types": ["node", "jest"]
 	},
-	"include": ["./**/*", "../node_modules/jest-extended/types/**/*.ts"]
+	"include": ["./**/*"]
 }

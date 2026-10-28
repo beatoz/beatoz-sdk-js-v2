@@ -42,8 +42,9 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write '**/*'",
-        "test": "jest --config=./test/unit/jest.config.js",
-        "test:silent": "jest --silent --config=./test/unit/jest.config.js"
+        "test": "yarn test:types && jest --config=./test/unit/jest.config.js",
+        "test:silent": "yarn test:types && jest --silent --config=./test/unit/jest.config.js",
+        "test:types": "tsc -p test/tsconfig.json"
     },
     "devDependencies": {
         "@bufbuild/buf": "^1.73.0",
