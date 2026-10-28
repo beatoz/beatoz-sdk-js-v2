@@ -15,16 +15,12 @@
 */
 
 import { Web3BaseWalletAccount } from '@beatoz/web3-types';
-import { PrvKey, PubKey, Transaction } from './tx/tx_types.js';
+import { PrvKey, PubKey } from './tx/tx_types.js';
 
 export type SignTransactionResult = {
     rawTransaction: string;
     transactionHash: string;
 };
-
-export type SignTransactionFunction = (
-    transaction: Transaction<object> | Record<string, unknown>,
-) => SignTransactionResult;
 
 export interface Web3Account extends Web3BaseWalletAccount {
     address: string;

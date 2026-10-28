@@ -28,7 +28,9 @@ import {
 } from './trx_pb.js';
 import { HexString, TrxProto } from '@beatoz/web3-types';
 import {
+    DecodedTransaction,
     Transaction,
+    TransactionPayloadContract,
     TransactionPayloadUnDelegating,
     TransactionPayloadWithdraw,
 } from './tx_types.js';
@@ -74,91 +76,13 @@ function toUint256Bytes(n: BN): Uint8Array {
     return n.isZero() ? new Uint8Array() : new Uint8Array(n.toArrayLike(Buffer));
 }
 
-interface TrxPayloadCreateContract {
-    data: string;
-}
-
-function decodeTransaction(d: BytesUint8Array): Transaction<object> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let payload: any;
+function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
     const tx = trxPb.TrxProtoUtils.decode(d);
-    switch (tx.type) {
-        case 1: // transfer
-        case 2: // staking
-            break;
-        case 3: {
-            // unstaking
-            const unstakingPayload: trxPb.TrxPayloadUnstakingProto =
-                trxPb.TrxPayloadUnstakingProto.decode(tx.Payload);
-            payload = {
-                txhash: new BytesUint8Array(unstakingPayload.txHash).toHex(),
-            };
-            break;
-        }
-        case 4: {
-            // proposal
-            const proposalPayload: trxPb.TrxPayloadProposalProto =
-                trxPb.TrxPayloadProposalProto.decode(tx.Payload);
-            payload = {
-                message: proposalPayload.message,
-                startVotingHeight: proposalPayload.startVotingHeight.toNumber(),
-                votingBlocks: proposalPayload.votingBlocks.toNumber(),
-                applyHeight: proposalPayload.applyingHeight.toNumber(),
-                optType: proposalPayload.optType,
-                options: proposalPayload.options,
-            };
-            break;
-        }
-        case 5: {
-            // voting
-            const votingPayload: trxPb.TrxPayloadVotingProto = trxPb.TrxPayloadVotingProto.decode(
-                tx.Payload,
-            );
-            payload = {
-                txHash: new BytesUint8Array(votingPayload.txHash).toHex(),
-                choice: votingPayload.choice,
-            };
-            break;
-        }
-        case 6: {
-            // contract
-            const contractPayload: trxPb.TrxPayloadContractProto =
-                trxPb.TrxPayloadContractProto.decode(tx.Payload);
-            payload = {
-                Data: new BytesUint8Array(contractPayload.Data).toHex(),
-            };
-            break;
-        }
-        case 7: {
-            // setDoc
-            const setDocPayload: trxPb.TrxPayloadSetDocProto = trxPb.TrxPayloadSetDocProto.decode(
-                tx.Payload,
-            );
-            payload = {
-                name: setDocPayload.name,
-                url: setDocPayload.url,
-            };
-            break;
-        }
-        case 8: {
-            // withdraw
-            const withdrawPayload: trxPb.TrxPayloadWithdrawProto =
-                trxPb.TrxPayloadWithdrawProto.decode(tx.Payload);
-            payload = {
-                ReqAmt: new BytesUint8Array(withdrawPayload.ReqAmt).toHex(),
-            };
-            break;
-        }
-        default:
-            // beatoz-go defines types 1 to 8 and rejects any other as
-            // ErrInvalidTrxPayloadType, so such bytes are not a transaction.
-            throw Error(`unknown transaction type ${tx.type}; the chain accepts types 1 to 8`);
-    }
 
     const sha256 = createHash('sha256');
     const hash = sha256.update(d).digest();
 
-    return {
+    const fields = {
         hash: hash.toString('hex'),
         version: tx.version,
         time: fromNanoSecond(tx.time),
@@ -168,13 +92,109 @@ function decodeTransaction(d: BytesUint8Array): Transaction<object> {
         amount: new BN(tx.Amount).toString(10),
         gas: tx.gas.toNumber(),
         gasPrice: new BN(tx.GasPrice).toString(10),
-        type: tx.type,
-        payload: payload,
-        sig: new BytesUint8Array(tx.sig).toHex(),
     };
+    // Kept after type and payload, where callers have always found it.
+    const sig = new BytesUint8Array(tx.sig).toHex();
+
+    switch (tx.type) {
+        case 1: // transfer
+        case 2: // staking
+            return { ...fields, type: tx.type, payload: undefined, sig };
+        case 3: {
+            // unstaking
+            const unstakingPayload: trxPb.TrxPayloadUnstakingProto =
+                trxPb.TrxPayloadUnstakingProto.decode(tx.Payload);
+            return {
+                ...fields,
+                type: tx.type,
+                payload: {
+                    txhash: new BytesUint8Array(unstakingPayload.txHash).toHex(),
+                },
+                sig,
+            };
+        }
+        case 4: {
+            // proposal
+            const proposalPayload: trxPb.TrxPayloadProposalProto =
+                trxPb.TrxPayloadProposalProto.decode(tx.Payload);
+            return {
+                ...fields,
+                type: tx.type,
+                payload: {
+                    message: proposalPayload.message,
+                    startVotingHeight: proposalPayload.startVotingHeight.toNumber(),
+                    votingBlocks: proposalPayload.votingBlocks.toNumber(),
+                    applyHeight: proposalPayload.applyingHeight.toNumber(),
+                    optType: proposalPayload.optType,
+                    options: proposalPayload.options,
+                },
+                sig,
+            };
+        }
+        case 5: {
+            // voting
+            const votingPayload: trxPb.TrxPayloadVotingProto = trxPb.TrxPayloadVotingProto.decode(
+                tx.Payload,
+            );
+            return {
+                ...fields,
+                type: tx.type,
+                payload: {
+                    txHash: new BytesUint8Array(votingPayload.txHash).toHex(),
+                    choice: votingPayload.choice,
+                },
+                sig,
+            };
+        }
+        case 6: {
+            // contract
+            const contractPayload: trxPb.TrxPayloadContractProto =
+                trxPb.TrxPayloadContractProto.decode(tx.Payload);
+            return {
+                ...fields,
+                type: tx.type,
+                payload: {
+                    Data: new BytesUint8Array(contractPayload.Data).toHex(),
+                },
+                sig,
+            };
+        }
+        case 7: {
+            // setDoc
+            const setDocPayload: trxPb.TrxPayloadSetDocProto = trxPb.TrxPayloadSetDocProto.decode(
+                tx.Payload,
+            );
+            return {
+                ...fields,
+                type: tx.type,
+                payload: {
+                    name: setDocPayload.name,
+                    url: setDocPayload.url,
+                },
+                sig,
+            };
+        }
+        case 8: {
+            // withdraw
+            const withdrawPayload: trxPb.TrxPayloadWithdrawProto =
+                trxPb.TrxPayloadWithdrawProto.decode(tx.Payload);
+            return {
+                ...fields,
+                type: tx.type,
+                payload: {
+                    ReqAmt: new BytesUint8Array(withdrawPayload.ReqAmt).toHex(),
+                },
+                sig,
+            };
+        }
+        default:
+            // beatoz-go defines types 1 to 8 and rejects any other as
+            // ErrInvalidTrxPayloadType, so such bytes are not a transaction.
+            throw Error(`unknown transaction type ${tx.type}; the chain accepts types 1 to 8`);
+    }
 }
 
-function buildTransferTrxProto(transaction: Transaction<object>): TrxProto {
+function buildTransferTrxProto(transaction: Transaction): TrxProto {
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: getNanoSecond(),
@@ -199,7 +219,7 @@ function buildTransferTrxProto(transaction: Transaction<object>): TrxProto {
     };
 }
 
-function buildDelegateTrxProto(transaction: Transaction<object>): TrxProto {
+function buildDelegateTrxProto(transaction: Transaction): TrxProto {
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
@@ -226,7 +246,7 @@ function buildDelegateTrxProto(transaction: Transaction<object>): TrxProto {
 function buildUnDelegateTrxProto(
     transaction: Transaction<TransactionPayloadUnDelegating>,
 ): TrxProto {
-    const payload = transaction.payload as TransactionPayloadUnDelegating;
+    const payload = transaction.payload;
     if (!isSet(payload) || !isSet(payload.txhash)) {
         throw Error('mandatory argument is missed');
     }
@@ -259,7 +279,7 @@ function buildUnDelegateTrxProto(
 }
 
 function buildProposalTrx(transaction: Transaction<TrxPayloadProposalProto>): TrxProto {
-    const payload = transaction.payload as TrxPayloadProposalProto;
+    const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');
     }
@@ -296,7 +316,7 @@ function buildProposalTrx(transaction: Transaction<TrxPayloadProposalProto>): Tr
 }
 
 function buildVotingTrx(transaction: Transaction<TrxPayloadVotingProto>): TrxProto {
-    const payload = transaction.payload as TrxPayloadVotingProto;
+    const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');
     }
@@ -328,8 +348,8 @@ function buildVotingTrx(transaction: Transaction<TrxPayloadVotingProto>): TrxPro
     };
 }
 
-function buildContractTrxProto(transaction: Transaction<TrxPayloadCreateContract>): TrxProto {
-    const payload = transaction.payload as TrxPayloadCreateContract;
+function buildContractTrxProto(transaction: Transaction<TransactionPayloadContract>): TrxProto {
+    const payload = transaction.payload;
     if (!isSet(payload) || !isSet(payload.data)) {
         throw Error('mandatory argument is missed');
     }
@@ -367,7 +387,7 @@ function buildContractTrxProto(transaction: Transaction<TrxPayloadCreateContract
  * above the reward the sender has accumulated as `insufficient reward`.
  */
 function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>): TrxProto {
-    const payload = transaction.payload as TransactionPayloadWithdraw;
+    const payload = transaction.payload;
     if (!isSet(payload) || !isSet(payload.reqAmt)) {
         throw Error('mandatory argument is missed');
     }
@@ -407,8 +427,8 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
     };
 }
 
-function buildSetDocTrx(transaction: Transaction<object>): TrxProto {
-    const payload = transaction.payload as TrxPayloadSetDocProto;
+function buildSetDocTrx(transaction: Transaction<TrxPayloadSetDocProto>): TrxProto {
+    const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');
     }

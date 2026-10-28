@@ -19,7 +19,7 @@ import { BytesUint8Array } from '@beatoz/web3-types';
 import { createHash, randomBytes } from 'crypto';
 import secp256k1 from 'secp256k1';
 
-export interface Transaction<T> {
+interface TransactionFields {
     hash?: string;
     version?: number;
     time?: Date;
@@ -30,12 +30,24 @@ export interface Transaction<T> {
     gas: number;
     gasPrice: string;
     type?: number;
-    payload?: object | T;
     sig?: string;
 }
 
+/**
+ * The input to a transaction builder. `T` is the payload the builder's
+ * transaction type carries; transfer and staking carry none, and leave it out.
+ * A payload that admits `undefined` is optional; any other is required.
+ */
+export type Transaction<T = undefined> = TransactionFields &
+    (undefined extends T ? { payload?: T } : { payload: T });
+
 export interface TransactionPayloadUnDelegating {
     txhash: string;
+}
+
+export interface TransactionPayloadContract {
+    /** Contract creation code or call data, as hex. */
+    data: string;
 }
 
 export interface TransactionPayloadWithdraw {
@@ -46,6 +58,77 @@ export interface TransactionPayloadWithdraw {
      */
     reqAmt: string;
 }
+
+interface DecodedTransactionFields {
+    /** SHA-256 of the encoded transaction, as hex. */
+    hash: string;
+    version: number;
+    time: Date;
+    nonce: number;
+    from: string;
+    to: string;
+    /** Decimal string. */
+    amount: string;
+    gas: number;
+    /** Decimal string. */
+    gasPrice: string;
+    sig: string;
+}
+
+// The payloads below describe what decodeTransaction returns today. Their
+// shapes differ from the builder inputs (#8, #50).
+
+export interface DecodedPayloadUnstaking {
+    /** Hash of the staking transaction, as hex. */
+    txhash: string;
+}
+
+export interface DecodedPayloadProposal {
+    message: string;
+    startVotingHeight: number;
+    votingBlocks: number;
+    applyHeight: number;
+    optType: number;
+    options: Uint8Array[];
+}
+
+export interface DecodedPayloadVoting {
+    /** Hash of the proposal transaction, as hex. */
+    txHash: string;
+    choice: number;
+}
+
+export interface DecodedPayloadContract {
+    /** Contract creation code or call data, as hex. */
+    Data: string;
+}
+
+export interface DecodedPayloadSetDoc {
+    name: string;
+    url: string;
+}
+
+export interface DecodedPayloadWithdraw {
+    /** Requested amount as minimal big-endian hex, not decimal. */
+    ReqAmt: string;
+}
+
+/**
+ * A transaction read back from its encoded bytes. `type` is one of the eight
+ * types the chain defines, and checking it narrows `payload` to that type's
+ * shape.
+ */
+export type DecodedTransaction = DecodedTransactionFields &
+    (
+        | { type: 1; payload?: undefined } // transfer
+        | { type: 2; payload?: undefined } // staking
+        | { type: 3; payload: DecodedPayloadUnstaking }
+        | { type: 4; payload: DecodedPayloadProposal }
+        | { type: 5; payload: DecodedPayloadVoting }
+        | { type: 6; payload: DecodedPayloadContract }
+        | { type: 7; payload: DecodedPayloadSetDoc }
+        | { type: 8; payload: DecodedPayloadWithdraw }
+    );
 
 export class PubKey {
     compressed: BytesUint8Array;

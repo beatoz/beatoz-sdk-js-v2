@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Transaction payloads are typed per transaction type.
+  `Transaction<T>` declared `payload?: object | T`, so any object compiled for
+  any builder, a missing payload compiled too, and the builders cast it back
+  to what they expected. `buildSetDocTrx` took `Transaction<object>`.
+
+  - `buildTransferTrxProto` and `buildDelegateTrxProto` take no payload.
+  - The other builders require theirs: `TransactionPayloadUnDelegating`,
+    `TrxPayloadProposalProto`, `TrxPayloadVotingProto`,
+    `TransactionPayloadContract` (newly exported), `TrxPayloadSetDocProto` and
+    `TransactionPayloadWithdraw`.
+  - `decodeTransaction` returns `DecodedTransaction`, a union on `type` 1 to 8:
+    checking `type` narrows `payload` to that type's `DecodedPayload*` shape.
+    The values it returns are unchanged.
+  - `SignTransactionFunction` is removed. Nothing used it, and it described a
+    signer that takes a `Transaction`, while `signTransaction` takes a
+    `TrxProto`.
+
+  Pass each builder the payload its type names, and check `type` before
+  reading the payload of a decoded transaction. The encoded bytes are
+  unchanged.
+
 - **BREAKING:** `TrxProtoBuilder.decodeTransaction` throws on a transaction
   type outside 1 to 8: `unknown transaction type 9; the chain accepts types 1
   to 8`. It returned such bytes as a transaction with no payload, while

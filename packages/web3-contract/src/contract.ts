@@ -47,7 +47,7 @@ import {
     PayableMethodObject,
     PayableTxOptions,
 } from './types.js';
-import { format, isNullish, toChecksumAddress } from '@beatoz/web3-utils';
+import { bytesToHex, format, isNullish, toChecksumAddress } from '@beatoz/web3-utils';
 import {
     decodeContractErrorData,
     encodeFunctionSignature,
@@ -471,6 +471,10 @@ export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecuti
         if (fromAcct === undefined) {
             throw new Web3ContractError(`not found account of ${_tx.from}`);
         }
+        // getSendTxParams always sets input to the encoded call.
+        if (isNullish(_tx.input)) {
+            throw new Web3ContractError('no call data to send');
+        }
 
         const chainId = this.chainId ?? (await this.decideChainId());
         const nonce = Number(_tx.nonce ?? (await getAccount(this, fromAcct.address)).value.nonce);
@@ -489,7 +493,12 @@ export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecuti
             gas: gas,
             gasPrice: gasPrice.toString(),
             amount: '0',
-            payload: { data: _tx.input },
+            // TransactionCall types input as Bytes and the builder takes hex.
+            // A string goes through as it always has; bytesToHex would also
+            // reject hex without 0x, which the builder accepts.
+            payload: {
+                data: typeof _tx.input === 'string' ? _tx.input : bytesToHex(_tx.input),
+            },
         });
 
         fromAcct.signTransaction(txProto, chainId);
