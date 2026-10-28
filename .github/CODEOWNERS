@@ -1,0 +1,4 @@
+# Every change to dev or main needs this approval before it can be merged.
+# The rulesets on both branches require a code owner review; repository
+# admins bypass them.
+* @beatoz-dustin

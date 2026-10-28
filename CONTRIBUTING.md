@@ -158,8 +158,42 @@ What a pull request needs:
   review fixes into the commits they belong to (`git commit --fixup`,
   `git rebase -i --autosquash`) before merging.
 
-A pull request needs one approving review from someone other than its author,
-and passing checks.
+A pull request needs an approving review from a code owner
+([`.github/CODEOWNERS`](./.github/CODEOWNERS)). Anyone may review, but only a
+code owner's approval lets it merge, and a new push to the pull request
+dismisses an earlier approval.
+
+## Branches
+
+| Branch | What it holds | How it changes |
+| --- | --- | --- |
+| `dev` | Work in progress towards the next release | Pull requests, merged by rebasing |
+| `main` | What `dev` was at the last promotion | Fast-forwarded to `dev` |
+
+Rulesets on both branches enforce this: changes arrive through a pull request
+approved by a code owner, `dev` accepts only rebase merges and `main` only
+merge commits, and neither can be force-pushed or deleted. Repository admins
+bypass the rulesets.
+
+`main` moves only by fast-forward, so that it holds exactly the commits on
+`dev`, with the same hashes - changelogs, issues and work logs refer to
+commits by hash. An admin opens a pull request from `dev` to `main` as the
+record, then pushes:
+
+```bash
+git push origin <dev commit>:main
+```
+
+GitHub marks the pull request merged when its commits reach `main`, and the
+`Fixes:` trailers close their issues then. Do not use the merge buttons on that
+pull request: "Rebase and merge" copies every commit with a new hash, and
+"Create a merge commit" leaves `main` one commit ahead of `dev`.
+
+The admin bypass exists for this push. It also lets an admin push anything
+else to either branch; that is not how the branches are used.
+
+Nothing enforces that a pull request into `main` comes from `dev`. A check for
+it belongs with CI, which does not exist yet.
 
 ## Issues
 
