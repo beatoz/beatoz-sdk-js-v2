@@ -150,7 +150,9 @@ function decodeTransaction(d: BytesUint8Array): Transaction<object> {
             break;
         }
         default:
-            break;
+            // beatoz-go defines types 1 to 8 and rejects any other as
+            // ErrInvalidTrxPayloadType, so such bytes are not a transaction.
+            throw Error(`unknown transaction type ${tx.type}; the chain accepts types 1 to 8`);
     }
 
     const sha256 = createHash('sha256');

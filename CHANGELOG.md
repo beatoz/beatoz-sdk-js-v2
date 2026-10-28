@@ -15,6 +15,13 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-accounts`: **BREAKING:** `TrxProtoBuilder.decodeTransaction`
+  throws on a transaction type outside 1 to 8: `unknown transaction type 9; the
+  chain accepts types 1 to 8`. It returned such bytes as a transaction with no
+  payload, while beatoz-go defines only those eight types and rejects any other
+  as `ErrInvalidTrxPayloadType`. Callers decoding bytes that may not be a
+  BEATOZ transaction catch the error instead of checking for a missing payload.
+
 - `@beatoz/web3-utils`, `@beatoz/web3`: **BREAKING:** The units below one BEATOZ
   are `wei`, `kwei`, `mwei`, `gwei`, `szabo` and `finney`, one name per value,
   at the values web3.js gives them. The converters are `fromWei` and `toWei`.

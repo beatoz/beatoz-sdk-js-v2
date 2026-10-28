@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `TrxProtoBuilder.decodeTransaction` throws on a transaction
+  type outside 1 to 8: `unknown transaction type 9; the chain accepts types 1
+  to 8`. It returned such bytes as a transaction with no payload, while
+  beatoz-go defines only those eight types and rejects any other as
+  `ErrInvalidTrxPayloadType`. Callers decoding bytes that may not be a BEATOZ
+  transaction catch the error instead of checking for a missing payload.
+
 - **BREAKING:** Every transaction builder now requires `amount` and `gasPrice`
   to be decimal strings of digits, and encodes them the way the node does. Both
   went straight to bn.js before, which is lenient in ways that reached the
