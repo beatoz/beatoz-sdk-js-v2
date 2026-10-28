@@ -51,6 +51,7 @@
         "@types/ws": "^6.0.1"
     },
     "dependencies": {
+        "@beatoz/web3-errors": "^1.6.5",
         "@beatoz/web3-types": "^1.6.5",
         "@beatoz/web3-utils": "^1.6.5",
         "isomorphic-ws": "^4.0.1",

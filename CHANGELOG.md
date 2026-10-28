@@ -15,6 +15,14 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-providers-ws`: **BREAKING:** A node error is thrown as a
+  `ResponseError`, as the HTTP provider and the request manager throw it,
+  instead of an `Error` whose message was the JSON-RPC error serialised to a
+  string. The node's own answer, such as `tx (...) not found`, is in `data`,
+  and the message reads `Returned error: Internal error`, over either provider.
+  Code that parsed the old message reads `data` instead. `@beatoz/web3-errors`
+  is now a dependency.
+
 - `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3-rpc`:
   **BREAKING:** `BytesUint8Array.fromHex` accepts only hex digits, two per
   byte, with or without a `0x` prefix, and throws on anything else: `invalid

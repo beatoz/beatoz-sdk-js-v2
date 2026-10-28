@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** A node error is thrown as a `ResponseError`, as the HTTP
+  provider and the request manager throw it, instead of an `Error` whose
+  message was the JSON-RPC error serialised to a string. The node's own
+  answer, such as `tx (...) not found`, is in `data`, and the message reads
+  `Returned error: Internal error`, over either provider. Code that parsed the
+  old message reads `data` instead. `@beatoz/web3-errors` is now a dependency.
+
 - **BREAKING:** The minimum Node version is 22.13, raised from 22.12. Two things
   set the floor and the higher one now wins: `require(esm)` - the reason these
   packages can ship ESM only - landed in 22.12, while ESLint 10, which this

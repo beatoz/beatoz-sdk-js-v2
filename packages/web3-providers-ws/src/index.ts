@@ -33,6 +33,7 @@ import {
 import { ConnectionStatus } from './socket/queueing_streaming_socket.js';
 import { SocketWrapperMessageEvent } from './socket/socket_wrapper.js';
 import { isNullish } from '@beatoz/web3-utils';
+import { ResponseError } from '@beatoz/web3-errors';
 
 class RpcEventProducer implements Producer<SubscriptionEvent> {
     private readonly request: JsonRpcRequest;
@@ -189,7 +190,9 @@ export default class WebsocketProvider<API extends Web3APISpec = BeatozExecution
 
         const response = await pendingResponse;
         if (isJsonRpcErrorResponse(response)) {
-            throw new Error(JSON.stringify(response.error));
+            // What the HTTP provider and the request manager throw, so a node
+            // error keeps its code and data whichever provider carried it.
+            throw new ResponseError(response);
         }
         return response as unknown as JsonRpcResponseWithResult<ResponseType>;
     }
