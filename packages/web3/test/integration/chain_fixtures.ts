@@ -138,32 +138,8 @@ export const deploySampleContract = async (web3: Web3): Promise<string> => {
         .deploy(erc20Contract.bytecode, ['BeatozToken', 'RGT'], account, getTestChainId(), 10000000)
         .send();
 
-    await waitForTx(web3, result.hash);
+    await web3.beatoz.waitForTx(result.hash);
     return result.hash;
-};
-
-/**
- * Waits until the node can answer for a transaction hash.
- *
- * Deploying returns as soon as the transaction is accepted, not once it is in a
- * block, so a query that follows immediately gets `tx (...) not found`. How long
- * that takes depends on when the next block is produced.
- */
-export const waitForTx = async (web3: Web3, hash: string, timeoutMs = 20000): Promise<void> => {
-    const deadline = Date.now() + timeoutMs;
-    for (;;) {
-        try {
-            await web3.beatoz.tx(hash);
-            return;
-        } catch (err) {
-            if (Date.now() > deadline) {
-                throw new Error(`the node did not report ${hash} within ${timeoutMs}ms`, {
-                    cause: err,
-                });
-            }
-            await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-    }
 };
 
 /** Polls `check` until it passes, or gives up with `what` in the message. */

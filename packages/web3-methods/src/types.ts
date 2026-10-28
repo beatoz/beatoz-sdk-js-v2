@@ -44,3 +44,10 @@ export type SendTransactionEvents<ReturnFormat extends DataFormat> = {
     };
     error: InvalidResponseError | ContractExecutionError;
 };
+
+export interface WaitForTxOptions {
+    /** How long to wait for the node to index the transaction. Default 30000. */
+    timeoutMs?: number;
+    /** How long to wait between lookups. Default 500. */
+    intervalMs?: number;
+}

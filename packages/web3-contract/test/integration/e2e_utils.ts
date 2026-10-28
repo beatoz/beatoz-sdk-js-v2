@@ -151,20 +151,9 @@ export const deployTestToken = async (
 
     // The commit reply comes before the node has indexed the transaction, so
     // looking it up straight away can answer `tx (...) not found`.
-    const deadline = Date.now() + 20000;
-    for (;;) {
-        try {
-            const address = await web3.beatoz.contractAddrFromTx(res.hash);
-            return { address, deployer: deployer.address };
-        } catch (err) {
-            if (Date.now() > deadline) {
-                throw new Error(`deployTestToken: the node did not report ${res.hash}`, {
-                    cause: err,
-                });
-            }
-            await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-    }
+    await web3.beatoz.waitForTx(res.hash);
+    const address = await web3.beatoz.contractAddrFromTx(res.hash);
+    return { address, deployer: deployer.address };
 };
 
 /**

@@ -28,6 +28,8 @@ import { TrxProto } from '@beatoz/web3-types';
 import { Stream } from 'xstream';
 import { Web3Account, TrxProtoBuilder } from '@beatoz/web3-accounts';
 import { encodeParameters } from '@beatoz/web3-abi';
+import { OperationTimeoutError } from '@beatoz/web3-errors';
+import { WaitForTxOptions } from './types.js';
 
 export async function sendDeploy(
     web3Context: Web3Context<BeatozExecutionAPI>,
@@ -188,6 +190,100 @@ export async function txSearch(
 
 export async function tx(web3Context: Web3Context<BeatozExecutionAPI>, hash: string | Uint8Array) {
     return rpcMethods.tx(web3Context.requestManager, hash);
+}
+
+// The node's answer while a transaction is not in its index: Tendermint's
+// rpc/core Tx returns fmt.Errorf("tx (%X) not found", hash).
+const TX_NOT_FOUND = /^tx \([0-9A-F]*\) not found$/;
+
+// Matched on the shape of the error, not instanceof ResponseError: a project
+// that ends up with two copies of @beatoz/web3-errors has two ResponseError
+// classes, and the check would then fail for the very error it is for.
+const isTxNotFound = (err: unknown): err is Error & { data: string } =>
+    err instanceof Error &&
+    'data' in err &&
+    typeof err.data === 'string' &&
+    TX_NOT_FOUND.test(err.data);
+
+// setTimeout fires at once for any delay above this, which would turn the
+// wait into lookups back to back.
+const MAX_DELAY_MS = 2 ** 31 - 1;
+
+// Settles with the promise, or with undefined once the deadline passes first.
+const beforeDeadline = <T>(promise: Promise<T>, deadline: number): Promise<T | undefined> => {
+    let cancel = () => {};
+    const expired = new Promise<undefined>((resolve) => {
+        const timer = setTimeout(() => resolve(undefined), Math.max(0, deadline - Date.now()));
+        cancel = () => clearTimeout(timer);
+    });
+    return Promise.race([promise, expired]).finally(() => cancel());
+};
+
+/**
+ * Waits until the node has indexed a transaction, and returns it.
+ *
+ * A broadcast can return before the transaction is indexed - the commit reply
+ * included - so looking it up straight away can fail as not found. This looks
+ * it up until it is found, retrying only on that answer: any other error,
+ * such as a node with indexing disabled, is thrown at once. A transaction the
+ * node never accepted is never found. After `timeoutMs` it throws an
+ * OperationTimeoutError, also when a lookup is still unanswered then.
+ *
+ * Being indexed is not success: the returned `tx_result.code` is 0 only when
+ * the transaction succeeded.
+ */
+export async function waitForTx(
+    web3Context: Web3Context<BeatozExecutionAPI>,
+    hash: string | Uint8Array,
+    options: WaitForTxOptions = {},
+) {
+    const { timeoutMs = 30000, intervalMs = 500 } = options;
+    for (const [name, value] of [
+        ['timeoutMs', timeoutMs],
+        ['intervalMs', intervalMs],
+    ] as const) {
+        if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+            throw Error(`${name} must be a positive number of milliseconds, got ${value}`);
+        }
+        if (value > MAX_DELAY_MS) {
+            throw Error(`${name} must be at most ${MAX_DELAY_MS} milliseconds, got ${value}`);
+        }
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    let notFound: Error | undefined;
+    for (;;) {
+        // Settled either way, so a lookup answered after the deadline is
+        // dropped instead of becoming an unhandled rejection.
+        const lookup = rpcMethods.tx(web3Context.requestManager, hash).then(
+            (tx) => ({ tx }),
+            (err: unknown) => ({ err }),
+        );
+        const outcome = await beforeDeadline(lookup, deadline);
+        if (outcome === undefined) {
+            break;
+        }
+        if ('tx' in outcome) {
+            return outcome.tx;
+        }
+        if (!isTxNotFound(outcome.err)) {
+            throw outcome.err;
+        }
+        notFound = outcome.err;
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) {
+            break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, Math.min(intervalMs, remaining)));
+    }
+
+    const hex = typeof hash === 'string' ? hash : new BytesUint8Array(hash).toHex();
+    throw new OperationTimeoutError(
+        notFound
+            ? `transaction ${hex} was not indexed within ${timeoutMs}ms; the node may never have accepted it`
+            : `transaction ${hex} was not looked up within ${timeoutMs}ms; the node did not answer`,
+        notFound,
+    );
 }
 
 export async function contractAddrFromTx(

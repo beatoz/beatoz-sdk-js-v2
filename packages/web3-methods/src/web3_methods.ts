@@ -17,6 +17,7 @@
 import { Web3Context } from '@beatoz/web3-core';
 import * as rpcMethodsWrappers from './rpc_method_wrappers.js';
 import { TrxProto } from '@beatoz/web3-types';
+import { WaitForTxOptions } from './types.js';
 
 export class Web3Method extends Web3Context {
     public constructor() {
@@ -93,6 +94,10 @@ export class Web3Method extends Web3Context {
 
     tx(hash: string | Uint8Array) {
         return rpcMethodsWrappers.tx(this, hash);
+    }
+
+    waitForTx(hash: string | Uint8Array, options?: WaitForTxOptions) {
+        return rpcMethodsWrappers.waitForTx(this, hash, options);
     }
 
     contractAddrFromTx(hash: string | Uint8Array) {

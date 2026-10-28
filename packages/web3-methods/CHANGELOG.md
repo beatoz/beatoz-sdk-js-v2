@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `web3.beatoz.waitForTx(hash, { timeoutMs, intervalMs })` waits until the
+  node has indexed a transaction and returns it. A broadcast, the commit
+  reply included, can answer before the transaction is indexed, so looking it
+  up straight away can fail as `tx (...) not found`; callers wrote their own
+  polling for it. It retries only on that answer - any other error, such as a
+  node with indexing disabled, is thrown at once. After `timeoutMs` (default
+  30000, looking every `intervalMs`, default 500) it throws an
+  `OperationTimeoutError` holding the node's last answer, also when a lookup is
+  still unanswered then. Being indexed is not success: check
+  `tx_result.code`.
+
 - `reward(addr)` on `Web3Method`, so `web3.beatoz.reward(addr)` returns an
   account's reward ledger - in particular `cumulated`, the amount a withdraw
   transaction can take. The chain had the query; the SDK had no way to call it.

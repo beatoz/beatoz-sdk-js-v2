@@ -117,6 +117,18 @@ entries below name the packages they apply to.
 
 ### Added
 
+- `@beatoz/web3-methods`, `@beatoz/web3`:
+  `web3.beatoz.waitForTx(hash, { timeoutMs, intervalMs })` waits until the
+  node has indexed a transaction and returns it. A broadcast, the commit
+  reply included, can answer before the transaction is indexed, so looking it
+  up straight away can fail as `tx (...) not found`; callers wrote their own
+  polling for it. It retries only on that answer - any other error, such as a
+  node with indexing disabled, is thrown at once. After `timeoutMs` (default
+  30000, looking every `intervalMs`, default 500) it throws an
+  `OperationTimeoutError` holding the node's last answer, also when a lookup is
+  still unanswered then. Being indexed is not success: check
+  `tx_result.code`.
+
 - `@beatoz/web3-accounts`: `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw
   transaction (type 8), which moves part of the sender's accumulated staking
   reward into its balance. The chain accepted these all along; the SDK could

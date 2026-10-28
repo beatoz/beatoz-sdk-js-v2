@@ -15,7 +15,7 @@
 */
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { sendSampleTransfer, waitForTx } from '../chain_fixtures';
+import { sendSampleTransfer } from '../chain_fixtures';
 import { TxResponse } from '@beatoz/web3-types';
 
 describe('txSearch check ', () => {
@@ -29,7 +29,7 @@ describe('txSearch check ', () => {
 
     it('returns a transaction this chain has actually seen', async () => {
         const hash = await sendSampleTransfer(testWebsocketWeb3Instance);
-        await waitForTx(testWebsocketWeb3Instance, hash);
+        await testWebsocketWeb3Instance.beatoz.waitForTx(hash);
 
         const testTxResponse: TxResponse = await testWebsocketWeb3Instance.beatoz.tx(hash);
 

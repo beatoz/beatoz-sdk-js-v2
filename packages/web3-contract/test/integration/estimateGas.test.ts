@@ -20,29 +20,6 @@ import { Web3Account } from '@beatoz/web3-accounts';
 import { WebsocketProvider } from '@beatoz/web3-providers-ws';
 
 describe('estimateGas test', () => {
-    /**
-     * Waits until the node can answer for a transaction hash.
-     *
-     * Deploying returns once the transaction is accepted, not once it is in a
-     * block, so a query that follows immediately gets `tx (...) not found`.
-     */
-    async function waitForTx(hash: string, timeoutMs = 20000): Promise<void> {
-        const deadline = Date.now() + timeoutMs;
-        for (;;) {
-            try {
-                await web3.beatoz.tx(hash);
-                return;
-            } catch (err) {
-                if (Date.now() > deadline) {
-                    throw new Error(`the node did not report ${hash} within ${timeoutMs}ms`, {
-                        cause: err,
-                    });
-                }
-                await new Promise((resolve) => setTimeout(resolve, 200));
-            }
-        }
-    }
-
     const web3 = new Web3(netInfo.HTTP);
     for (const acct of netInfo.ACCTS) {
         web3.beatoz.accounts.wallet.add(acct.KEY);
@@ -78,7 +55,7 @@ describe('estimateGas test', () => {
                 // event log - a 32 byte digest, not the 20 byte address this
                 // used to read out of it. The address is an attribute on the
                 // events themselves, which is what contractAddrFromTx reads.
-                await waitForTx(resp.hash);
+                await web3.beatoz.waitForTx(resp.hash);
                 const contAddr = await web3.beatoz.contractAddrFromTx(resp.hash);
                 process.stdout.write(`contract address: ${contAddr}\n`);
                 process.stdout.write(`deployer address: ${deployerAcct.address}\n`);
