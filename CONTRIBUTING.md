@@ -120,9 +120,8 @@ Fixes: #123
 Refs: #120
 ```
 
-`Refs:` only links the issue. `Fixes:` closes it, but only when the commit
-reaches `main`, the default branch: GitHub ignores closing keywords on the way
-into `dev`, so the issue stays open until the change is released.
+`Refs:` only links the issue. `Fixes:` closes it when the commit reaches `dev`,
+the default branch.
 
 ### Reverts
 
@@ -167,15 +166,16 @@ dismisses an earlier approval.
 
 | Branch | What it holds | How it changes |
 | --- | --- | --- |
-| `dev` | Work in progress towards the next release | Pull requests, merged by rebasing |
-| `main` | What `dev` was at the last promotion | Fast-forwarded to `dev` |
+| `dev` | The default branch: work towards the next release | Pull requests, merged by rebasing |
+| `main` | What `dev` was at the last release | Fast-forwarded to `dev` when releasing |
 
 Rulesets on both branches enforce this: changes arrive through a pull request
 approved by a code owner, `dev` accepts only rebase merges and `main` only
 merge commits, and neither can be force-pushed or deleted. Repository admins
 bypass the rulesets.
 
-`main` moves only by fast-forward, so that it holds exactly the commits on
+`main` moves only when a release is made, so it always holds what was last
+published. It moves by fast-forward, so that it holds exactly the commits on
 `dev`, with the same hashes - changelogs, issues and work logs refer to
 commits by hash. An admin opens a pull request from `dev` to `main` as the
 record, then pushes:
@@ -184,10 +184,10 @@ record, then pushes:
 git push origin <dev commit>:main
 ```
 
-GitHub marks the pull request merged when its commits reach `main`, and the
-`Fixes:` trailers close their issues then. Do not use the merge buttons on that
-pull request: "Rebase and merge" copies every commit with a new hash, and
-"Create a merge commit" leaves `main` one commit ahead of `dev`.
+GitHub marks the pull request merged when its commits reach `main`. Do not use
+the merge buttons on that pull request: "Rebase and merge" copies every commit
+with a new hash, and "Create a merge commit" leaves `main` one commit ahead of
+`dev`.
 
 The admin bypass exists for this push. It also lets an admin push anything
 else to either branch; that is not how the branches are used.
