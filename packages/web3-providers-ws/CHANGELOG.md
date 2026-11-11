@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
+  which builds and tests the repository, does not install below it, and the
+  packages keep the repository's floor so that there is one number. 22.22.2 is a
+  security release of Node 22. A user on Node 22 below it upgrades Node; nothing
+  else changes.
+
 - **BREAKING:** A node error is thrown as a `ResponseError`, as the HTTP
   provider and the request manager throw it, instead of an `Error` whose
   message was the JSON-RPC error serialised to a string. The node's own

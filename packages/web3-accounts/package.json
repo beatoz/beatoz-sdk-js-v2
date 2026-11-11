@@ -24,7 +24,7 @@
         "url": "https://github.com/beatoz"
     },
     "engines": {
-        "node": ">=22.13.0"
+        "node": ">=22.22.2"
     },
     "files": [
         "lib/**/*",

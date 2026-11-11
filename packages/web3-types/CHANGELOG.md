@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
+  which builds and tests the repository, does not install below it, and the
+  packages keep the repository's floor so that there is one number. 22.22.2 is a
+  security release of Node 22. A user on Node 22 below it upgrades Node; nothing
+  else changes.
+
 - **BREAKING:** `BytesUint8Array.fromHex` accepts only hex digits, two per
   byte, with or without a `0x` prefix, and throws on anything else: `invalid
   hex: "zz"`, `hex must have an even number of digits: "0xabc"`. It never

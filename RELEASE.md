@@ -60,7 +60,7 @@ Two cases are easy to misread:
 The supported ranges are declared in every package:
 
 ```json
-"engines": { "node": ">=22.13.0" },
+"engines": { "node": ">=22.22.2" },
 "peerDependencies": { "typescript": ">=5.7" },
 "peerDependenciesMeta": { "typescript": { "optional": true } }
 ```
@@ -75,16 +75,18 @@ describing the machine that builds this repository rather than one that consumes
 it, and the two could legitimately differ - but one number is easier to keep
 true than two, and nothing is lost by holding the repository to what it ships.
 
-Two things set that number, and the higher one wins:
+Three things set that number, and the highest one wins:
 
 - `require(esm)`, which is why these packages can ship ESM only, landed in
   **22.12**.
 - ESLint 10 declares `^20.19.0 || ^22.13.0 || >=24`, so it starts at **22.13**.
+- lerna 10, which runs every build and test here, declares
+  `^22.22.2 || ^24.15.0 || ^26.0.0`, so `yarn install` refuses anything below
+  **22.22.2**.
 
-22.13 is one patch line above what the runtime needs. The window it gives up -
-22.12.0 through 22.12.x, December 2024 to January 2025 - was superseded before
-this was written, and taking it keeps the repository from having to explain why
-its own floor does not satisfy its own toolchain.
+The packages would run on 22.12. They are held to 22.22.2 with the repository,
+so there is one number. It is also a security release (March 2026), which a
+Node 22 user below it should take anyway.
 
 The floor is measured, not chosen. It started at 5.4, picked as a round number
 below where the declarations happened to parse. That was wrong: these packages

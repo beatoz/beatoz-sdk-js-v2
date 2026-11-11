@@ -15,6 +15,13 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- All packages: **BREAKING:** The minimum supported Node.js version is now
+  22.22.2, raised from 22.13. lerna 10, which builds and tests this repository,
+  does not install below it, and the packages keep the repository's floor so
+  that there is one number (RELEASE.md, Environment). 22.22.2 is a security
+  release of Node 22. A user on Node 22 below it upgrades Node; nothing else
+  changes.
+
 - `@beatoz/web3-providers-ws`: **BREAKING:** A node error is thrown as a
   `ResponseError`, as the HTTP provider and the request manager throw it,
   instead of an `Error` whose message was the JSON-RPC error serialised to a
