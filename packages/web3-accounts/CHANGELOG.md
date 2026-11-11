@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
+  which builds and tests the repository, does not install below it, and the
+  packages keep the repository's floor so that there is one number. 22.22.2 is a
+  security release of Node 22. A user on Node 22 below it upgrades Node; nothing
+  else changes.
+
 - **BREAKING:** Transaction payloads are typed per transaction type.
   `Transaction<T>` declared `payload?: object | T`, so any object compiled for
   any builder, a missing payload compiled too, and the builders cast it back

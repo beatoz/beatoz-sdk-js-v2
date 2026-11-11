@@ -22,7 +22,7 @@ what the SDK must match.
 
 ## Development
 
-Node.js 22.13 or later, and Yarn 1.
+Node.js 22.22.2 or later (`.nvmrc` has the version CI uses), and Yarn 1.
 
 ```bash
 yarn install
@@ -187,7 +187,7 @@ commits by hash. An admin opens a pull request from `dev` to `main` as the
 record. On top of the checks every pull request gets, it runs the release
 checks ([`.github/workflows/release-checks.yml`](./.github/workflows/release-checks.yml)):
 that it comes from `dev`, and the packages as npm would publish them -
-installed outside the repository on Node 22.13.0, 24 and 26 and TypeScript
+installed outside the repository on Node 22.22.2, 24 and 26 and TypeScript
 5.7.3, 6.0.3 and 7.0.2, each package alone, publint - and the reward paths
 against a node. When all of them pass, the admin pushes:
 

@@ -46,7 +46,7 @@ body:
     id: node
     attributes:
       label: Node.js version
-      placeholder: "22.13.0"
+      placeholder: "26.13.0"
     validations:
       required: true
   - type: dropdown

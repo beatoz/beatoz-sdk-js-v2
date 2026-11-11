@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
+  which builds and tests the repository, does not install below it, and the
+  packages keep the repository's floor so that there is one number. 22.22.2 is a
+  security release of Node 22. A user on Node 22 below it upgrades Node; nothing
+  else changes.
+
 - **BREAKING:** The minimum Node version is 22.13, raised from 22.12. Two things
   set the floor and the higher one now wins: `require(esm)` - the reason these
   packages can ship ESM only - landed in 22.12, while ESLint 10, which this
