@@ -1,0 +1,138 @@
+name: Release checks
+
+# What a pull request into main has to pass before main is moved, on top of
+# ci.yml: the packages as npm would publish them, installed outside the
+# repository on every supported Node and TypeScript, and the reward paths
+# against a node. They also run on every push to dev, so a problem shows up
+# when it lands rather than at release; there a failure only sends the usual
+# GitHub email and blocks nothing.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: release-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    name: From dev
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check that the pull request comes from dev in this repository
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_REF" != dev ]; then
+            echo "::error::main moves only from dev in $GITHUB_REPOSITORY, not from $HEAD_REPO:$HEAD_REF (CONTRIBUTING.md, Branches)"
+            exit 1
+          fi
+
+  pack:
+    name: Pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: node scripts/check-packed.mjs pack packed
+      - run: node scripts/check-packed.mjs publint packed
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packed
+          path: packed/*.tgz
+          if-no-files-found: error
+
+  node:
+    name: Node ${{ matrix.node }}
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor in engines, the version in .nvmrc, the current LTS.
+        node: ['22.13.0', '24', '26']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packed
+          path: packed
+      - run: node scripts/check-packed.mjs install packed
+
+  typescript:
+    name: TypeScript ${{ matrix.typescript }}
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor in peerDependencies, the version the repository builds
+        # with, the latest major.
+        typescript: ['5.7.3', '6.0.3', '7.0.2']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packed
+          path: packed
+      - run: node scripts/check-packed.mjs install packed --typescript ${{ matrix.typescript }}
+
+  standalone:
+    name: Each package alone
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packed
+          path: packed
+      - run: node scripts/check-packed.mjs standalone packed
+
+  reward:
+    name: Reward withdrawal
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn node:start:reward
+      - run: yarn test:reward
+      - name: Show the node's log
+        if: failure()
+        run: docker logs --tail 200 beatoz-sdk-rewardnode
+      - name: Stop the node
+        if: always()
+        run: yarn node:stop:reward

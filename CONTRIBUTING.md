@@ -176,15 +176,20 @@ dismisses an earlier approval.
 | `main` | What `dev` was at the last release | Fast-forwarded to `dev` when releasing |
 
 Rulesets on both branches enforce this: changes arrive through a pull request
-approved by a code owner, `dev` accepts only rebase merges and `main` only
-merge commits, and neither can be force-pushed or deleted. Repository admins
-bypass the rulesets.
+approved by a code owner and passing the CI checks, `dev` accepts only rebase
+merges and `main` only merge commits, and neither can be force-pushed or
+deleted. Repository admins bypass the rulesets.
 
 `main` moves only when a release is made, so it always holds what was last
 published. It moves by fast-forward, so that it holds exactly the commits on
 `dev`, with the same hashes - changelogs, issues and work logs refer to
 commits by hash. An admin opens a pull request from `dev` to `main` as the
-record, then pushes:
+record. On top of the checks every pull request gets, it runs the release
+checks ([`.github/workflows/release-checks.yml`](./.github/workflows/release-checks.yml)):
+that it comes from `dev`, and the packages as npm would publish them -
+installed outside the repository on Node 22.13.0, 24 and 26 and TypeScript
+5.7.3, 6.0.3 and 7.0.2, each package alone, publint - and the reward paths
+against a node. When all of them pass, the admin pushes:
 
 ```bash
 git push origin <dev commit>:main
@@ -198,8 +203,12 @@ with a new hash, and "Create a merge commit" leaves `main` one commit ahead of
 The admin bypass exists for this push. It also lets an admin push anything
 else to either branch; that is not how the branches are used.
 
-Nothing enforces yet that a pull request into `main` comes from `dev`. A check
-for it belongs with the release checks, which CI does not have yet.
+The release checks also run on every push to `dev`, so a problem shows up when
+it lands rather than at release. There a failure blocks nothing; GitHub emails
+whoever pushed.
+
+Because the push bypasses the rulesets, nothing stops it while the checks are
+red. Push only when the pull request is green.
 
 ## Issues
 

@@ -25,6 +25,10 @@
  *      once left the build loading fine but unable to sign;
  *   3. the public types compile with no Node types available
  *      (`types: []`, `skipLibCheck: false`), so users do not need `@types/node`.
+ *
+ * With `--installed`, the same checks run in a project that installed the
+ * packed packages: scripts/check-packed.mjs copies this file there, and the
+ * packages and TypeScript are then the ones in that project's node_modules.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -35,15 +39,21 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, '..');
+const installed = process.argv.includes('--installed');
+const projectRoot = installed ? here : path.resolve(here, '..');
 const require = createRequire(import.meta.url);
 
-const names = fs
-    .readdirSync(path.join(repoRoot, 'packages'))
-    .map((dir) => path.join(repoRoot, 'packages', dir, 'package.json'))
-    .filter((file) => fs.existsSync(file))
-    .map((file) => JSON.parse(fs.readFileSync(file, 'utf8')).name)
-    .sort();
+const names = installed
+    ? fs
+          .readdirSync(path.join(projectRoot, 'node_modules', '@beatoz'))
+          .map((dir) => `@beatoz/${dir}`)
+          .sort()
+    : fs
+          .readdirSync(path.join(projectRoot, 'packages'))
+          .map((dir) => path.join(projectRoot, 'packages', dir, 'package.json'))
+          .filter((file) => fs.existsSync(file))
+          .map((file) => JSON.parse(fs.readFileSync(file, 'utf8')).name)
+          .sort();
 
 let failed = false;
 const fail = (what, error) => {
@@ -98,8 +108,11 @@ try {
 // 3. public types without Node types
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'beatoz-check-dist-'));
 try {
-    // Inside the repository, so the imports resolve to the workspace packages.
-    const consumer = path.join(repoRoot, `.check-dist-${process.pid}.ts`);
+    // Inside the project, so the imports resolve to its packages.
+    // .mts: an ES module whatever the project's "type" says. The packages are
+    // ES modules only, and before TypeScript 5.8 a CommonJS file cannot import
+    // them under nodenext.
+    const consumer = path.join(projectRoot, `.check-dist-${process.pid}.mts`);
     fs.writeFileSync(
         consumer,
         names.map((name, i) => `import * as p${i} from '${name}';\nvoid p${i};\n`).join(''),
@@ -120,9 +133,17 @@ try {
             files: [consumer],
         }),
     );
+    // Read the bin from package.json: TypeScript 7 does not export ./bin/tsc.
+    const tsDir = require.resolve
+        .paths('typescript')
+        .map((modules) => path.join(modules, 'typescript'))
+        .find((candidate) => fs.existsSync(path.join(candidate, 'package.json')));
+    const tsManifest = JSON.parse(fs.readFileSync(path.join(tsDir, 'package.json'), 'utf8'));
+    const tsc = path.join(tsDir, tsManifest.bin.tsc);
+    const version = execFileSync(process.execPath, [tsc, '--version']).toString().trim();
     try {
-        execFileSync(require.resolve('typescript/bin/tsc'), ['-p', tsconfig], { stdio: 'pipe' });
-        console.log('✓ the public types compile without @types/node');
+        execFileSync(process.execPath, [tsc, '-p', tsconfig], { stdio: 'pipe' });
+        console.log(`✓ the public types compile without @types/node (${version})`);
     } catch (error) {
         fail('the public types compile without @types/node', error.stdout?.toString() || error);
     } finally {
