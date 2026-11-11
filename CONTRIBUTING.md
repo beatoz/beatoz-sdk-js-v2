@@ -157,6 +157,12 @@ What a pull request needs:
   review fixes into the commits they belong to (`git commit --fixup`,
   `git rebase -i --autosquash`) before merging.
 
+CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) checks every pull
+request: the commit messages (`npx commitlint`), `yarn build`, `npx eslint .`,
+`yarn test`, what the build hands to users (`node scripts/check-dist.mjs`), and
+`yarn test:integration` against the test node. A draft runs only the first
+four; mark it ready for review to run the rest.
+
 A pull request needs an approving review from a code owner
 ([`.github/CODEOWNERS`](./.github/CODEOWNERS)). Anyone may review, but only a
 code owner's approval lets it merge, and a new push to the pull request
@@ -192,8 +198,8 @@ with a new hash, and "Create a merge commit" leaves `main` one commit ahead of
 The admin bypass exists for this push. It also lets an admin push anything
 else to either branch; that is not how the branches are used.
 
-Nothing enforces that a pull request into `main` comes from `dev`. A check for
-it belongs with CI, which does not exist yet.
+Nothing enforces yet that a pull request into `main` comes from `dev`. A check
+for it belongs with the release checks, which CI does not have yet.
 
 ## Issues
 
