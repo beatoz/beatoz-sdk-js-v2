@@ -66,7 +66,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The floor in engines, the version in .nvmrc, the current LTS.
+        # The floor in engines, the previous LTS (in maintenance), the current
+        # LTS and the version in .nvmrc.
         node: ['22.13.0', '24', '26']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
