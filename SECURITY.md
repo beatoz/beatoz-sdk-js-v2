@@ -26,7 +26,7 @@ otherwise.
 | 2.x | Yes, from its first release (in development, not yet published) |
 | 1.x | No - see [beatoz/beatoz-sdk-js](https://github.com/beatoz/beatoz-sdk-js) |
 
-Only the current major receives fixes; see "Support" in [RELEASE.md](./RELEASE.md).
+Only the current major receives fixes; see "Support" in [the release policy](./guides/release.md).
 
 ## Scope
 

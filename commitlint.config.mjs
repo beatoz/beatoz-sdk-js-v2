@@ -16,7 +16,7 @@
 
 import fs from 'node:fs';
 
-// The rules in "Commit messages" in CONTRIBUTING.md. Reverts are skipped by
+// The rules in guides/commits.md. Reverts are skipped by
 // commitlint's default ignores, so their generated subjects may run long.
 
 // A scope names one package, without the `web3-` prefix.

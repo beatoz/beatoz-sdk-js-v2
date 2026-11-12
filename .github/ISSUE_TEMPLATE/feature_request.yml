@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        A change to anything a package exports is a compatibility promise, so it is agreed on here before a pull request is opened. See RELEASE.md for what counts as breaking.
+        A change to anything a package exports is a compatibility promise, so it is agreed on here before a pull request is opened. See guides/release.md for what counts as breaking.
   - type: checkboxes
     attributes:
       label: Existing issues

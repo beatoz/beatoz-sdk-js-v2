@@ -72,7 +72,7 @@ You can find documents https://beatoz.gitbook.io/beatoz-sdk-js/docs-en
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for commit, issue and pull request rules, [RELEASE.md](./RELEASE.md) for versioning, and [SECURITY.md](./SECURITY.md) for reporting a vulnerability.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and [`guides/`](./guides) for development, commit, issue and pull request rules, [the release policy](./guides/release.md) for versioning, and [SECURITY.md](./SECURITY.md) for reporting a vulnerability.
 
 ## License
 ```

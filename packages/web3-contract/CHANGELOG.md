@@ -4,7 +4,7 @@ All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org). See
-[RELEASE.md](../../RELEASE.md) for what counts as a major, minor or patch change.
+[guides/release.md](../../guides/release.md) for what counts as a major, minor or patch change.
 
 ## [Unreleased]
 

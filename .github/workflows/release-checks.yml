@@ -34,7 +34,7 @@ jobs:
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_REF" != dev ]; then
-            echo "::error::main moves only from dev in $GITHUB_REPOSITORY, not from $HEAD_REPO:$HEAD_REF (CONTRIBUTING.md, Branches)"
+            echo "::error::main moves only from dev in $GITHUB_REPOSITORY, not from $HEAD_REPO:$HEAD_REF (guides/branches.md)"
             exit 1
           fi
 

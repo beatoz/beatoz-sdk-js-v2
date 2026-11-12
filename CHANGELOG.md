@@ -6,7 +6,7 @@ to read when upgrading a single package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org). See
-[RELEASE.md](./RELEASE.md) for what counts as a major, minor or patch change.
+[guides/release.md](./guides/release.md) for what counts as a major, minor or patch change.
 
 ## [Unreleased]
 
@@ -18,7 +18,7 @@ entries below name the packages they apply to.
 - All packages: **BREAKING:** The minimum supported Node.js version is now
   22.22.2, raised from 22.13. lerna 10, which builds and tests this repository,
   does not install below it, and the packages keep the repository's floor so
-  that there is one number (RELEASE.md, Environment). 22.22.2 is a security
+  that there is one number (guides/release.md, Environment). 22.22.2 is a security
   release of Node 22. A user on Node 22 below it upgrades Node; nothing else
   changes.
 
@@ -79,7 +79,7 @@ entries below name the packages they apply to.
 
 - Every package's `homepage` now points to
   [beatoz/beatoz-sdk-js-v2](https://github.com/beatoz/beatoz-sdk-js-v2), where v2
-  is developed and released. v1 stays in beatoz/beatoz-sdk-js. See `RELEASE.md`
+  is developed and released. v1 stays in beatoz/beatoz-sdk-js. See `guides/release.md`
   for which repository publishes which versions.
 
 - `@beatoz/web3-accounts`: **BREAKING:** Every transaction builder now requires
@@ -367,7 +367,7 @@ entries below name the packages they apply to.
   afterwards: a fix to `@beatoz/web3-utils` moves that package alone, and the
   other twelve keep the number they were released at. Internal dependencies use
   caret ranges, so a dependent accepts the new patch without being republished.
-  See [RELEASE.md](./RELEASE.md) for the operating rule.
+  See [guides/release.md](./guides/release.md) for the operating rule.
 
 ### Added
 

@@ -1,5 +1,5 @@
 <!--
-One problem per pull request. See CONTRIBUTING.md.
+One problem per pull request. See CONTRIBUTING.md and guides/pull-requests.md.
 Tick only what you actually did. For anything left unticked, say why on the same line.
 -->
 
@@ -22,4 +22,4 @@ Tick only what you actually did. For anything left unticked, say why on the same
 
 - [ ] Changelog entries under `## [Unreleased]` in the root `CHANGELOG.md` and in each changed package
 - [ ] Documentation updated, or not needed: <!-- say which -->
-- [ ] Commits follow CONTRIBUTING.md, and review fixes are folded into the commits they belong to
+- [ ] Commits follow guides/commits.md, and review fixes are folded into the commits they belong to
