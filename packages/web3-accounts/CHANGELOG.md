@@ -95,6 +95,24 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `buildContractTrxProto` also accepts an empty `to`, which creates a
   contract.
 
+- **BREAKING:** The proposal, voting and unstaking payloads take plain values,
+  so callers no longer handle `long` or bytes:
+
+  - `buildProposalTrx`: `startVotingHeight`, `votingBlocks` and
+    `applyingHeight` are numbers instead of `Long`, checked as non-negative safe
+    integers; `options` is text (`string[]`, encoded as UTF-8) instead of
+    `Uint8Array[]`, such as `[JSON.stringify(params)]` for a governance
+    parameter change. The input type is the new `TransactionPayloadProposal`.
+  - `buildVotingTrx`: `txHash` is the proposal hash as hex, as the node returns
+    it, instead of `Uint8Array`. The input type is the new
+    `TransactionPayloadVoting`.
+  - `buildUnDelegateTrxProto`: `txhash` is renamed `txHash`, as in voting.
+    `decodeTransaction` returns it under the same name.
+  - `buildSetDocTrx` takes the new `TransactionPayloadSetDoc`, the same shape.
+
+  `optType` and `choice` must be non-negative 32-bit integers. The protobuf
+  payload types are no longer part of the builder inputs.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),

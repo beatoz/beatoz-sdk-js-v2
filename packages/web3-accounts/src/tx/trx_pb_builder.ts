@@ -20,18 +20,16 @@ import { BytesUint8Array } from '@beatoz/web3-types';
 import BN from 'bn.js';
 import { fromNanoSecond, getNanoSecond } from '@beatoz/web3-utils';
 import { createHash } from 'crypto';
-import {
-    TrxPayloadProposalProto,
-    TrxPayloadSetDocProto,
-    TrxPayloadVotingProto,
-    TrxProtoUtils,
-} from './trx_pb.js';
+import { TrxProtoUtils } from './trx_pb.js';
 import { HexString, TrxProto } from '@beatoz/web3-types';
 import {
     DecodedTransaction,
     Transaction,
     TransactionPayloadContract,
+    TransactionPayloadProposal,
+    TransactionPayloadSetDoc,
     TransactionPayloadUnDelegating,
+    TransactionPayloadVoting,
     TransactionPayloadWithdraw,
     TransactionWithoutAmount,
 } from './tx_types.js';
@@ -77,6 +75,30 @@ function parseInt64(name: string, value: number): Long {
         throw Error(`${name} must be a non-negative safe integer, got ${String(value)}`);
     }
     return Long.fromNumber(value);
+}
+
+/**
+ * Checks an int32 payload field that is a count or an index, so never
+ * negative: beatoz-go refuses a negative choice, and the proposal types it
+ * defines are positive.
+ */
+function parseInt32(name: string, value: number): number {
+    if (!Number.isInteger(value) || value < 0 || value > 0x7fffffff) {
+        throw Error(`${name} must be a non-negative 32-bit integer, got ${String(value)}`);
+    }
+    return value;
+}
+
+/**
+ * Encodes proposal options, given as text, as UTF-8. The chain reads a
+ * governance parameter option as JSON.
+ */
+function parseOptions(options: string[]): Uint8Array[] {
+    if (!Array.isArray(options) || !options.every((option) => typeof option === 'string')) {
+        throw Error('options must be an array of strings');
+    }
+    const encoder = new TextEncoder();
+    return options.map((option) => encoder.encode(option));
 }
 
 /**
@@ -154,7 +176,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                 ...fields,
                 type: tx.type,
                 payload: {
-                    txhash: new BytesUint8Array(unstakingPayload.txHash).toHex(),
+                    txHash: new BytesUint8Array(unstakingPayload.txHash).toHex(),
                 },
                 sig,
             };
@@ -287,12 +309,12 @@ function buildUnDelegateTrxProto(
     transaction: Transaction<TransactionPayloadUnDelegating>,
 ): TrxProto {
     const payload = transaction.payload;
-    if (!isSet(payload) || !isSet(payload.txhash)) {
+    if (!isSet(payload) || !isSet(payload.txHash)) {
         throw Error('mandatory argument is missed');
     }
 
     const payloadBytes = trxPb.TrxPayloadUnstakingProto.encode({
-        txHash: BytesUint8Array.fromHex(payload.txhash),
+        txHash: BytesUint8Array.fromHex(payload.txHash),
     }).finish();
 
     return {
@@ -316,7 +338,7 @@ function buildUnDelegateTrxProto(
 }
 
 function buildProposalTrx(
-    transaction: TransactionWithoutAmount<TrxPayloadProposalProto>,
+    transaction: TransactionWithoutAmount<TransactionPayloadProposal>,
 ): TrxProto {
     refuseAmount('a proposal', transaction.amount);
     const payload = transaction.payload;
@@ -325,11 +347,11 @@ function buildProposalTrx(
     }
     const payloadBytes = trxPb.TrxPayloadProposalProto.encode({
         message: payload.message,
-        startVotingHeight: payload.startVotingHeight,
-        votingBlocks: payload.votingBlocks,
-        applyingHeight: payload.applyingHeight,
-        optType: payload.optType,
-        options: payload.options,
+        startVotingHeight: parseInt64('startVotingHeight', payload.startVotingHeight),
+        votingBlocks: parseInt64('votingBlocks', payload.votingBlocks),
+        applyingHeight: parseInt64('applyingHeight', payload.applyingHeight),
+        optType: parseInt32('optType', payload.optType),
+        options: parseOptions(payload.options),
     }).finish();
 
     return {
@@ -352,15 +374,15 @@ function buildProposalTrx(
     };
 }
 
-function buildVotingTrx(transaction: TransactionWithoutAmount<TrxPayloadVotingProto>): TrxProto {
+function buildVotingTrx(transaction: TransactionWithoutAmount<TransactionPayloadVoting>): TrxProto {
     refuseAmount('a vote', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');
     }
     const payloadBytes = trxPb.TrxPayloadVotingProto.encode({
-        txHash: payload.txHash,
-        choice: payload.choice,
+        txHash: BytesUint8Array.fromHex(payload.txHash),
+        choice: parseInt32('choice', payload.choice),
     }).finish();
 
     return {
@@ -456,7 +478,7 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
     };
 }
 
-function buildSetDocTrx(transaction: TransactionWithoutAmount<TrxPayloadSetDocProto>): TrxProto {
+function buildSetDocTrx(transaction: TransactionWithoutAmount<TransactionPayloadSetDoc>): TrxProto {
     refuseAmount('a setDoc', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {

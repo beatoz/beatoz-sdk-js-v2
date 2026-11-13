@@ -52,8 +52,42 @@ export type TransactionWithoutAmount<T> = Omit<TransactionFields, 'amount'> & {
 
 type PayloadField<T> = undefined extends T ? { payload?: T } : { payload: T };
 
+// Payload inputs take the values a caller already holds - numbers, hashes as
+// the hex the node returns, text - and the builders convert them to the
+// protobuf types, which stay out of the public inputs.
+
 export interface TransactionPayloadUnDelegating {
-    txhash: string;
+    /** Hash of the staking transaction, as hex. */
+    txHash: string;
+}
+
+export interface TransactionPayloadProposal {
+    message: string;
+    /** Block height voting starts at; it must be above the current height. */
+    startVotingHeight: number;
+    /** How many blocks voting lasts. */
+    votingBlocks: number;
+    /** Block height the result is applied at. */
+    applyingHeight: number;
+    /** 0x0101 for a governance parameter change, 0x0200 for a general one. */
+    optType: number;
+    /**
+     * The options voted on, as text. A governance parameter change carries
+     * the new parameters as JSON, such as `JSON.stringify({ maxTrxGas: '...' })`.
+     */
+    options: string[];
+}
+
+export interface TransactionPayloadVoting {
+    /** Hash of the proposal transaction, as hex. */
+    txHash: string;
+    /** Index into the proposal's options. */
+    choice: number;
+}
+
+export interface TransactionPayloadSetDoc {
+    name: string;
+    url: string;
 }
 
 export interface TransactionPayloadContract {
@@ -91,7 +125,7 @@ interface DecodedTransactionFields {
 
 export interface DecodedPayloadUnstaking {
     /** Hash of the staking transaction, as hex. */
-    txhash: string;
+    txHash: string;
 }
 
 export interface DecodedPayloadProposal {

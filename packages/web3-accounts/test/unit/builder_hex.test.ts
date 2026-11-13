@@ -56,7 +56,7 @@ describe('builders read hex strictly', () => {
             TrxProtoBuilder.buildUnDelegateTrxProto({
                 ...base,
                 amount: '0',
-                payload: { txhash: 'zz'.repeat(32) },
+                payload: { txHash: 'zz'.repeat(32) },
             }),
         ).toThrow('invalid hex');
     });

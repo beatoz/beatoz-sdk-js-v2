@@ -133,7 +133,7 @@ const trxProto: TrxProto = TrxProtoBuilder.buildUnDelegateTrxProto({
     gasPrice: '250000000000',
     amount: '0',
     payload: {
-        txhash: delegateHash
+        txHash: delegateHash
     },
 });
 
@@ -165,7 +165,6 @@ const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
 ```typescript
 import { Web3, TrxProtoBuilder, TrxProto, AccountResponse } from '@beatoz/web3';
 import { Web3Account } from '@beatoz/web3-accounts';
-import Long from "long";
 
 // create web3 instance
 const web3 = new Web3('https://rpc1.testnet.beatoz.io');
@@ -181,23 +180,21 @@ const accountInfo: AccountResponse = await web3.beatoz.getAccount(account.addres
 const governanceParams = {
     param : 'value'
 }
-const selizalizedParams = serializeObject(governanceParams);
 
 // create transaction
-const trxProto: TrxProto = TrxProtoBuilder.buildUnDelegateTrxProto({
+const trxProto: TrxProto = TrxProtoBuilder.buildProposalTrx({
     from: accountInfo.value.address,
     to: '0000000000000000000000000000000000000000',
     nonce: accountInfo.value.nonce,
     gas: 1000000,
     gasPrice: '250000000000',
-    amount: '0',
     payload: {
         message: 'your message',
-        startVotingHeight: Long.fromValue(/* startVotingHeight */),
-        votingBlocks: Long.fromValue(/* votingBlocks */),
-        applyingHeight: Long.fromValue(/* applyingHeight */),
+        startVotingHeight: 1200, // a height above the current one
+        votingBlocks: 100,
+        applyingHeight: 1400,
         optType: 257,
-        options: selizalizedParams,
+        options: [JSON.stringify(governanceParams)],
     },
 });
 
@@ -223,7 +220,7 @@ const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
 아래의 코드는 `TrxProtoBuilder`의 `buildVotingTrx` 를 사용하여 트랜잭션을 생성하고, `BEATOZ` 테스트 네트워크에 제출하는 예시입니다.
 
 ```typescript
-import { Web3, TrxProtoBuilder, TrxProto, AccountResponse, BytesUint8Array } from '@beatoz/web3';
+import { Web3, TrxProtoBuilder, TrxProto, AccountResponse } from '@beatoz/web3';
 import { Web3Account } from '@beatoz/web3-accounts';
 
 // create web3 instance
@@ -237,7 +234,7 @@ const account: Web3Account = privateKeyToAccount(privateKey);
 const accountInfo: AccountResponse = await web3.beatoz.getAccount(account.address);
 
 // voting hash
-const votingHash = BytesUint8Array.fromHex('proposal transaction hash');
+const votingHash = 'proposal transaction hash';
 
 // create transaction
 const trxProto: TrxProto = TrxProtoBuilder.buildVotingTrx({
@@ -247,7 +244,7 @@ const trxProto: TrxProto = TrxProtoBuilder.buildVotingTrx({
     gas: 1000000,
     gasPrice: '250000000000',
     payload: {
-        txhash: votingHash,
+        txHash: votingHash,
         choice: 0,
     },
 });
