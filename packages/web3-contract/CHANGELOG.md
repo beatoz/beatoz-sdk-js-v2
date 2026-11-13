@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Contract methods are typed from the ABI with abitype, the
+  library viem uses. The inherited types turned an `address` argument into
+  `never` and an `uint256` result into an unresolved type, so correct calls did
+  not compile and callers cast contracts to `any`. With an ABI written `as
+  const`, `contract.methods` has exactly the ABI's function names (a missing
+  method or an event name no longer compiles), each takes its arguments as a
+  tuple (addresses and bytes with or without `0x`), and `call()` returns the
+  decoded result typed from the outputs. An ABI read from JSON allows any name
+  with unknown arguments and result. `call()`'s results take the shape abitype
+  gives them, as viem returns them: integers of 48 bits or fewer are numbers
+  (`decimals()` is `18`, not `18n`), wider ones bigints, and a tuple with named
+  components is an object (`{ a, b }`) rather than an array-like object with
+  index keys and `__length__`. `call()` no longer takes a type argument for its
+  result, `estimateGas()` is typed as the `VmCallResponse` it returns, and
+  methods are no longer typed under their signature
+  (`'transfer(address,uint256)'`) or selector. `ContractOverloadedMethodInputs`
+  and `ContractOverloadedMethodOutputs` are removed; `ContractMethodsInterface`,
+  `MethodInputs` and `MethodOutputs` replace them.
+
 - **BREAKING:** A contract method's `call()` returns its decoded result instead
   of the node's `vm_call` response: the value itself for one output (`1000n`,
   `'MyToken'`), an array for more (`[1000n, true]`), and `undefined` for none,

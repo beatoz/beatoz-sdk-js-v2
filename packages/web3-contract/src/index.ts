@@ -45,5 +45,6 @@ export * from './encoding.js';
 
 export * from './contract.js';
 export * from './types.js';
+export * from './method_types.js';
 
 export default Contract;

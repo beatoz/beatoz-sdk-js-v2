@@ -28,6 +28,7 @@ import {
     BroadcastTxAsyncResponse,
     BroadcastTxSyncResponse,
     BroadcastTxCommitResponse,
+    VmCallResponse,
 } from '@beatoz/web3-types';
 
 export type NonPayableTxOptions = NonPayableCallOptions;
@@ -103,10 +104,8 @@ export interface ContractOptions {
 export interface NonPayableMethodObject<Inputs = unknown[], Outputs = unknown[]> {
     arguments: Inputs;
 
-    call<SpecialOutput = Outputs>(
-        tx?: NonPayableCallOptions,
-        block?: BlockNumberOrTag,
-    ): Promise<SpecialOutput>;
+    /** Runs the function without a transaction and returns its decoded result. */
+    call(tx?: NonPayableCallOptions, block?: BlockNumberOrTag): Promise<Outputs>;
 
     // send(
     //     tx?: NonPayableTxOptions,
@@ -122,9 +121,8 @@ export interface NonPayableMethodObject<Inputs = unknown[], Outputs = unknown[]>
         tx?: NonPayableTxOptions | BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
-    estimateGas<SpecialOutput = Outputs>(
-        tx?: PayableCallOptions | NonPayableTxOptions,
-    ): Promise<SpecialOutput>;
+    /** The node's gas estimate for the call (`value.usedGas`). */
+    estimateGas(tx?: PayableCallOptions | NonPayableTxOptions): Promise<VmCallResponse>;
 
     /**
      * Encodes the ABI for this method. The resulting hex string is 32-bit function signature hash plus the passed parameters in Solidity tightly packed format.
@@ -141,10 +139,8 @@ export interface NonPayableMethodObject<Inputs = unknown[], Outputs = unknown[]>
 
 export interface PayableMethodObject<Inputs = unknown[], Outputs = unknown[]> {
     arguments: Inputs;
-    call<SpecialOutput = Outputs>(
-        tx?: PayableCallOptions,
-        block?: BlockNumberOrTag,
-    ): Promise<SpecialOutput>;
+    /** Runs the function without a transaction and returns its decoded result. */
+    call(tx?: PayableCallOptions, block?: BlockNumberOrTag): Promise<Outputs>;
 
     // send(
     //     options?: PayableTxOptions | NonPayableTxOptions | BroadcastTxOptions,
@@ -160,9 +156,8 @@ export interface PayableMethodObject<Inputs = unknown[], Outputs = unknown[]> {
         tx?: PayableTxOptions | NonPayableTxOptions | BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
-    estimateGas<SpecialOutput = Outputs>(
-        tx?: PayableCallOptions | NonPayableTxOptions,
-    ): Promise<SpecialOutput>;
+    /** The node's gas estimate for the call (`value.usedGas`). */
+    estimateGas(tx?: PayableCallOptions | NonPayableTxOptions): Promise<VmCallResponse>;
 
     /**
      * Encodes the ABI for this method. The resulting hex string is 32-bit function signature hash plus the passed parameters in Solidity tightly packed format.

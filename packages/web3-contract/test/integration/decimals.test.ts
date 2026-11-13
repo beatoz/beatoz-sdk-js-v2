@@ -35,6 +35,7 @@ describe('decimals test', () => {
         const erc20Contract = new Contract(erc20Json, deployedContract.address) as any;
         erc20Contract.setProvider(provider);
 
-        expect(await erc20Contract.methods.decimals().call()).toEqual(18n);
+        // uint8 fits a number, so it comes back as one, as in viem.
+        expect(await erc20Contract.methods.decimals().call()).toBe(18);
     });
 });
