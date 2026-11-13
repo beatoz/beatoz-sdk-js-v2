@@ -87,8 +87,9 @@ export const RlpUtils = {
                 break;
             }
             default:
-                payload = trx.Payload;
-                break;
+                // beatoz-go defines types 1 to 8 and rejects any other as
+                // ErrInvalidTrxPayloadType, so there is nothing valid to sign.
+                throw Error(`unknown transaction type ${trx.type}; the chain accepts types 1 to 8`);
         }
         return rlp.encode([
             trx.version,
