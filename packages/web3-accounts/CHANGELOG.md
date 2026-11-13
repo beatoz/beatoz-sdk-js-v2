@@ -64,6 +64,15 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   decimal strings; a JavaScript caller passing a number instead of a string is
   refused too.
 
+- **BREAKING:** Every transaction builder now requires `gas` and `nonce` to be
+  non-negative safe integers. Both went straight to `Long.fromValue`, which
+  changes a wrong number instead of failing: `1.5` was signed as 1, `NaN` as 0,
+  and `-5` as -5. Now each of those fails before anything is signed, naming the
+  field: `gas must be a non-negative safe integer, got 1.5`. A left-out
+  `nonce` is still 0. Callers passing integers see no change. A nonce read from
+  the node's raw JSON is a decimal string and is refused now; convert it with
+  `Number()`, or read it with `web3.beatoz.getAccount`, which returns a number.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),

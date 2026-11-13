@@ -64,6 +64,21 @@ function parseUint256(name: string, value: string): BN {
 }
 
 /**
+ * Checks a `gas` or `nonce` value, both int64 on the chain.
+ *
+ * Long.fromValue takes any number and changes the wrong ones instead of
+ * failing: 1.5 becomes 1, NaN becomes 0, and -5 is signed as -5. Numbers past
+ * 2^53 are already imprecise before they reach it. Only non-negative safe
+ * integers pass, so each of those is an error that names the field.
+ */
+function parseInt64(name: string, value: number): Long {
+    if (!Number.isSafeInteger(value) || value < 0) {
+        throw Error(`${name} must be a non-negative safe integer, got ${String(value)}`);
+    }
+    return Long.fromNumber(value);
+}
+
+/**
  * Encodes a uint256 the way beatoz-go's uint256.Int.Bytes() does: minimal
  * big-endian, and no bytes at all for zero.
  *
@@ -198,15 +213,12 @@ function buildTransferTrxProto(transaction: Transaction): TrxProto {
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         // proto3 default rule: If the field has default value, the filed should be omitted.
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 1, // transfer type
         Payload: new Uint8Array(),
@@ -223,14 +235,11 @@ function buildDelegateTrxProto(transaction: Transaction): TrxProto {
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 2, // staking type
         Payload: new Uint8Array(),
@@ -258,14 +267,11 @@ function buildUnDelegateTrxProto(
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 3, // unstaking type
         Payload: payloadBytes,
@@ -295,14 +301,11 @@ function buildProposalTrx(transaction: Transaction<TrxPayloadProposalProto>): Tr
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: new Uint8Array(),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 4, // proposal type
         Payload: payloadBytes,
@@ -328,14 +331,11 @@ function buildVotingTrx(transaction: Transaction<TrxPayloadVotingProto>): TrxPro
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: new Uint8Array(),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 5, // voting type
         Payload: payloadBytes,
@@ -360,14 +360,11 @@ function buildContractTrxProto(transaction: Transaction<TransactionPayloadContra
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 6, // contract type
         Payload: payloadBytes,
@@ -407,14 +404,11 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: new Uint8Array(),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 8, // withdraw type
         Payload: payloadBytes,
@@ -440,14 +434,11 @@ function buildSetDocTrx(transaction: Transaction<TrxPayloadSetDocProto>): TrxPro
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce:
-            isSet(transaction.nonce) && transaction.nonce
-                ? Long.fromValue(transaction.nonce)
-                : Long.fromValue(0),
+        nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: BytesUint8Array.fromHex(transaction.from),
         to: BytesUint8Array.fromHex(transaction.to),
         Amount: new Uint8Array(),
-        gas: Long.fromValue(transaction.gas),
+        gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
         type: 7, // voting type
         Payload: payloadBytes,
