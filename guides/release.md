@@ -88,23 +88,18 @@ The packages would run on 22.12. They are held to 22.22.2 with the repository,
 so there is one number. It is also a security release (March 2026), which a
 Node 22 user below it should take anyway.
 
-The floor is measured, not chosen. It started at 5.4, picked as a round number
-below where the declarations happened to parse. That was wrong: these packages
-are built with TypeScript 6.0.3 and the emitted `.d.ts` uses
-`Uint8Array<ArrayBufferLike>`, which only exists from 5.7, so a consumer on 5.4
-hit `error TS2315: Type 'Uint8Array' is not generic`. Raising the number was
-not a decision to support less - it was correcting a claim that had never been
-checked.
+The TypeScript floor is the oldest compiler that can read our published
+declarations. These packages are built with TypeScript 6.0.3, and the emitted
+`.d.ts` uses `Uint8Array<ArrayBufferLike>`, which TypeScript understands from
+5.7. Below that a consumer gets `error TS2315: Type 'Uint8Array' is not
+generic`.
 
-Measure it the way a consumer meets it: pack the packages, install them into an
-empty project, and type-check an import of each under the candidate compiler
-with `skipLibCheck: false`. That last setting is the point. With it on - the
-default most projects carry, including all four of ours - TypeScript skips
-declarations in `node_modules` entirely and the floor appears to hold at any
-version.
-
-Nothing checks this automatically yet. Until CI does, a change that needs a
-newer compiler will pass review and reach a consumer before anyone notices.
+The release checks test the floor the way a consumer meets it. They pack the
+packages, install them in an empty project and compile an import of each with
+TypeScript 5.7.3, 6.0.3 and 7.0.2 and `skipLibCheck: false`. That setting
+matters: with `skipLibCheck: true`, which most projects use, TypeScript does not
+check declarations in `node_modules` and any floor looks fine. A change that
+needs a newer compiler fails the `TypeScript 5.7.3` check.
 
 ### Node types stay out of the published declarations
 
@@ -118,14 +113,17 @@ Writing Node types in the sources is fine; `tsconfig.base.json` sets
 `"types": ["node"]` for exactly that. The rule is about what reaches `lib/types`.
 Private fields and local variables are erased on the way out and do not count.
 
-This cannot be enforced by reading the sources. `removeAllListeners()` was
-declared with no return type, TypeScript inferred one from the body, and
-`EventEmitter<[never]>` appeared in the published declaration without anyone
-writing it. Check the emitted files:
+Reading the sources is not enough. `removeAllListeners()` was declared with no
+return type, TypeScript inferred one from the body, and `EventEmitter<[never]>`
+appeared in the published declaration although nobody wrote it.
 
-```console
-$ grep -rn "NodeJS\.\|from 'events'" packages/*/lib/types
-```
+The release checks catch it. They compile the declarations of the installed
+packages with `"types": []`, so a `NodeJS.*` name or an import of `events`
+fails. `check-dist.mjs` in the pull request checks does the same inside the
+repository, but there a development dependency can supply the missing types:
+`@types/events` comes in with `@types/node-localstorage`, a development
+dependency of `web3-utils`, so an `events` import passes there and fails only
+in the release checks.
 
 A package that genuinely needs Node - an IPC provider, say - declares
 `@types/node` in its own `dependencies` and is exempt. The point is that the
@@ -141,18 +139,6 @@ and consumers who would see the warning. Otherwise remove directly.
 
 An API that never worked is removed without a deprecation. It is still major: it
 was exported.
-
-## Experimental APIs
-
-An API prefixed `experimental_` may change or be removed in any release,
-including a patch.
-
-An API that stays experimental across two minor releases is either promoted or
-removed.
-
-If an experimental API cannot work yet because the chain does not implement what
-it needs, it throws an error naming the missing capability. The error states
-that the SDK does not support it, not that the call was wrong.
 
 ## Package versions
 
@@ -178,20 +164,10 @@ thirteen packages together under the same number.**
 A consumer can therefore read something from the number: a package still at
 `2.0.0` has not changed since v2.
 
-### Where this comes from
-
-[ethereumjs-monorepo](https://github.com/ethereumjs/ethereumjs-monorepo) runs
-exactly this way. On 2026-08-21 it published `@ethereumjs/util`, `rlp`,
-`common`, `tx`, `block` and `vm` all at `10.1.3` within eleven minutes, while
-`@ethereumjs/trie` has sat at `6.2.1` since 2024. The second fact is only
-possible under independent versioning; the first is the operating rule above.
-
-We do not take release practice from [web3.js](https://github.com/web3/web3.js),
-which this SDK is forked from. Its last stable release was `4.16.0` on
-2024-12-03. Its layout still tells us what our own code was meant to look like,
-and the `exports` and `files` fields here were restored from it, but a
-repository that has not shipped in two years is not evidence of how to run
-releases.
+[ethereumjs-monorepo](https://github.com/ethereumjs/ethereumjs-monorepo) works
+this way: it releases its packages together under one number, and a package
+that has not changed keeps its old one (`@ethereumjs/trie` has been at `6.2.1`
+since 2024).
 
 ## Changelogs
 
@@ -207,26 +183,54 @@ Breaking entries start with `**BREAKING:**` and say what the consumer has to do.
 
 ## Cutting a release
 
-1. `yarn build`, `yarn test` and `npx eslint .` pass.
-2. Move each `## [Unreleased]` section under the new version and date.
-3. Run `lerna version`. It proposes a bump per package from the commit messages;
-   override it where this document disagrees. It cannot see whether a type
-   widened or narrowed.
+Everything up to step 3 happens on `dev`, through pull requests. The packages
+are published from `main`.
 
-   For a release where every package changed, give them all the same number -
-   `lerna version 2.0.0` rather than the per-package prompt. Leave a package out
-   only when it genuinely did not change.
-4. Publish to the `next` dist-tag. `latest` keeps pointing at the previous
-   release. A plain `npm publish` moves `latest` itself, so the tag is not
-   optional either.
+1. In a pull request to `dev`, move each `## [Unreleased]` section to the new
+   version and date, and set the versions with
+
+   ```bash
+   npx lerna version --no-git-tag-version
+   ```
+
+   It asks for a version for each package that changed. Choose by this
+   document: lerna cannot tell whether a type was widened or narrowed. When
+   every package changed, give them one number, as in
+   `npx lerna version 2.0.0 --no-git-tag-version`.
+
+   `--no-git-tag-version` only changes the `package.json` files and leaves the
+   commit to you. Without it lerna also commits, tags and pushes. The tags
+   would stay on a commit that the rebase merge replaces, and run on `dev`
+   itself, the push is refused because the new commit has no checks yet.
+2. Merge it. Open a pull request from `dev` to `main` and wait for the release
+   checks.
+3. When every check is green, move `main`:
+
+   ```bash
+   git push origin <dev commit>:main
+   ```
+4. From a clean checkout of `main`, build and publish to the `next` dist-tag:
+
+   ```bash
+   yarn install --frozen-lockfile
+   yarn build
+   npx lerna publish from-package --dist-tag next
+   ```
+
+   `from-package` publishes each package whose version is not on npm yet.
+   `--dist-tag next` keeps `latest` where it was; a plain publish moves it.
 5. Install from `next` in the projects inside this organization and check them.
-6. Move `latest` with `npm dist-tag add`.
+6. Move `latest` for each package you published:
 
-Step 5 is not optional for a major release. Moving `latest` is the point that
-cannot be undone: reverting the tag does not reach anyone who installed while it
-was moved, and their lockfile now pins the release. A major is a breaking change
-by definition, so what step 5 checks is not whether it breaks anything but
-whether it breaks only what was intended.
+   ```bash
+   npm dist-tag add @beatoz/<package>@<version> latest
+   ```
+
+Step 5 is required for a major release. Step 6 is the one that cannot be
+undone: moving the tag back does not reach anyone who installed in between, and
+their lockfile now pins the release.
+
+How releases are tagged in Git is still open (#14).
 
 ## Support
 
@@ -259,23 +263,17 @@ for the case where one is made anyway.
 
 ## Reviewing this policy
 
-Treating a type change as breaking is strict, and the cost lands on us: every
-input we narrow is a major. Libraries that exempt types from semver do so to
-avoid exactly that.
+Counting a type change as breaking costs us a major for every input we narrow.
+Some libraries avoid that by releasing type changes as patches; viem does, and
+asks its users to pin an exact version instead. We keep the strict rule for
+two reasons. Our packages depend on each other through caret ranges, so a type
+change released as a patch would break this repository first. And we are not
+in a position to ask our users to pin exact versions.
 
-Two things make the strict rule right here, and neither is settled by shipping
-2.0. Our own packages depend on each other through caret ranges, so a type
-change released as a patch reaches this repository before it reaches anyone
-else. And asking consumers to pin an exact version, which is what the lenient
-policy requires of them, is not something this SDK is in a position to ask.
+Look at it again if one of these happens:
 
-Revisit when one of these holds, not on a date:
-
-- Majors have become frequent enough that the number stops carrying a warning.
-  Four majors in a year means the rule does not match how the code actually
-  changes.
-- The download figures settle somewhere that changes the calculation. At the
-  time of writing the packages see about fifty installs a week, most of it
-  automation, which makes a looser policy cheap to try.
-- Internal dependencies stop using caret ranges. That removes the first
-  constraint, and the lenient policy becomes available in a way it is not now.
+- Majors come so often that the number no longer warns anyone, say four in a
+  year.
+- Downloads change enough to matter. At the time of writing the packages see
+  about fifty installs a week, most of them automated.
+- Internal dependencies stop using caret ranges.
