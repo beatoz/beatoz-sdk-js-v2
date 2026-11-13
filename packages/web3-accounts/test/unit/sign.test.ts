@@ -13,7 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+import Long from 'long';
 import { privateKeyToAccount, TrxProtoBuilder } from '../../src';
+import { TrxPayloadProposalProto, TrxPayloadVotingProto } from '../../src/tx/trx_pb';
 import { TrxProto } from '@beatoz/web3-types';
 
 // beatoz-go defines transaction types 1 to 8 and rejects any other, so the SDK
@@ -32,6 +34,15 @@ const base = {
     gasPrice: '48000000000',
 };
 
+// The SDK has no proposal or voting builder - only validators send those, with
+// the wallet - but it still signs and verifies such transactions, so types 4
+// and 5 are built here from a transfer and the protobuf payload.
+const withPayload = (type: number, Payload: Uint8Array): TrxProto => ({
+    ...TrxProtoBuilder.buildTransferTrxProto({ ...base, to: '00'.repeat(20), amount: '0' }),
+    type,
+    Payload,
+});
+
 const built: [number, () => TrxProto][] = [
     [1, () => TrxProtoBuilder.buildTransferTrxProto({ ...base, amount: '1' })],
     [2, () => TrxProtoBuilder.buildDelegateTrxProto({ ...base, amount: '1' })],
@@ -47,25 +58,25 @@ const built: [number, () => TrxProto][] = [
     [
         4,
         () =>
-            TrxProtoBuilder.buildProposalTrx({
-                ...base,
-                payload: {
+            withPayload(
+                4,
+                TrxPayloadProposalProto.encode({
                     message: 'm',
-                    startVotingHeight: 10,
-                    votingBlocks: 10,
-                    applyingHeight: 30,
-                    optType: 1,
-                    options: [],
-                },
-            }),
+                    startVotingHeight: Long.fromNumber(10),
+                    votingBlocks: Long.fromNumber(10),
+                    applyingHeight: Long.fromNumber(30),
+                    optType: 0x0101,
+                    options: [Buffer.from('{"maxTrxGas":"100000"}')],
+                }).finish(),
+            ),
     ],
     [
         5,
         () =>
-            TrxProtoBuilder.buildVotingTrx({
-                ...base,
-                payload: { txHash: '22'.repeat(32), choice: 0 },
-            }),
+            withPayload(
+                5,
+                TrxPayloadVotingProto.encode({ txHash: new Uint8Array(32), choice: 0 }).finish(),
+            ),
     ],
     [
         6,

@@ -26,10 +26,8 @@ import {
     DecodedTransaction,
     Transaction,
     TransactionPayloadContract,
-    TransactionPayloadProposal,
     TransactionPayloadSetDoc,
     TransactionPayloadUnDelegating,
-    TransactionPayloadVoting,
     TransactionPayloadWithdraw,
     TransactionWithoutAmount,
 } from './tx_types.js';
@@ -75,30 +73,6 @@ function parseInt64(name: string, value: number): Long {
         throw Error(`${name} must be a non-negative safe integer, got ${String(value)}`);
     }
     return Long.fromNumber(value);
-}
-
-/**
- * Checks an int32 payload field that is a count or an index, so never
- * negative: beatoz-go refuses a negative choice, and the proposal types it
- * defines are positive.
- */
-function parseInt32(name: string, value: number): number {
-    if (!Number.isInteger(value) || value < 0 || value > 0x7fffffff) {
-        throw Error(`${name} must be a non-negative 32-bit integer, got ${String(value)}`);
-    }
-    return value;
-}
-
-/**
- * Encodes proposal options, given as text, as UTF-8. The chain reads a
- * governance parameter option as JSON.
- */
-function parseOptions(options: string[]): Uint8Array[] {
-    if (!Array.isArray(options) || !options.every((option) => typeof option === 'string')) {
-        throw Error('options must be an array of strings');
-    }
-    const encoder = new TextEncoder();
-    return options.map((option) => encoder.encode(option));
 }
 
 const ignoredFields: Record<string, string> = {
@@ -359,76 +333,6 @@ function buildUnDelegateTrxProto(
     };
 }
 
-function buildProposalTrx(
-    transaction: TransactionWithoutAmount<TransactionPayloadProposal>,
-): TrxProto {
-    refuseIgnoredFields(transaction);
-    refuseAmount('a proposal', transaction.amount);
-    const payload = transaction.payload;
-    if (!isSet(payload)) {
-        throw Error('mandatory argument is missed');
-    }
-    const payloadBytes = trxPb.TrxPayloadProposalProto.encode({
-        message: payload.message,
-        startVotingHeight: parseInt64('startVotingHeight', payload.startVotingHeight),
-        votingBlocks: parseInt64('votingBlocks', payload.votingBlocks),
-        applyingHeight: parseInt64('applyingHeight', payload.applyingHeight),
-        optType: parseInt32('optType', payload.optType),
-        options: parseOptions(payload.options),
-    }).finish();
-
-    return {
-        version: isSet(transaction.version) ? Number(transaction.version) : 1,
-        time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: parseAddress('from', transaction.from),
-        to: parseAddress('to', transaction.to),
-        Amount: new Uint8Array(),
-        gas: parseInt64('gas', transaction.gas),
-        GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
-        type: 4, // proposal type
-        Payload: payloadBytes,
-        sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
-        payer: new Uint8Array(),
-        payerSig: new Uint8Array(),
-    };
-}
-
-function buildVotingTrx(transaction: TransactionWithoutAmount<TransactionPayloadVoting>): TrxProto {
-    refuseIgnoredFields(transaction);
-    refuseAmount('a vote', transaction.amount);
-    const payload = transaction.payload;
-    if (!isSet(payload)) {
-        throw Error('mandatory argument is missed');
-    }
-    const payloadBytes = trxPb.TrxPayloadVotingProto.encode({
-        txHash: BytesUint8Array.fromHex(payload.txHash),
-        choice: parseInt32('choice', payload.choice),
-    }).finish();
-
-    return {
-        version: isSet(transaction.version) ? Number(transaction.version) : 1,
-        time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
-        nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: parseAddress('from', transaction.from),
-        to: parseAddress('to', transaction.to),
-        Amount: new Uint8Array(),
-        gas: parseInt64('gas', transaction.gas),
-        GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
-        type: 5, // voting type
-        Payload: payloadBytes,
-        sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
-        payer: new Uint8Array(),
-        payerSig: new Uint8Array(),
-    };
-}
-
 function buildContractTrxProto(transaction: Transaction<TransactionPayloadContract>): TrxProto {
     refuseIgnoredFields(transaction);
     const payload = transaction.payload;
@@ -588,8 +492,6 @@ export const TrxProtoBuilder = {
     verifyTrxProto,
     signTrxProto,
     buildContractTrxProto,
-    buildProposalTrx,
-    buildVotingTrx,
     signedRawTrxProto,
     buildSetDocTrx,
     buildWithdrawTrx,

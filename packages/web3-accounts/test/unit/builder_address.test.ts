@@ -36,25 +36,6 @@ const builders: Record<string, (f: Fields) => TrxProto> = {
             ...f,
             payload: { txHash: '11'.repeat(32) },
         }),
-    proposal: (f) =>
-        TrxProtoBuilder.buildProposalTrx({
-            ...base,
-            ...f,
-            payload: {
-                message: 'm',
-                startVotingHeight: 10,
-                votingBlocks: 10,
-                applyingHeight: 30,
-                optType: 1,
-                options: [],
-            },
-        }),
-    voting: (f) =>
-        TrxProtoBuilder.buildVotingTrx({
-            ...base,
-            ...f,
-            payload: { txHash: '22'.repeat(32), choice: 0 },
-        }),
     contract: (f) =>
         TrxProtoBuilder.buildContractTrxProto({
             ...base,
