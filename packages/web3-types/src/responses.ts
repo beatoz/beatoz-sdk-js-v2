@@ -79,26 +79,6 @@ export interface CommitSignature {
     signature: HexString | undefined;
 }
 
-export type Response =
-    | AbciInfoResponse
-    | AbciQueryResponse
-    | BlockResponse
-    | BlockResultsResponse
-    | BlockSearchResponse
-    | BlockchainResponse
-    | BroadcastTxAsyncResponse
-    | BroadcastTxSyncResponse
-    | BroadcastTxCommitResponse
-    | CommitResponse
-    | GenesisResponse
-    | HealthResponse
-    | NumUnconfirmedTxsResponse
-    | StatusResponse
-    | TxResponse
-    | TxSearchResponse
-    | ValidatorsResponse
-    | NetInfoResponse;
-
 /**
  * Represents a response containing general information about the ABCI application.
  */

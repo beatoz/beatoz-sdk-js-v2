@@ -118,6 +118,15 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `JsonRpcSuccessResponse`, the `Responses` interface and the
+  `Response` union are gone. `JsonRpcSuccessResponse` (`result: any`) duplicated
+  `JsonRpcResponseWithResult<T>`, which the SDK uses everywhere; `Responses`
+  listed decoder signatures that `ResponsesDecoder` does not implement; and
+  nothing but `@beatoz/web3-core`'s unused `Decoder` used `Response`. Use
+  `JsonRpcResponseWithResult<T>`. `BeatozExecutionAPI['subscribe']` returns
+  `Record<string, never>`, the empty object the node answers a subscribe request
+  with, instead of `any`; events arrive on the stream `subscribe()` returns.
+
 - **BREAKING:** `NewBlockEvent`, `NewBlockHeaderEvent` and `TxEvent` are gone.
   The first two were other names for `Block` and `Header`, used only as the
   return types of `ResponsesDecoder.decodeNewBlockEvent` and

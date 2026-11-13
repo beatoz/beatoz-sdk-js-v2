@@ -29,12 +29,10 @@ import {
     JsonRpcResponseWithError,
     JsonRpcError,
     JsonRpcRequest,
-    JsonRpcSuccessResponse,
     JsonRpcResponseWithResult,
     SubscriptionEvent,
     SupportedProviders,
 } from '@beatoz/web3-types';
-import * as responses from '@beatoz/web3-types';
 import { InvalidResponseError, ResponseError, RpcError, rpcErrorsMap } from '@beatoz/web3-errors';
 import { Stream } from 'xstream';
 import { Web3EventEmitter } from './web3_event_emitter.js';
@@ -48,9 +46,6 @@ const availableProviders = {
     HttpProvider: HttpProvider,
     WebsocketProvider: WebsocketProvider,
 };
-
-// Decoder is a generic that matches all methods of Responses
-export type Decoder<T extends responses.Response> = (res: JsonRpcSuccessResponse) => T;
 
 export class Web3RequestManager<
     API extends Web3APISpec = BeatozExecutionAPI,

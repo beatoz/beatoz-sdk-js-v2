@@ -277,6 +277,17 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-types`, `@beatoz/web3-core`: **BREAKING:**
+  `JsonRpcSuccessResponse`, the `Responses` interface and the `Response` union
+  are gone. `JsonRpcSuccessResponse` (`result: any`) duplicated
+  `JsonRpcResponseWithResult<T>`, which the SDK uses everywhere; `Responses`
+  listed decoder signatures that `ResponsesDecoder` does not implement; and
+  nothing but `@beatoz/web3-core`'s unused `Decoder` used `Response`. Use
+  `JsonRpcResponseWithResult<T>`. `BeatozExecutionAPI['subscribe']` returns
+  `Record<string, never>`, the empty object the node answers a subscribe request
+  with, instead of `any`; events arrive on the stream `subscribe()` returns.
+  `@beatoz/web3-core`'s `Decoder` type, built on it and unused, is gone too.
+
 - `@beatoz/web3-types`: **BREAKING:** `NewBlockEvent`, `NewBlockHeaderEvent` and
   `TxEvent` are gone. The first two were other names for `Block` and `Header`,
   used only as the return types of `ResponsesDecoder.decodeNewBlockEvent` and

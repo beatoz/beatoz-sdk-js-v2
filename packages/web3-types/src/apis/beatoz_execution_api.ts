@@ -15,7 +15,6 @@
 */
 
 import * as responses from '../responses.js';
-import { JsonRpcId } from '../json_rpc_types.js';
 import {
     Transaction1559UnsignedAPI,
     Transaction2930UnsignedAPI,
@@ -96,43 +95,7 @@ export type BeatozExecutionAPI = {
     vmCall: (vmCall: string) => responses.VmCallResponse;
     // end not tendermint apis
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subscribe: (query: string) => any;
+    // The node answers the subscribe request itself with {}; the events
+    // arrive on the stream that subscribe() returns.
+    subscribe: (query: string) => Record<string, never>;
 };
-
-export interface JsonRpcSuccessResponse {
-    readonly jsonrpc: '2.0';
-    readonly id: JsonRpcId;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly result: any;
-}
-
-export interface Responses {
-    readonly decodeHealth: (response: JsonRpcSuccessResponse) => responses.HealthResponse;
-    readonly decodeAbciInfo: (response: JsonRpcSuccessResponse) => responses.AbciInfoResponse;
-    readonly decodeAbciQuery: (response: JsonRpcSuccessResponse) => responses.AbciQueryResponse;
-    readonly decodeBlock: (response: JsonRpcSuccessResponse) => responses.BlockResponse;
-    readonly decodeBlockResults: (
-        response: JsonRpcSuccessResponse,
-    ) => responses.BlockResultsResponse;
-    readonly decodeBlockSearch: (response: JsonRpcSuccessResponse) => responses.BlockSearchResponse;
-    readonly decodeBlockchain: (response: JsonRpcSuccessResponse) => responses.BlockchainResponse;
-    readonly decodeBroadcastTxSync: (
-        response: JsonRpcSuccessResponse,
-    ) => responses.BroadcastTxSyncResponse;
-    readonly decodeBroadcastTxAsync: (
-        response: JsonRpcSuccessResponse,
-    ) => responses.BroadcastTxAsyncResponse;
-    readonly decodeBroadcastTxCommit: (
-        response: JsonRpcSuccessResponse,
-    ) => responses.BroadcastTxCommitResponse;
-    readonly decodeCommit: (response: JsonRpcSuccessResponse) => responses.CommitResponse;
-    readonly decodeGenesis: (response: JsonRpcSuccessResponse) => responses.GenesisResponse;
-    readonly decodeNumUnconfirmedTxs: (
-        response: JsonRpcSuccessResponse,
-    ) => responses.NumUnconfirmedTxsResponse;
-    readonly decodeStatus: (response: JsonRpcSuccessResponse) => responses.StatusResponse;
-    readonly decodeTx: (response: JsonRpcSuccessResponse) => responses.TxResponse;
-    readonly decodeTxSearch: (response: JsonRpcSuccessResponse) => responses.TxSearchResponse;
-    readonly decodeValidators: (response: JsonRpcSuccessResponse) => responses.ValidatorsResponse;
-}

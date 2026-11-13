@@ -60,11 +60,11 @@ web3.setProvider(provider);
 
 - `toJsonRpcResponse(message: SocketWrapperMessageEvent)`: 메시지를 JsonRpcResponse로 변환합니다.
 
-- `parseJsonRpcResponse(data: any)`: 데이터를 JsonRpcErrorResponse 또는 JsonRpcSuccessResponse로 파싱합니다.
+- `parseJsonRpcResponse(data: any)`: 데이터를 JsonRpcErrorResponse 또는 JsonRpcResponseWithResult로 파싱합니다.
 
 - `parseJsonRpcErrorResponse(data: any)`: 데이터를 JsonRpcErrorResponse로 파싱합니다.
 
-- `parseJsonRpcSuccessResponse(data: any)`: 데이터를 JsonRpcSuccessResponse로 파싱합니다.
+- `parseJsonRpcSuccessResponse(data: any)`: 데이터를 JsonRpcResponseWithResult로 파싱합니다.
 
 - `isJsonRpcErrorResponse(response: JsonRpcResponse)`: 응답이 JsonRpcErrorResponse인지 확인합니다.
 
