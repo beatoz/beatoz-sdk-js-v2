@@ -108,6 +108,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 - `buildTransferTrxProto` uses the `time` it is given, as the other builders
   do. It always used the current time before.
 
+- **BREAKING:** `decodeTransaction` returns each payload in the shape its
+  builder takes, so a decoded transaction builds the same bytes again: a
+  withdraw's `ReqAmt` (hex) is `reqAmt` (decimal string), and a contract's
+  `Data` is `data`. Proposals and votes, which have no builder, use the chain's
+  names and hex for bytes: a proposal's `applyHeight` is `applyingHeight`, and
+  its `options` are hex strings instead of `Uint8Array`s. Read the new names;
+  for a withdraw, the amount no longer needs converting from hex.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),

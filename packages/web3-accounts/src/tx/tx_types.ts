@@ -95,8 +95,10 @@ interface DecodedTransactionFields {
     sig: string;
 }
 
-// The payloads below describe what decodeTransaction returns today. Their
-// shapes differ from the builder inputs (#8, #50).
+// The payloads decodeTransaction returns. Where a builder exists, the shape is
+// its input, so a decoded payload builds the same transaction again. Proposal
+// and voting have no builder (only validators send them, with the wallet);
+// their bytes are hex, as everywhere else.
 
 export interface DecodedPayloadUnstaking {
     /** Hash of the staking transaction, as hex. */
@@ -107,9 +109,10 @@ export interface DecodedPayloadProposal {
     message: string;
     startVotingHeight: number;
     votingBlocks: number;
-    applyHeight: number;
+    applyingHeight: number;
     optType: number;
-    options: Uint8Array[];
+    /** Each option as hex. A governance parameter option is UTF-8 JSON. */
+    options: string[];
 }
 
 export interface DecodedPayloadVoting {
@@ -120,7 +123,7 @@ export interface DecodedPayloadVoting {
 
 export interface DecodedPayloadContract {
     /** Contract creation code or call data, as hex. */
-    Data: string;
+    data: string;
 }
 
 export interface DecodedPayloadSetDoc {
@@ -129,8 +132,8 @@ export interface DecodedPayloadSetDoc {
 }
 
 export interface DecodedPayloadWithdraw {
-    /** Requested amount as minimal big-endian hex, not decimal. */
-    ReqAmt: string;
+    /** Requested amount in the smallest unit, as a decimal string. */
+    reqAmt: string;
 }
 
 /**
