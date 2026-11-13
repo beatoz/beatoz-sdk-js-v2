@@ -29,12 +29,16 @@ const base = {
     gasPrice: '250000000000',
 };
 
+// Proposal, voting and setDoc move no value and take no amount.
+const { amount: _amount, ...noAmount } = base;
+void _amount;
+
 export function buildersTakeTheirOwnPayload() {
     TrxProtoBuilder.buildTransferTrxProto(base);
     TrxProtoBuilder.buildDelegateTrxProto(base);
     TrxProtoBuilder.buildUnDelegateTrxProto({ ...base, payload: { txhash: '0x03' } });
     TrxProtoBuilder.buildProposalTrx({
-        ...base,
+        ...noAmount,
         payload: {
             message: 'm',
             startVotingHeight: Long.fromNumber(1),
@@ -44,9 +48,12 @@ export function buildersTakeTheirOwnPayload() {
             options: [],
         },
     });
-    TrxProtoBuilder.buildVotingTrx({ ...base, payload: { txHash: new Uint8Array(), choice: 0 } });
+    TrxProtoBuilder.buildVotingTrx({
+        ...noAmount,
+        payload: { txHash: new Uint8Array(), choice: 0 },
+    });
     TrxProtoBuilder.buildContractTrxProto({ ...base, payload: { data: '0x6080' } });
-    TrxProtoBuilder.buildSetDocTrx({ ...base, payload: { name: 'n', url: 'u' } });
+    TrxProtoBuilder.buildSetDocTrx({ ...noAmount, payload: { name: 'n', url: 'u' } });
     TrxProtoBuilder.buildWithdrawTrx({ ...base, payload: { reqAmt: '1' } });
 }
 
@@ -65,7 +72,7 @@ export function payloadIsRequiredWhereTheTypeCarriesOne() {
     // @ts-expect-error a contract transaction needs payload.data
     TrxProtoBuilder.buildContractTrxProto(base);
     // @ts-expect-error setDoc needs a payload
-    TrxProtoBuilder.buildSetDocTrx(base);
+    TrxProtoBuilder.buildSetDocTrx(noAmount);
 }
 
 export function anotherTypesPayloadIsRejected() {
@@ -74,9 +81,29 @@ export function anotherTypesPayloadIsRejected() {
     // @ts-expect-error the withdraw payload is not an unstaking payload
     TrxProtoBuilder.buildUnDelegateTrxProto({ ...base, payload: { reqAmt: '1' } });
     // @ts-expect-error setDoc took Transaction<object> and accepted any object
-    TrxProtoBuilder.buildSetDocTrx({ ...base, payload: { hello: 'world' } });
+    TrxProtoBuilder.buildSetDocTrx({ ...noAmount, payload: { hello: 'world' } });
     // @ts-expect-error reqAmt is a decimal string, not a number
     TrxProtoBuilder.buildWithdrawTrx({ ...base, payload: { reqAmt: 1 } });
+}
+
+export function typesThatMoveNoValueTakeNoAmount() {
+    // @ts-expect-error a vote moves no amount
+    TrxProtoBuilder.buildVotingTrx({ ...base, payload: { txHash: new Uint8Array(), choice: 0 } });
+    // @ts-expect-error a setDoc moves no amount
+    TrxProtoBuilder.buildSetDocTrx({ ...base, payload: { name: 'n', url: 'u' } });
+    TrxProtoBuilder.buildProposalTrx({
+        ...base,
+        // @ts-expect-error a proposal moves no amount
+        amount: '5',
+        payload: {
+            message: 'm',
+            startVotingHeight: Long.fromNumber(1),
+            votingBlocks: Long.fromNumber(1),
+            applyingHeight: Long.fromNumber(1),
+            optType: 0,
+            options: [],
+        },
+    });
 }
 
 export function aWiderTransactionIsRejected(loose: Transaction<object>) {

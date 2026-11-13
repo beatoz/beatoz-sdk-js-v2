@@ -42,7 +42,6 @@ describe('setDoc test', () => {
             nonce: nonce,
             from: account.address,
             to: '0000000000000000000000000000000000000000',
-            amount: '0',
             gas: 1000000,
             gasPrice: '250000000000',
             payload: payload,

@@ -38,8 +38,19 @@ interface TransactionFields {
  * transaction type carries; transfer and staking carry none, and leave it out.
  * A payload that admits `undefined` is optional; any other is required.
  */
-export type Transaction<T = undefined> = TransactionFields &
-    (undefined extends T ? { payload?: T } : { payload: T });
+export type Transaction<T = undefined> = TransactionFields & PayloadField<T>;
+
+/**
+ * The input to the proposal, voting and setDoc builders. Those types move no
+ * value: beatoz-go neither rejects nor moves their Amount, it only counts it
+ * against the sender's balance. So there is no `amount` to give, and the
+ * transaction always carries an empty one.
+ */
+export type TransactionWithoutAmount<T> = Omit<TransactionFields, 'amount'> & {
+    amount?: undefined;
+} & PayloadField<T>;
+
+type PayloadField<T> = undefined extends T ? { payload?: T } : { payload: T };
 
 export interface TransactionPayloadUnDelegating {
     txhash: string;
