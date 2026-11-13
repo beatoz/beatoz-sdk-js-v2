@@ -968,27 +968,70 @@ export interface DelegateeStake {
 }
 
 /**
- * Represents the governance rules in the blockchain.
+ * The chain's governance parameters, as beatoz-go's `rule` query returns them
+ * (`ctrlers/types/gov_params.go`).
+ *
+ * Each field keeps the JSON type the node sends: int64 parameters come as
+ * decimal strings, int32 ones as numbers. The node leaves a zero parameter out
+ * of the response, and the SDK puts it back as `'0'` or `0`.
+ *
+ * Only the rules a caller acts on are listed. The node also sends internal
+ * values - its fee and reward pool addresses, its empty block interval, the
+ * parameter set's version, the proposal timing, and two parameters it defines
+ * but does not apply (`minBondingBlocks`, `maxIndividualPowerRate`) - which
+ * stay in `value` at runtime but are not typed.
  */
 export interface RuleResponse {
+    /** Block height the parameters were read at. */
+    height: string;
     value: {
-        version: number; // Protocol or data structure version
-        maxValidatorCnt: number; // Maximum number of validators allowed
-        minValidatorStake: string; // Minimum stake amount required for a validator
-        rewardPerPower: string; // Reward given per unit of computational power for validators
-        lazyRewardBlocks: number; // Number of blocks before the rewards are distributed (latency)
-        lazyApplyingBlocks: number; // Number of blocks before changes are applied (latency)
-        gasPrice: string; // Price of the transaction fee (gas price)
-        minTrxGas: string; // Minimum transaction fee required
-        maxTrxGas: string; // Maximum transaction fee required
-        maxBlockGas: string; // Maximum block gas
-        minVotingPeriodBlocks: number; // Minimum number of blocks for a voting period
-        maxVotingPeriodBlocks: number; // Maximum number of blocks for a voting period
-        minSelfStakeRatio: number; // Minimum ratio of stake that a validator must self-bond
-        maxUpdatableStakeRatio: number; // Maximum ratio by which the stake can be updated frequently
-        slashRatio: number; // Ratio of tokens to be slashed when a validator engages in malicious behavior
-        signedBlocksWindow: string;
+        // Gas and blocks
+        /** Price of one unit of gas, in the smallest unit. */
+        gasPrice: string;
+        /** Least gas a transaction must offer. */
+        minTrxGas: string;
+        /** Most gas one block may use. */
+        blockGasLimit: string;
+        /** Largest block, in bytes. */
+        blockSizeLimit: string;
+
+        // Validators and delegation
+        /** Most validators the chain keeps. */
+        maxValidatorCnt: number;
+        /** Least power a validator needs. */
+        minValidatorPower: string;
+        /** Least power a delegation needs. */
+        minDelegatorPower: string;
+        /** Most validators one delegator may delegate to. */
+        maxValidatorsOfDelegator: number;
+        /** Most delegators one validator may have. */
+        maxDelegatorsOfValidator: number;
+        /** Least share of its power a validator must stake itself, in percent. */
+        minSelfPowerRate: number;
+        /** Most the total validator power may change per block, in percent. */
+        maxUpdatablePowerRate: number;
+        /** Blocks between unstaking and the refund. */
+        lazyUnbondingBlocks: string;
+
+        // Rewards, slashing and supply
+        /** Validators' share of a reward, in percent. */
+        validatorRewardRate: number;
+        /** Block proposer's share of the fees, in percent. */
+        txFeeRewardRate: number;
+        /** Share of a validator's power slashed, in percent. */
+        slashRate: number;
+        /** Least blocks a validator must sign in an inflation cycle. */
         minSignedBlocks: string;
+        /** Blocks between two inflation reward issues. */
+        inflationCycleBlocks: string;
+        /** Inflation weight, in permil. */
+        inflationWeightPermil: number;
+        /** Weight of staking duration in rewards, in permil. */
+        bondingBlocksWeightPermil: number;
+        /** Blocks a stake takes to earn its full reward weight. */
+        ripeningBlocks: string;
+        /** Most coins that may ever exist, in the smallest unit. */
+        maxTotalSupply: string;
     };
 }
 

@@ -47,11 +47,7 @@ describe('withdraw on the reward node', () => {
         web3 = new Web3(getRewardWsServer());
         account = privateKeyToAccount(getRewardPrivateKey()) as Web3Account;
         ({ value: rule } = await web3.beatoz.rule());
-        // RuleResponse does not list inflationCycleBlocks, though the node
-        // reports it; the type predates the node's current rule.
-        cycleBlocks = Number(
-            (rule as unknown as { inflationCycleBlocks: string }).inflationCycleBlocks,
-        );
+        cycleBlocks = Number(rule.inflationCycleBlocks);
         if (!(cycleBlocks > 0 && cycleBlocks <= 100)) {
             throw new Error(
                 `this node issues rewards every ${cycleBlocks} blocks; ` +
