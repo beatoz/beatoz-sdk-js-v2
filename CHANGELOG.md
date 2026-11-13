@@ -38,9 +38,8 @@ entries below name the packages they apply to.
   length gained a leading zero (`'0xabc'` read as `0abc`). The transaction
   builders read `from`, `to`, the unstaking hash and contract data with it, so
   a recipient address with one mistyped or dropped digit was signed as a
-  different 20-byte address, which the node accepts. `BytesUint8Array.parse`
-  with `'hex'` goes through the same check. Callers passing well-formed hex are
-  unaffected.
+  different 20-byte address, which the node accepts. Callers passing
+  well-formed hex are unaffected.
 
 - `@beatoz/web3-accounts`: **BREAKING:** Transaction payloads are typed per
   transaction type. `Transaction<T>` declared `payload?: object | T`, so any
@@ -251,6 +250,11 @@ entries below name the packages they apply to.
   publishing no copy of the license text.
 
 ### Removed
+
+- `@beatoz/web3-types`: **BREAKING:** `BytesUint8Array.parse(d, enc)` is gone.
+  It took `any` and an encoding name and only called `fromHex` or `fromWords`,
+  so a wrong input compiled and failed at run time. Call
+  `BytesUint8Array.fromHex(hex)` or `BytesUint8Array.fromWords(words)` instead.
 
 - `@beatoz/web3-accounts`: **BREAKING:** `buildProposalTrx`, `buildVotingTrx`
   and their input types `TransactionPayloadProposal` and

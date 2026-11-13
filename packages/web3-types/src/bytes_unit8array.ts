@@ -50,20 +50,6 @@ export class BytesUint8Array extends Uint8Array {
         return hexBytes;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static parse(d: any, enc: string): BytesUint8Array {
-        switch (enc) {
-            case 'hex':
-                return this.fromHex(d);
-                break;
-            case 'words':
-                return this.fromWords(d);
-                break;
-            default:
-                throw Error('not supported encoding: ' + enc);
-        }
-    }
-
     toHex(): string {
         let ret = '';
         for (let i = 0; i < this.length; i++) {

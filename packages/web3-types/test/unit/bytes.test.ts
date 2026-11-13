@@ -59,16 +59,16 @@ describe('BytesUint8Array class tests', () => {
         );
     });
 
-    test('parse - hex', () => {
-        const hex = '123abc';
-        const bytes = BytesUint8Array.parse(hex, 'hex');
-        expect(bytes.toHex()).toBe(hex);
+    test('fromWords', () => {
+        const wordArray = cryptojs.enc.Hex.parse('123abc');
+        const bytes = BytesUint8Array.fromWords(wordArray);
+        expect(bytes.toHex()).toBe(wordArray.toString());
     });
 
-    test('parse - words', () => {
-        const wordArray = cryptojs.enc.Hex.parse('123abc');
-        const bytes = BytesUint8Array.parse(wordArray, 'words');
-        expect(bytes.toHex()).toBe(wordArray.toString());
+    // parse(d: any, enc: string) only dispatched to fromHex and fromWords, and
+    // took any input for either; call those directly.
+    test('has no parse', () => {
+        expect((BytesUint8Array as unknown as Record<string, unknown>).parse).toBeUndefined();
     });
 
     test('toHex', () => {
