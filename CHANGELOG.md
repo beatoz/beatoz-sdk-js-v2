@@ -284,6 +284,14 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3`: **BREAKING:**
+  The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save` and `load`,
+  `web3.accounts.decrypt`, the matching abstract methods of `Web3BaseWallet`,
+  `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`, `CipherOptions`,
+  `ScryptParams` and `PBKDF2SHA256Params` types. Every one of them only threw
+  `not implemented` or `Not supported yet`; they came with the web3.js fork.
+  Nothing changes for a caller that did not call them.
+
 - `@beatoz/web3-errors`, `@beatoz/web3-core`, `@beatoz/web3-utils`:
   **BREAKING:** `RpcError`, its twelve subclasses (`ParseError`,
   `InvalidRequestError`, `MethodNotFoundError`, `InvalidParamsError`,

@@ -23,21 +23,11 @@ import {
     signTransaction,
     Wallet,
 } from '@beatoz/web3-accounts';
-import { KeyStore } from '@beatoz/web3-types';
 
 export const initAccountsForContext = () => {
-    const decryptWithContext = async (
-        _keystore: KeyStore | string,
-        _password: string,
-        _options?: Record<string, unknown>,
-    ) => {
-        throw new Error('Not supported yet');
-    };
-
     const wallet: Wallet = new Wallet({
         create: create, //createWithContext,
         privateKeyToAccount: privateKeyToAccount, //privateKeyToAccountWithContext,
-        decrypt: decryptWithContext,
     });
 
     return {
@@ -45,7 +35,6 @@ export const initAccountsForContext = () => {
         privateKeyToAccount: privateKeyToAccount,
         privateKeyToPrvKey: privateKeyToPrvKey,
         prvKeyToAccount: prvKeyToAccount,
-        decrypt: decryptWithContext,
         sign: sign,
         signTransaction: signTransaction,
         wallet,
