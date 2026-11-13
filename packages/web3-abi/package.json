@@ -55,7 +55,7 @@
         "@ethersproject/bignumber": "^5.7.0"
     },
     "peerDependencies": {
-        "typescript": ">=5.7"
+        "typescript": ">=5.8"
     },
     "peerDependenciesMeta": {
         "typescript": {

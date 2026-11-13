@@ -57,7 +57,7 @@
         "is-my-json-valid": "^2.20.6"
     },
     "peerDependencies": {
-        "typescript": ">=5.7"
+        "typescript": ">=5.8"
     },
     "peerDependenciesMeta": {
         "typescript": {

@@ -24,7 +24,7 @@ rest. It also runs on every push to `dev`.
 runs on pull requests to `main`, on top of the checks every pull request gets:
 that it comes from `dev`, and the packages as npm would publish them -
 installed outside the repository on Node 22.22.2, 24 and 26 and TypeScript
-5.7.3, 6.0.3 and 7.0.2, each package alone, publint - and the reward paths
+5.8.3, 6.0.3 and 7.0.2, each package alone, publint - and the reward paths
 against a node.
 
 | Check | What it runs |
@@ -32,7 +32,7 @@ against a node.
 | `From dev` | the pull request comes from `dev` in this repository |
 | `Pack` | build, `npm pack`, publint (`scripts/check-packed.mjs`) |
 | `Node 22.22.2`, `Node 24`, `Node 26` | install the packed packages in an empty project and load, sign and type-check them |
-| `TypeScript 5.7.3`, `TypeScript 6.0.3`, `TypeScript 7.0.2` | the same type check with each TypeScript |
+| `TypeScript 5.8.3`, `TypeScript 6.0.3`, `TypeScript 7.0.2` | the same type check with each TypeScript |
 | `Each package alone` | each package installed with only the `@beatoz` packages it declares |
 | `Reward withdrawal` | the reward node and `yarn test:reward` |
 
