@@ -16,7 +16,7 @@
 
 import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { isNullish, jsonRpc, isResponseRpcError } from '@beatoz/web3-utils';
+import { isNullish, jsonRpc } from '@beatoz/web3-utils';
 import {
     BeatozExecutionAPI,
     Web3APISpec,
@@ -33,7 +33,7 @@ import {
     SubscriptionEvent,
     SupportedProviders,
 } from '@beatoz/web3-types';
-import { InvalidResponseError, ResponseError, RpcError, rpcErrorsMap } from '@beatoz/web3-errors';
+import { InvalidResponseError, ResponseError } from '@beatoz/web3-errors';
 import { Stream } from 'xstream';
 import { Web3EventEmitter } from './web3_event_emitter.js';
 
@@ -53,14 +53,12 @@ export class Web3RequestManager<
     [key in Web3RequestManagerEvent]: SupportedProviders<API> | undefined;
 }> {
     private _provider?: HttpProvider | WebsocketProvider;
-    private readonly useRpcCallSpecification?: boolean;
 
-    public constructor(provider?: string, useRpcCallSpecification?: boolean) {
+    public constructor(provider?: string) {
         super();
         if (!isNullish(provider)) {
             this.setProvider(provider);
         }
-        this.useRpcCallSpecification = useRpcCallSpecification;
     }
 
     public setProvider(provider?: HttpProvider | WebsocketProvider | string): void {
@@ -135,20 +133,7 @@ export class Web3RequestManager<
         // This is the majority of the cases so check these first
         // A valid JSON-RPC response with error object
         if (jsonRpc.isResponseWithError<ErrorType>(response)) {
-            // check if its an rpc error
-            if (
-                this.useRpcCallSpecification &&
-                isResponseRpcError(response as JsonRpcResponseWithError)
-            ) {
-                const rpcErrorResponse = response as JsonRpcResponseWithError;
-                // check if rpc error flag is on and response error code match an EIP-1474 or a standard rpc error code
-                if (rpcErrorsMap.get(rpcErrorResponse.error.code)) {
-                    const Err = rpcErrorsMap.get(rpcErrorResponse.error.code)!.error;
-                    throw new Err(rpcErrorResponse);
-                } else {
-                    throw new RpcError(rpcErrorResponse);
-                }
-            } else if (!Web3RequestManager._isReverted(response)) {
+            if (!Web3RequestManager._isReverted(response)) {
                 throw new InvalidResponseError<ErrorType, RequestType>(response, payload);
             }
         }

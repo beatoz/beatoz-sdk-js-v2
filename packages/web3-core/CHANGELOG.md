@@ -65,6 +65,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `Web3RequestManager`'s second constructor argument,
+  `useRpcCallSpecification`, is gone. `Web3` never passed it, so it was always
+  off; the error classes it switched to are removed from `@beatoz/web3-errors`.
+  Node errors are thrown as before.
+
 - **BREAKING:** The `Decoder` type is gone. Nothing used it, and it was built on
   `JsonRpcSuccessResponse`, removed from `@beatoz/web3-types`.
 

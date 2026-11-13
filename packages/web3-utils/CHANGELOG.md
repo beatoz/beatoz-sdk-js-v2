@@ -69,6 +69,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `isResponseRpcError` is gone. Only the removed
+  `useRpcCallSpecification` path of `Web3RequestManager` called it.
+
 - No longer depends on `bn.js`, `crypto-js`, `@types/crypto-js`, `protobufjs`,
   `ts-proto`, `constants-browserify`, `crypto-browserify` or `path-browserify`.
   None of them were imported. Installing this package drops from 8 of these to 0.
