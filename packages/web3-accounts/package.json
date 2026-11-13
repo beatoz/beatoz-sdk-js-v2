@@ -63,7 +63,7 @@
         "secp256k1": "^4.0.2"
     },
     "peerDependencies": {
-        "typescript": ">=5.7"
+        "typescript": ">=5.8"
     },
     "peerDependenciesMeta": {
         "typescript": {

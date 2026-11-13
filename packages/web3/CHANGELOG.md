@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
+  packages are ES modules only, and on 5.7 a CommonJS project that resolves them
+  with `module`/`moduleResolution` `nodenext` cannot import them (`error
+  TS1479`); from 5.8 it can, as Node 22.12 and later can `require` them. ES
+  module projects and `moduleResolution` `node` or `bundler` worked on 5.7, but
+  one floor that holds for every project is simpler to state. A project on
+  TypeScript 5.7 or older upgrades TypeScript; nothing else changes.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
   which builds and tests the repository, does not install below it, and the
   packages keep the repository's floor so that there is one number. 22.22.2 is a

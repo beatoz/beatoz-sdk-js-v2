@@ -108,15 +108,18 @@ try {
 // 3. public types without Node types
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'beatoz-check-dist-'));
 try {
-    // Inside the project, so the imports resolve to its packages.
-    // .mts: an ES module whatever the project's "type" says. The packages are
-    // ES modules only, and before TypeScript 5.8 a CommonJS file cannot import
-    // them under nodenext.
-    const consumer = path.join(projectRoot, `.check-dist-${process.pid}.mts`);
-    fs.writeFileSync(
-        consumer,
-        names.map((name, i) => `import * as p${i} from '${name}';\nvoid p${i};\n`).join(''),
+    // Inside the project, so the imports resolve to its packages. One ES
+    // module (.mts) and one CommonJS (.cts) consumer, whatever the project's
+    // "type" says: the packages are ES modules only, and a CommonJS file can
+    // import them under nodenext from TypeScript 5.8, the floor in
+    // peerDependencies.
+    const source = names
+        .map((name, i) => `import * as p${i} from '${name}';\nvoid p${i};\n`)
+        .join('');
+    const consumers = ['mts', 'cts'].map((ext) =>
+        path.join(projectRoot, `.check-dist-${process.pid}.${ext}`),
     );
+    for (const consumer of consumers) fs.writeFileSync(consumer, source);
     const tsconfig = path.join(dir, 'tsconfig.json');
     fs.writeFileSync(
         tsconfig,
@@ -130,7 +133,7 @@ try {
                 skipLibCheck: false,
                 types: [],
             },
-            files: [consumer],
+            files: consumers,
         }),
     );
     // Read the bin from package.json: TypeScript 7 does not export ./bin/tsc.
@@ -143,11 +146,13 @@ try {
     const version = execFileSync(process.execPath, [tsc, '--version']).toString().trim();
     try {
         execFileSync(process.execPath, [tsc, '-p', tsconfig], { stdio: 'pipe' });
-        console.log(`✓ the public types compile without @types/node (${version})`);
+        console.log(
+            `✓ the public types compile without @types/node, from an ES module and a CommonJS file (${version})`,
+        );
     } catch (error) {
         fail('the public types compile without @types/node', error.stdout?.toString() || error);
     } finally {
-        fs.rmSync(consumer, { force: true });
+        for (const consumer of consumers) fs.rmSync(consumer, { force: true });
     }
 } finally {
     fs.rmSync(dir, { recursive: true, force: true });

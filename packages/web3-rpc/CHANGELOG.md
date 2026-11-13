@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
+  packages are ES modules only, and on 5.7 a CommonJS project that resolves them
+  with `module`/`moduleResolution` `nodenext` cannot import them (`error
+  TS1479`); from 5.8 it can, as Node 22.12 and later can `require` them. ES
+  module projects and `moduleResolution` `node` or `bundler` worked on 5.7, but
+  one floor that holds for every project is simpler to state. A project on
+  TypeScript 5.7 or older upgrades TypeScript; nothing else changes.
+
 - **BREAKING:** `subscribeNewBlock`, `subscribeNewBlockHeader` and `subscribeTx`
   return streams of `NewBlockSubscriptionEvent`,
   `NewBlockHeaderSubscriptionEvent` and `TxSubscriptionEvent`, whose

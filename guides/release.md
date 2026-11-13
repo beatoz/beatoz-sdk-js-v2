@@ -61,7 +61,7 @@ The supported ranges are declared in every package:
 
 ```json
 "engines": { "node": ">=22.22.2" },
-"peerDependencies": { "typescript": ">=5.7" },
+"peerDependencies": { "typescript": ">=5.8" },
 "peerDependenciesMeta": { "typescript": { "optional": true } }
 ```
 
@@ -88,18 +88,21 @@ The packages would run on 22.12. They are held to 22.22.2 with the repository,
 so there is one number. It is also a security release (March 2026), which a
 Node 22 user below it should take anyway.
 
-The TypeScript floor is the oldest compiler that can read our published
-declarations. These packages are built with TypeScript 6.0.3, and the emitted
-`.d.ts` uses `Uint8Array<ArrayBufferLike>`, which TypeScript understands from
-5.7. Below that a consumer gets `error TS2315: Type 'Uint8Array' is not
-generic`.
+The TypeScript floor is the oldest compiler every consumer can use. These
+packages are built with TypeScript 6.0.3, and the emitted `.d.ts` uses
+`Uint8Array<ArrayBufferLike>`, which TypeScript understands from 5.7; below that
+a consumer gets `error TS2315: Type 'Uint8Array' is not generic`. The packages
+are ES modules only, and a CommonJS project that resolves them with `nodenext`
+can import them from 5.8 (`error TS1479` on 5.7), as Node 22.12 and later can
+`require` them. So the floor is 5.8.
 
 The release checks test the floor the way a consumer meets it. They pack the
-packages, install them in an empty project and compile an import of each with
-TypeScript 5.7.3, 6.0.3 and 7.0.2 and `skipLibCheck: false`. That setting
+packages, install them in an empty project and compile an import of each, from
+an ES module and from a CommonJS file, with TypeScript 5.8.3, 6.0.3 and 7.0.2
+and `skipLibCheck: false`. That setting
 matters: with `skipLibCheck: true`, which most projects use, TypeScript does not
 check declarations in `node_modules` and any floor looks fine. A change that
-needs a newer compiler fails the `TypeScript 5.7.3` check.
+needs a newer compiler fails the `TypeScript 5.8.3` check.
 
 ### Node types stay out of the published declarations
 

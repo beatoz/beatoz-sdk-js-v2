@@ -57,7 +57,7 @@
         "readonly-date": "^1.0.0"
     },
     "peerDependencies": {
-        "typescript": ">=5.7"
+        "typescript": ">=5.8"
     },
     "peerDependenciesMeta": {
         "typescript": {
