@@ -66,6 +66,17 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `RpcError`, its twelve subclasses (`ParseError`,
+  `InvalidRequestError`, `MethodNotFoundError`, `InvalidParamsError`,
+  `InternalError`, `InvalidInputError`, `MethodNotSupported`,
+  `ResourceUnavailableError`, `ResourcesNotFoundError`,
+  `VersionNotSupportedError`, `TransactionRejectedError`, `LimitExceededError`),
+  `rpcErrorsMap` and the `ERR_RPC_*` codes are gone. They came with the web3.js
+  fork, many for EIP-1474 codes Tendermint does not use, and were thrown only
+  when `Web3RequestManager` was built with `useRpcCallSpecification`, which
+  nothing did. A node error is a `ResponseError` (`InvalidResponseError`), as it
+  always was; the SDK's error design is #100.
+
 - **BREAKING:** 43 error classes and 93 error code constants are gone - every
   one that no package in this repository constructs, extends or reads. They came
   with the web3.js fork and describe Ethereum machinery this chain does not have

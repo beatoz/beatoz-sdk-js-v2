@@ -284,6 +284,20 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-errors`, `@beatoz/web3-core`, `@beatoz/web3-utils`:
+  **BREAKING:** `RpcError`, its twelve subclasses (`ParseError`,
+  `InvalidRequestError`, `MethodNotFoundError`, `InvalidParamsError`,
+  `InternalError`, `InvalidInputError`, `MethodNotSupported`,
+  `ResourceUnavailableError`, `ResourcesNotFoundError`,
+  `VersionNotSupportedError`, `TransactionRejectedError`, `LimitExceededError`),
+  `rpcErrorsMap` and the `ERR_RPC_*` codes are gone. They came with the web3.js
+  fork, many for EIP-1474 codes Tendermint does not use, and were thrown only
+  when `Web3RequestManager` was built with `useRpcCallSpecification`, which
+  nothing did. A node error is a `ResponseError` (`InvalidResponseError`), as it
+  always was; the SDK's error design is #100. `Web3RequestManager`'s
+  `useRpcCallSpecification` argument and `isResponseRpcError`, which only served
+  them, are gone too.
+
 - `@beatoz/web3-types`, `@beatoz/web3-core`: **BREAKING:**
   `JsonRpcSuccessResponse`, the `Responses` interface and the `Response` union
   are gone. `JsonRpcSuccessResponse` (`result: any`) duplicated

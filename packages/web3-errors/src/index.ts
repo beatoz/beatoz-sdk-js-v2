@@ -20,4 +20,3 @@ export * from './errors/contract_errors.js';
 export * from './errors/generic_errors.js';
 export * from './errors/utils_errors.js';
 export * from './errors/response_errors.js';
-export * from './errors/rpc_errors.js';
