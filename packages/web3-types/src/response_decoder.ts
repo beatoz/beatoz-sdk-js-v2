@@ -51,6 +51,7 @@ import {
     VersionParams,
 } from './responses.js';
 import { apiToSmallInt } from './inthelpers.js';
+import { BytesUint8Array } from './bytes_unit8array.js';
 import assert from 'assert';
 
 // Zero for every typed rule parameter, in the JSON type the node uses for it.
@@ -270,7 +271,18 @@ export class ResponsesDecoder {
     public static decodeVmCall(
         response: JsonRpcResponseWithResult<responses.VmCallResponse>,
     ): responses.VmCallResponse {
-        return response.result as responses.VmCallResponse;
+        const result = response.result as responses.VmCallResponse;
+        // The node sends returnData as base64 and leaves out empty fields
+        // (omitempty); every other byte value in the SDK is hex.
+        const { returnData, usedGas } = result.value;
+        return {
+            ...result,
+            value: {
+                ...result.value,
+                returnData: returnData ? BytesUint8Array.b64ToBytes(returnData).toHex() : '',
+                usedGas: usedGas ?? '0',
+            },
+        };
     }
 }
 

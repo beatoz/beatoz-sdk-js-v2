@@ -162,14 +162,23 @@ entries below name the packages they apply to.
   (`maxTrxGas`, `maxBlockGas`, `rewardPerPower`, `lazyRewardBlocks`,
   `minValidatorStake`, `minSelfStakeRatio`, `maxUpdatableStakeRatio`,
   `slashRatio`, `signedBlocksWindow`), which were always `undefined`, and lacked
-  most it does. It now has `height` and the 21 parameters a caller acts on - gas
-  and block limits, validator and delegation limits, reward, slashing and supply
-  - each in the JSON type the node uses: int64 as a decimal string, int32 as a
-  number. The node leaves a zero parameter out; `ResponsesDecoder.decodeRule`
-  puts it back as `'0'` or `0`. Internal values the node also sends (pool
-  addresses, block interval, version, proposal timing, and two parameters it
-  does not apply) stay in `value` untyped. Code reading a removed name gets a
-  compile error; it was `undefined` before.
+  most it does. It now has `height` and the 21 parameters a caller acts on (gas
+  and block limits, validator and delegation limits, reward, slashing and
+  supply), each in the JSON type the node uses: int64 as a decimal string, int32
+  as a number. The node leaves a zero parameter out;
+  `ResponsesDecoder.decodeRule` puts it back as `'0'` or `0`. Internal values
+  the node also sends (pool addresses, block interval, version, proposal timing,
+  and two parameters it does not apply) stay in `value` untyped. Code reading a
+  removed name gets a compile error; it was `undefined` before.
+
+- `@beatoz/web3-types`: **BREAKING:** `VmCallResponse.value.returnData` is hex,
+  and the type says so. `web3.beatoz.vmCall` returned it as the base64 the node
+  sends, while a contract call converted it to hex itself, under one type with
+  `returnData: any`. `ResponsesDecoder.decodeVmCall` now converts it for both,
+  returns `''` when the call returned nothing, and puts back a zero `usedGas`
+  the node leaves out. The type also lists `key`, `height`, `usedGas` and
+  `vmErr`, which the node sends. Code that decoded base64 from `vmCall` reads
+  hex instead; a contract call returns the same as before.
 
 ### Security
 

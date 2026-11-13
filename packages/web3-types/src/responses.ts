@@ -1107,12 +1107,23 @@ export interface ProposalResponse {
 }
 
 /**
- * Represents the response after making a call to a virtual machine (VM).
+ * The result of the node's `vm_call` query (beatoz-go `ctrlers/types/vm.go`),
+ * which runs a contract call without a transaction.
  */
 export interface VmCallResponse {
+    key: string;
+    /** Block height the call ran at. */
+    height: string;
     value: {
-        /** Data returned by the VM after the call */
-        returnData: any;
+        /**
+         * What the call returned, as hex without `0x`; `''` when it returned
+         * nothing. The node sends it as base64, and the SDK converts it.
+         */
+        returnData: HexString;
+        /** Gas the call used, as a decimal string. */
+        usedGas: string;
+        /** The VM's error, present only when the call failed (for example a revert). */
+        vmErr?: string;
     };
 }
 

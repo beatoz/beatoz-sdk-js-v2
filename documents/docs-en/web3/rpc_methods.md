@@ -691,19 +691,38 @@ export interface StakesResponse {
 30. `vmCall`: Makes a call to the VM.
 example:
 ```js
-const vmCallResponse: VmCallResponse = await web3.beatoz.vmCall("0x1234");
+// from, to (contract), height (0 for the latest block), call data: 'name()'
+const vmCallResponse: VmCallResponse = await web3.beatoz.vmCall(
+    '03ba93fdc3e164cd4e57370a828f6e5b05d4817d',
+    '15633e505d01691a71f40049e15ba1340c0eea29',
+    0,
+    '0x06fdde03',
+);
+// vmCallResponse.value.returnData is hex, such as
+// '0000...0020' + '0000...0007' + '4d79546f6b656e00...' for the string 'MyToken'
 ```
 
 response type:
 ```typescript
 /**
- * Represents the response after making a call to a virtual machine (VM).
+ * The result of the node's `vm_call` query (beatoz-go `ctrlers/types/vm.go`),
+ * which runs a contract call without a transaction.
  */
 export interface VmCallResponse {
-  value: {
-    /** Data returned by the VM after the call */
-    returnData: any;
-  };
+    key: string;
+    /** Block height the call ran at. */
+    height: string;
+    value: {
+        /**
+         * What the call returned, as hex without `0x`; `''` when it returned
+         * nothing. The node sends it as base64, and the SDK converts it.
+         */
+        returnData: HexString;
+        /** Gas the call used, as a decimal string. */
+        usedGas: string;
+        /** The VM's error, present only when the call failed (for example a revert). */
+        vmErr?: string;
+    };
 }
 ```
 
