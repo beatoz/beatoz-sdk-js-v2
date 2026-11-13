@@ -23,12 +23,8 @@ import {
     BroadcastTxSyncResponse,
     BroadcastTxCommitResponse,
     ContractAbi,
-    ContractMethod,
-    ContractMethodInputParameters,
-    ContractMethodOutputParameters,
     DataFormat,
     DEFAULT_RETURN_FORMAT,
-    FilterAbis,
     HexString,
     Mutable,
     NonPayableCallOptions,
@@ -47,6 +43,7 @@ import {
     PayableMethodObject,
     PayableTxOptions,
 } from './types.js';
+import { ContractMethodsInterface } from './method_types.js';
 import { bytesToHex, format, isNullish, toChecksumAddress } from '@beatoz/web3-utils';
 import {
     decodeContractErrorData,
@@ -78,46 +75,11 @@ import { TrxProtoBuilder, Web3Account } from '@beatoz/web3-accounts';
 import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
 
-type ContractBoundMethod<
-    Abi extends AbiFunctionFragment,
-    Method extends ContractMethod<Abi> = ContractMethod<Abi>,
-> = (
-    ...args: Method['Inputs']
-) => Method['Abi']['stateMutability'] extends 'payable' | 'pure'
-    ? PayableMethodObject<Method['Inputs'], Method['Outputs']>
-    : NonPayableMethodObject<Method['Inputs'], Method['Outputs']>;
-
-// To avoid circular dependency between types and encoding, declared these types here.
-export type ContractMethodsInterface<Abi extends ContractAbi> = {
-    [
-        MethodAbi in FilterAbis<
-            Abi,
-            AbiFunctionFragment & { type: 'function' }
-        > as MethodAbi['name']
-    ]: ContractBoundMethod<MethodAbi>;
-    // To allow users to use method signatures
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} & { [key: string]: ContractBoundMethod<any> };
-
-export type ContractOverloadedMethodInputs<AbiArr extends ReadonlyArray<unknown>> = NonNullable<
-    AbiArr extends readonly []
-        ? undefined
-        : AbiArr extends readonly [infer A, ...infer R]
-          ? A extends AbiFunctionFragment
-              ? ContractMethodInputParameters<A['inputs']> | ContractOverloadedMethodInputs<R>
-              : undefined
-          : undefined
->;
-
-export type ContractOverloadedMethodOutputs<AbiArr extends ReadonlyArray<unknown>> = NonNullable<
-    AbiArr extends readonly []
-        ? undefined
-        : AbiArr extends readonly [infer A, ...infer R]
-          ? A extends AbiFunctionFragment
-              ? ContractMethodOutputParameters<A['outputs']> | ContractOverloadedMethodOutputs<R>
-              : undefined
-          : undefined
->;
+// A method as the contract builds it at run time; ContractMethodsInterface
+// gives each one its type from the ABI.
+type ContractBoundMethod = (
+    ...params: unknown[]
+) => NonPayableMethodObject<unknown[], unknown> | PayableMethodObject<unknown[], unknown>;
 
 export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecutionAPI> {
     public readonly options: ContractOptions;
@@ -127,8 +89,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecuti
         string,
         {
             signature: string;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            method: ContractBoundMethod<any>;
+            method: ContractBoundMethod;
         }
     > = {};
 
@@ -231,7 +192,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecuti
     private _createContractMethod<T extends AbiFunctionFragment[], E extends AbiErrorFragment>(
         abiArr: T,
         errorsAbis: E[],
-    ): ContractBoundMethod<T[0]> {
+    ): ContractBoundMethod {
         const abi = abiArr[abiArr.length - 1];
         return (...params: unknown[]) => {
             let abiParams!: Array<unknown>;
@@ -325,16 +286,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecuti
                 encodeABI: () => encodeMethodABI(methodAbi, abiParams),
             };
 
-            if (methodAbi.stateMutability === 'payable') {
-                return methods as unknown as PayableMethodObject<
-                    ContractOverloadedMethodInputs<T>,
-                    ContractOverloadedMethodOutputs<T>
-                >;
-            }
-            return methods as unknown as NonPayableMethodObject<
-                ContractOverloadedMethodInputs<T>,
-                ContractOverloadedMethodOutputs<T>
-            >;
+            return methods;
         };
     }
 

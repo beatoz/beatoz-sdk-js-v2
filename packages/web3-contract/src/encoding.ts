@@ -212,19 +212,55 @@ export const encodeMethodABI = (
     return `${encodeFunctionSignature(abi)}${params}`;
 };
 
+// Matches what abitype types an output as, as viem decodes it.
+const smallInteger = /^u?int(8|16|24|32|40|48)$/;
+const arrayType = /^(.*)\[\d*\]$/;
+
+type OutputParameter = {
+    readonly type: string;
+    readonly name?: string;
+    readonly components?: readonly OutputParameter[];
+};
+
+/**
+ * Turns a decoded value into the shape abitype gives it: integers of 48 bits
+ * or fewer are numbers (they fit exactly), wider ones stay bigints; a tuple
+ * whose components all have names is an object, otherwise an array; arrays
+ * are plain arrays. The ABI decoder returns bigints for every integer and
+ * array-like objects with index and name keys for tuples.
+ */
+const toAbitypeShape = (param: OutputParameter, value: unknown): unknown => {
+    const array = arrayType.exec(param.type);
+    if (array) {
+        const element = { ...param, type: array[1] };
+        return Array.from(value as ArrayLike<unknown>, (item) => toAbitypeShape(element, item));
+    }
+    if (param.type === 'tuple') {
+        const components = param.components ?? [];
+        const fields = components.map((component, i) =>
+            toAbitypeShape(component, (value as Record<number, unknown>)[i]),
+        );
+        return components.length > 0 && components.every((component) => component.name)
+            ? Object.fromEntries(components.map((component, i) => [component.name, fields[i]]))
+            : fields;
+    }
+    if (smallInteger.test(param.type)) {
+        return Number(value);
+    }
+    return value;
+};
+
 /**
  * Decodes what a contract call returned, by the function's outputs: nothing
  * for no outputs, the value itself for one, an array for more, as viem's
  * decodeFunctionResult does. `returnValues` is hex, with or without 0x.
  */
 export const decodeMethodReturn = (abi: AbiFunctionFragment, returnValues: HexString): unknown => {
-    const outputs = abi.outputs ?? [];
+    const outputs = (abi.outputs ?? []) as readonly OutputParameter[];
     if (outputs.length === 0) {
         return undefined;
     }
-    const result = decodeParameters([...outputs], returnValues.replace(/^0x/i, ''));
-    if (outputs.length === 1) {
-        return result[0];
-    }
-    return outputs.map((_, i) => result[i]);
+    const result = decodeParameters([...(abi.outputs ?? [])], returnValues.replace(/^0x/i, ''));
+    const values = outputs.map((output, i) => toAbitypeShape(output, result[i]));
+    return values.length === 1 ? values[0] : values;
 };

@@ -42,8 +42,9 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write '**/*'",
-        "test": "jest --config=./test/unit/jest.config.js",
-        "test:silent": "jest --silent --config=./test/unit/jest.config.js",
+        "test": "yarn test:types && jest --config=./test/unit/jest.config.js",
+        "test:types": "tsc -p test/tsconfig.json",
+        "test:silent": "yarn test:types && jest --silent --config=./test/unit/jest.config.js",
         "test:integration": "jest --config=./test/integration/jest.config.js"
     },
     "devDependencies": {
@@ -58,7 +59,8 @@
         "@beatoz/web3-providers-ws": "^1.6.5",
         "@beatoz/web3-types": "^1.6.5",
         "@beatoz/web3-utils": "^1.6.5",
-        "@beatoz/web3-validator": "^1.6.5"
+        "@beatoz/web3-validator": "^1.6.5",
+        "abitype": "^1.3.0"
     },
     "peerDependencies": {
         "typescript": ">=5.8"
