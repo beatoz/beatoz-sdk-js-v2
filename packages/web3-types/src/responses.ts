@@ -368,32 +368,6 @@ export interface ValidatorsResponse {
     readonly total: number;
 }
 
-// Events
-
-/**
- * Represents an event indicating a new block.
- */
-export type NewBlockEvent = Block;
-
-/**
- * Represents an event indicating a new block header.
- */
-export type NewBlockHeaderEvent = Header;
-
-/**
- * Represents an event associated with a transaction.
- */
-export interface TxEvent {
-    /** The transaction data */
-    readonly tx: HexString;
-    /** The hash of the transaction */
-    readonly hash: HexString;
-    /** The height of the block containing the transaction */
-    readonly height: number;
-    /** Result data associated with the transaction */
-    readonly result: TxData;
-}
-
 /**
  * Represents an attribute of an event.
  */

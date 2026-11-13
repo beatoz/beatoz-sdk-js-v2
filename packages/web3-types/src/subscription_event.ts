@@ -54,7 +54,7 @@ export interface BlockEventResults {
 
 /**
  * What `subscribeNewBlock` emits. `ResponsesDecoder.decodeNewBlockEvent` turns
- * it into a decoded `NewBlockEvent`.
+ * it into the decoded `Block` the block query returns.
  */
 export type NewBlockSubscriptionEvent = SubscriptionEvent<
     'tendermint/event/NewBlock',
@@ -63,7 +63,7 @@ export type NewBlockSubscriptionEvent = SubscriptionEvent<
 
 /**
  * What `subscribeNewBlockHeader` emits. `ResponsesDecoder.decodeNewBlockHeaderEvent`
- * turns it into a decoded `NewBlockHeaderEvent`.
+ * turns it into a decoded `Header`.
  */
 export type NewBlockHeaderSubscriptionEvent = SubscriptionEvent<
     'tendermint/event/NewBlockHeader',

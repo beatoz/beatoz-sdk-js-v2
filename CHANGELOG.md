@@ -277,6 +277,14 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-types`: **BREAKING:** `NewBlockEvent`, `NewBlockHeaderEvent` and
+  `TxEvent` are gone. The first two were other names for `Block` and `Header`,
+  used only as the return types of `ResponsesDecoder.decodeNewBlockEvent` and
+  `decodeNewBlockHeaderEvent`, which now declare `Block` and `Header`; `TxEvent`
+  had no decoder and no user. Next to the subscription events
+  (`NewBlockSubscriptionEvent` and the others) they read as a second set of
+  event types. Use `Block` and `Header`.
+
 - `@beatoz/web3-types`: **BREAKING:** `BytesUint8Array.parse(d, enc)` is gone.
   It took `any` and an encoding name and only called `fromHex` or `fromWords`,
   so a wrong input compiled and failed at run time. Call
