@@ -36,21 +36,21 @@ void _amount;
 export function buildersTakeTheirOwnPayload() {
     TrxProtoBuilder.buildTransferTrxProto(base);
     TrxProtoBuilder.buildDelegateTrxProto(base);
-    TrxProtoBuilder.buildUnDelegateTrxProto({ ...base, payload: { txhash: '0x03' } });
+    TrxProtoBuilder.buildUnDelegateTrxProto({ ...base, payload: { txHash: '0x03' } });
     TrxProtoBuilder.buildProposalTrx({
         ...noAmount,
         payload: {
             message: 'm',
-            startVotingHeight: Long.fromNumber(1),
-            votingBlocks: Long.fromNumber(1),
-            applyingHeight: Long.fromNumber(1),
+            startVotingHeight: 1,
+            votingBlocks: 1,
+            applyingHeight: 1,
             optType: 0,
             options: [],
         },
     });
     TrxProtoBuilder.buildVotingTrx({
         ...noAmount,
-        payload: { txHash: new Uint8Array(), choice: 0 },
+        payload: { txHash: '0x04', choice: 0 },
     });
     TrxProtoBuilder.buildContractTrxProto({ ...base, payload: { data: '0x6080' } });
     TrxProtoBuilder.buildSetDocTrx({ ...noAmount, payload: { name: 'n', url: 'u' } });
@@ -61,13 +61,13 @@ export function transferAndStakingCarryNoPayload() {
     // @ts-expect-error a transfer has no payload
     TrxProtoBuilder.buildTransferTrxProto({ ...base, payload: { reqAmt: '1' } });
     // @ts-expect-error staking has no payload
-    TrxProtoBuilder.buildDelegateTrxProto({ ...base, payload: { txhash: '0x03' } });
+    TrxProtoBuilder.buildDelegateTrxProto({ ...base, payload: { txHash: '0x03' } });
 }
 
 export function payloadIsRequiredWhereTheTypeCarriesOne() {
     // @ts-expect-error a withdraw needs payload.reqAmt
     TrxProtoBuilder.buildWithdrawTrx(base);
-    // @ts-expect-error unstaking needs payload.txhash
+    // @ts-expect-error unstaking needs payload.txHash
     TrxProtoBuilder.buildUnDelegateTrxProto(base);
     // @ts-expect-error a contract transaction needs payload.data
     TrxProtoBuilder.buildContractTrxProto(base);
@@ -77,7 +77,7 @@ export function payloadIsRequiredWhereTheTypeCarriesOne() {
 
 export function anotherTypesPayloadIsRejected() {
     // @ts-expect-error the unstaking payload is not a withdraw payload
-    TrxProtoBuilder.buildWithdrawTrx({ ...base, payload: { txhash: '0x03' } });
+    TrxProtoBuilder.buildWithdrawTrx({ ...base, payload: { txHash: '0x03' } });
     // @ts-expect-error the withdraw payload is not an unstaking payload
     TrxProtoBuilder.buildUnDelegateTrxProto({ ...base, payload: { reqAmt: '1' } });
     // @ts-expect-error setDoc took Transaction<object> and accepted any object
@@ -88,7 +88,7 @@ export function anotherTypesPayloadIsRejected() {
 
 export function typesThatMoveNoValueTakeNoAmount() {
     // @ts-expect-error a vote moves no amount
-    TrxProtoBuilder.buildVotingTrx({ ...base, payload: { txHash: new Uint8Array(), choice: 0 } });
+    TrxProtoBuilder.buildVotingTrx({ ...base, payload: { txHash: '0x04', choice: 0 } });
     // @ts-expect-error a setDoc moves no amount
     TrxProtoBuilder.buildSetDocTrx({ ...base, payload: { name: 'n', url: 'u' } });
     TrxProtoBuilder.buildProposalTrx({
@@ -97,12 +97,43 @@ export function typesThatMoveNoValueTakeNoAmount() {
         amount: '5',
         payload: {
             message: 'm',
-            startVotingHeight: Long.fromNumber(1),
-            votingBlocks: Long.fromNumber(1),
-            applyingHeight: Long.fromNumber(1),
+            startVotingHeight: 1,
+            votingBlocks: 1,
+            applyingHeight: 1,
             optType: 0,
             options: [],
         },
+    });
+}
+
+export function payloadsTakePlainValues() {
+    const proposal = {
+        message: 'm',
+        startVotingHeight: 1,
+        votingBlocks: 1,
+        applyingHeight: 1,
+        optType: 0x0101,
+        options: ['{"maxTrxGas":"100000"}'],
+    };
+    TrxProtoBuilder.buildProposalTrx({
+        ...noAmount,
+        // @ts-expect-error heights are numbers; Long belonged to the protobuf types
+        payload: { ...proposal, startVotingHeight: Long.fromNumber(1) },
+    });
+    TrxProtoBuilder.buildProposalTrx({
+        ...noAmount,
+        // @ts-expect-error options are text, not bytes
+        payload: { ...proposal, options: [new Uint8Array()] },
+    });
+    TrxProtoBuilder.buildVotingTrx({
+        ...noAmount,
+        // @ts-expect-error a proposal hash is the hex the node returns, not bytes
+        payload: { txHash: new Uint8Array(32), choice: 0 },
+    });
+    TrxProtoBuilder.buildUnDelegateTrxProto({
+        ...base,
+        // @ts-expect-error unstaking takes txHash, as voting does; txhash is gone
+        payload: { txhash: '0x03' },
     });
 }
 
@@ -132,7 +163,7 @@ export function decodedPayloadNarrowsOnType(tx: DecodedTransaction) {
             return none;
         }
         case 3:
-            return tx.payload.txhash;
+            return tx.payload.txHash;
         case 4:
             return tx.payload.applyHeight;
         case 5:

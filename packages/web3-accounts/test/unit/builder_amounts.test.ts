@@ -13,7 +13,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import Long from 'long';
 import { TrxProtoBuilder } from '../../src';
 import { TrxProto } from '@beatoz/web3-types';
 
@@ -34,7 +33,7 @@ const builders: Record<string, (f: Fields) => TrxProto> = {
         TrxProtoBuilder.buildUnDelegateTrxProto({
             ...base,
             ...f,
-            payload: { txhash: '11'.repeat(32) },
+            payload: { txHash: '11'.repeat(32) },
         } as never),
     contract: (f) =>
         TrxProtoBuilder.buildContractTrxProto({ ...base, ...f, payload: { data: '00' } } as never),
@@ -44,9 +43,9 @@ const builders: Record<string, (f: Fields) => TrxProto> = {
             ...f,
             payload: {
                 message: 'm',
-                startVotingHeight: Long.fromNumber(10),
-                votingBlocks: Long.fromNumber(10),
-                applyingHeight: Long.fromNumber(30),
+                startVotingHeight: 10,
+                votingBlocks: 10,
+                applyingHeight: 30,
                 optType: 1,
                 options: [],
             },
@@ -55,7 +54,7 @@ const builders: Record<string, (f: Fields) => TrxProto> = {
         TrxProtoBuilder.buildVotingTrx({
             ...base,
             ...f,
-            payload: { txHash: new Uint8Array(32), choice: 0 },
+            payload: { txHash: '22'.repeat(32), choice: 0 },
         } as never),
     setdoc: (f) =>
         TrxProtoBuilder.buildSetDocTrx({

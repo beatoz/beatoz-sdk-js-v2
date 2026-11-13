@@ -42,7 +42,7 @@ describe('staking test', () => {
             gas: 1000000,
             gasPrice: '250000000000',
             payload: {
-                txhash: '2bda7cddd29aa14dd938fc535f0b561cf20a5aca5ac4e8e73b28434aec1dbd78',
+                txHash: '2bda7cddd29aa14dd938fc535f0b561cf20a5aca5ac4e8e73b28434aec1dbd78',
             },
         });
         TrxProtoBuilder.signTrxProto(tx, account, getTestChainId());

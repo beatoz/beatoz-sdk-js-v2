@@ -13,7 +13,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import Long from 'long';
 import { privateKeyToAccount, TrxProtoBuilder } from '../../src';
 import { TrxProto } from '@beatoz/web3-types';
 
@@ -42,7 +41,7 @@ const built: [number, () => TrxProto][] = [
             TrxProtoBuilder.buildUnDelegateTrxProto({
                 ...base,
                 amount: '0',
-                payload: { txhash: '11'.repeat(32) },
+                payload: { txHash: '11'.repeat(32) },
             }),
     ],
     [
@@ -52,9 +51,9 @@ const built: [number, () => TrxProto][] = [
                 ...base,
                 payload: {
                     message: 'm',
-                    startVotingHeight: Long.fromNumber(10),
-                    votingBlocks: Long.fromNumber(10),
-                    applyingHeight: Long.fromNumber(30),
+                    startVotingHeight: 10,
+                    votingBlocks: 10,
+                    applyingHeight: 30,
                     optType: 1,
                     options: [],
                 },
@@ -65,7 +64,7 @@ const built: [number, () => TrxProto][] = [
         () =>
             TrxProtoBuilder.buildVotingTrx({
                 ...base,
-                payload: { txHash: new Uint8Array(32), choice: 0 },
+                payload: { txHash: '22'.repeat(32), choice: 0 },
             }),
     ],
     [
