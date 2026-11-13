@@ -98,6 +98,32 @@ describe('parameters_api', () => {
         });
     });
 
+    // A parameter object may leave out `name`; it used to be taken for the
+    // simplified struct form `{ StructName: { ... } }` and fail to decode.
+    describe('parameters without a name', () => {
+        const word1000 = '00000000000000000000000000000000000000000000000000000000000003e8';
+        const wordTrue = '0000000000000000000000000000000000000000000000000000000000000001';
+
+        it('decodes one', () => {
+            expect(decodeParameters([{ type: 'uint256' }], word1000)[0]).toBe(1000n);
+        });
+
+        it('decodes several', () => {
+            const decoded = decodeParameters(
+                [{ type: 'uint256' }, { type: 'bool' }],
+                word1000 + wordTrue,
+            );
+            expect([decoded[0], decoded[1], decoded.__length__]).toEqual([1000n, true, 2]);
+        });
+
+        it('encodes and decodes back', () => {
+            const abi = [{ type: 'address' }, { type: 'string' }];
+            const params = ['0x15633e505d01691a71f40049e15ba1340c0eea29', 'MyToken'];
+            const decoded = decodeParameters(abi, encodeParameters(abi, params));
+            expect([String(decoded[0]).toLowerCase(), decoded[1]]).toEqual(params);
+        });
+    });
+
     describe('encode and decode', () => {
         describe('input should be the same as returned value from encode and decode', () => {
             it.each(validEncodeDecodeParametersData)(

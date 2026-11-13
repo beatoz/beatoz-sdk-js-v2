@@ -568,6 +568,11 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-abi`: A parameter object without `name`, such as `{ type:
+  'uint256' }`, encodes and decodes. It was taken for the simplified struct form
+  `{ StructName: { ... } }` and failed with `invalid type (argument="type",
+  value="u", ...)`; an object with a string `type` is now always a parameter.
+
 - `@beatoz/web3-core`: `setProvider()` with a URL now builds one provider. It
   built two and kept the second, so for a `ws://` URL the first opened a socket
   that nothing referenced and nothing could close, and a Node process that

@@ -62,10 +62,15 @@ export const isAbiConstructorFragment = (item: unknown): item is AbiConstructorF
 /**
  * Check if type is simplified struct format
  */
+// The simplified struct form is `{ StructName: { field: 'uint256', ... } }`. A
+// parameter object always has a string `type`, with or without `name`, so one
+// that has it is a parameter: `{ type: 'uint256' }` used to be read as a struct
+// named "type" and fail to decode.
 export const isSimplifiedStructFormat = (
     type: string | Partial<AbiParameter> | Partial<AbiInput>,
 ): type is Omit<AbiParameter, 'components' | 'name'> =>
     typeof type === 'object' &&
+    typeof (type as { type: unknown }).type !== 'string' &&
     typeof (type as { components: unknown }).components === 'undefined' &&
     typeof (type as { name: unknown }).name === 'undefined';
 
