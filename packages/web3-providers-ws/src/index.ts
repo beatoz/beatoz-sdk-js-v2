@@ -257,7 +257,7 @@ function toJsonRpcResponse(message: SocketWrapperMessageEvent): JsonRpcResponse 
 
 /**
  * Returns a JsonRpcErrorResponse if input can be parsed as a JSON-RPC error. Otherwise parses
- * input as JsonRpcSuccessResponse. Throws if input is neither a valid error nor success response.
+ * input as JsonRpcResponseWithResult. Throws if input is neither a valid error nor success response.
  */
 export function parseJsonRpcResponse(data: any): JsonRpcResponse {
     let response: JsonRpcResponse;

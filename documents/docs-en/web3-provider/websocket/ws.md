@@ -60,11 +60,11 @@ Structurally, a **WebsocketProvider** instance manages a `ReconnectingSocket` co
 
 - `toJsonRpcResponse(message: SocketWrapperMessageEvent)`: Converts a message to JsonRpcResponse.
 
-- `parseJsonRpcResponse(data: any)`: Parses data into either a JsonRpcErrorResponse or a JsonRpcSuccessResponse.
+- `parseJsonRpcResponse(data: any)`: Parses data into either a JsonRpcErrorResponse or a JsonRpcResponseWithResult.
 
 - `parseJsonRpcErrorResponse(data: any)`: Parses data into a JsonRpcErrorResponse.
 
-- `parseJsonRpcSuccessResponse(data: any)`: Parses data into a JsonRpcSuccessResponse.
+- `parseJsonRpcSuccessResponse(data: any)`: Parses data into a JsonRpcResponseWithResult.
 
 - `isJsonRpcErrorResponse(response: JsonRpcResponse)`: Checks if a response is a JsonRpcErrorResponse.
 

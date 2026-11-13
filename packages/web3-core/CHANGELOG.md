@@ -65,6 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The `Decoder` type is gone. Nothing used it, and it was built on
+  `JsonRpcSuccessResponse`, removed from `@beatoz/web3-types`.
+
 - **BREAKING:** `Web3Subscription`, `Web3SubscriptionManager`,
   `Web3SubscriptionConstructor` and `isSupportSubscriptions` are gone, 394 lines
   that could not run. They are web3.js's `eth_subscribe` machinery, ported
