@@ -15,6 +15,13 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-types`: **BREAKING:** `Evidence`, the type of `Block.evidence`,
+  is `unknown` instead of `any`. It holds Tendermint's `DuplicateVoteEvidence`
+  or `LightClientAttackEvidence` as the node sends it, which only exists after a
+  validator misbehaves, so its shape could not be checked against a node; a
+  precise type can follow without breaking anyone. Code reading its fields
+  checks them first. Slashing is also reported as events in the block results.
+
 - All packages: **BREAKING:** The minimum supported Node.js version is now
   22.22.2, raised from 22.13. lerna 10, which builds and tests this repository,
   does not install below it, and the packages keep the repository's floor so

@@ -460,9 +460,16 @@ export interface BlockTxs {
     readonly txs: readonly HexString[];
 }
 
-/** Placeholder type for evidence associated with a block. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Evidence = any;
+/**
+ * Evidence of validator misbehaviour in a block, as the node sends it: a
+ * Tendermint `tendermint/DuplicateVoteEvidence` (two conflicting votes) or
+ * `tendermint/LightClientAttackEvidence` (a conflicting block with its
+ * validator set), from beatoz/tendermint-ethaddr `types/evidence.go`. It only
+ * appears after a validator misbehaves, so its shape has not been checked
+ * against a node; read it as unknown. Slashing shows up as events in the
+ * block results.
+ */
+export type Evidence = unknown;
 
 /**
  * Represents the commit information associated with a block.
