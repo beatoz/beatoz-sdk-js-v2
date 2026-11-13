@@ -51,9 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   length gained a leading zero (`'0xabc'` read as `0abc`). The transaction
   builders read `from`, `to`, the unstaking hash and contract data with it, so
   a recipient address with one mistyped or dropped digit was signed as a
-  different 20-byte address, which the node accepts. `BytesUint8Array.parse`
-  with `'hex'` goes through the same check. Callers passing well-formed hex are
-  unaffected.
+  different 20-byte address, which the node accepts. Callers passing
+  well-formed hex are unaffected.
 
 - **BREAKING:** The minimum Node version is 22.13, raised from 22.12. Two things
   set the floor and the higher one now wins: `require(esm)` - the reason these
@@ -95,6 +94,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `error TS2834: Relative import paths need explicit file extensions`.
 
 ### Removed
+
+- **BREAKING:** `BytesUint8Array.parse(d, enc)` is gone. It took `any` and an
+  encoding name and only called `fromHex` or `fromWords`, so a wrong input
+  compiled and failed at run time. Call `BytesUint8Array.fromHex(hex)` or
+  `BytesUint8Array.fromWords(words)` instead.
 
 - **BREAKING:** `Web3BaseProviderConstructor` is gone. Its `net?: Socket`
   parameter was the only reason this package's declarations imported Node's
