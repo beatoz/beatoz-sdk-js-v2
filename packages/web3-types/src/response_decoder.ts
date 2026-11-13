@@ -45,8 +45,6 @@ import {
     Event,
     EvidenceParams,
     Header,
-    NewBlockEvent,
-    NewBlockHeaderEvent,
     TxProof,
     ValidatorParams,
     ValidatorUpdate,
@@ -213,13 +211,13 @@ export class ResponsesDecoder {
         return decodeStatus(response.result as RpcStatusResponse);
     }
 
-    public static decodeNewBlockEvent(event: NewBlockSubscriptionEvent): NewBlockEvent {
+    public static decodeNewBlockEvent(event: NewBlockSubscriptionEvent): responses.Block {
         return decodeBlock(event.data.value.block);
     }
 
     public static decodeNewBlockHeaderEvent(
         event: NewBlockHeaderSubscriptionEvent,
-    ): NewBlockHeaderEvent {
+    ): responses.Header {
         return decodeHeader(event.data.value.header);
     }
 
