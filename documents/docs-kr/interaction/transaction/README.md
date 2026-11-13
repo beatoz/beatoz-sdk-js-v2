@@ -150,7 +150,6 @@ const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
 - from : 보내는 주소
 - to : '0000000000000000000000000000000000000000'
 - nonce : 계정의 nonce
-- amount : '0'
 - gas : 가스 수량
 - gasPrice : 가스 가격
 - payload
@@ -215,7 +214,6 @@ const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
 - from : 보내는 주소
 - to : '0000000000000000000000000000000000000000'
 - nonce : 계정의 nonce
-- amount : '0'
 - gas : 가스 수량
 - gasPrice : 가스 가격
 - payload
@@ -248,7 +246,6 @@ const trxProto: TrxProto = TrxProtoBuilder.buildVotingTrx({
     nonce: accountInfo.value.nonce,
     gas: 1000000,
     gasPrice: '250000000000',
-    amount: '0',
     payload: {
         txhash: votingHash,
         choice: 0,
@@ -268,7 +265,6 @@ const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
 - from : 보내는 주소
 - to : setDoc 대상 주소
 - nonce : 계정의 nonce
-- amount : '0'
 - gas : 가스 수량
 - gasPrice : 가스 가격
 - payload
@@ -298,7 +294,6 @@ const trxProto: TrxProto = TrxProtoBuilder.buildSetDocTrx({
     nonce: accountInfo.value.nonce,
     gas: 1000000,
     gasPrice: '250000000000',
-    amount: '0',
     payload: {
         name: "name",
         url: "URL",

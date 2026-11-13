@@ -73,6 +73,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   the node's raw JSON is a decimal string and is refused now; convert it with
   `Number()`, or read it with `web3.beatoz.getAccount`, which returns a number.
 
+- **BREAKING:** `buildProposalTrx`, `buildVotingTrx` and `buildSetDocTrx` take
+  no `amount`. Those transactions move no value, and the builders signed an
+  empty amount whatever was passed, so `amount: '5'` was dropped without a
+  word. Their input is the new `TransactionWithoutAmount<T>`, where passing
+  `amount` does not compile; a non-zero amount passed anyway fails before
+  signing: `a vote moves no amount; leave amount out`. Remove `amount` from
+  these calls. The signed bytes are unchanged.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),

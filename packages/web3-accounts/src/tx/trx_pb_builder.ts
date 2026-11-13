@@ -33,6 +33,7 @@ import {
     TransactionPayloadContract,
     TransactionPayloadUnDelegating,
     TransactionPayloadWithdraw,
+    TransactionWithoutAmount,
 } from './tx_types.js';
 import { Web3Account } from '../types.js';
 import { RlpUtils } from './trx_rlp.js';
@@ -76,6 +77,20 @@ function parseInt64(name: string, value: number): Long {
         throw Error(`${name} must be a non-negative safe integer, got ${String(value)}`);
     }
     return Long.fromNumber(value);
+}
+
+/**
+ * Refuses a non-zero `amount` on a transaction type that moves no value.
+ *
+ * The input types leave `amount` out for these, but a JavaScript caller or a
+ * cast can still pass one. beatoz-go would accept it and move nothing, so it
+ * would be dropped without a word; zero is the only value that means what it
+ * says.
+ */
+function refuseAmount(kind: string, amount: unknown): void {
+    if (amount !== undefined && !parseUint256('amount', amount as string).isZero()) {
+        throw Error(`${kind} moves no amount; leave amount out`);
+    }
 }
 
 /**
@@ -284,7 +299,10 @@ function buildUnDelegateTrxProto(
     };
 }
 
-function buildProposalTrx(transaction: Transaction<TrxPayloadProposalProto>): TrxProto {
+function buildProposalTrx(
+    transaction: TransactionWithoutAmount<TrxPayloadProposalProto>,
+): TrxProto {
+    refuseAmount('a proposal', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');
@@ -318,7 +336,8 @@ function buildProposalTrx(transaction: Transaction<TrxPayloadProposalProto>): Tr
     };
 }
 
-function buildVotingTrx(transaction: Transaction<TrxPayloadVotingProto>): TrxProto {
+function buildVotingTrx(transaction: TransactionWithoutAmount<TrxPayloadVotingProto>): TrxProto {
+    refuseAmount('a vote', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');
@@ -421,7 +440,8 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
     };
 }
 
-function buildSetDocTrx(transaction: Transaction<TrxPayloadSetDocProto>): TrxProto {
+function buildSetDocTrx(transaction: TransactionWithoutAmount<TrxPayloadSetDocProto>): TrxProto {
+    refuseAmount('a setDoc', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
         throw Error('mandatory argument is missed');

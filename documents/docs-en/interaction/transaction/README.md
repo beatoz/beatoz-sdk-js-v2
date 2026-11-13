@@ -147,7 +147,6 @@ The required arguments for `buildProposalTrx` are as follows:
 - from : Sending address
 - to : '0000000000000000000000000000000000000000'
 - nonce : Nonce of the account
-- amount : '0'
 - gas : Gas amount
 - gasPrice : Gas price
 - payload
@@ -212,7 +211,6 @@ The required arguments for `buildVotingTrx are as follows:
 - from : Sending address
 - to : '0000000000000000000000000000000000000000'
 - nonce : Nonce of the account
-- amount : '0'
 - gas : Gas amount
 - gasPrice : Gas price
 - payload
@@ -244,7 +242,6 @@ const trxProto: TrxProto = TrxProtoBuilder.buildVotingTrx({
     nonce: accountInfo.value.nonce,
     gas: 1000000,
     gasPrice: '250000000000',
-    amount: '0',
     payload: {
         txhash: votingHash,
         choice: 0,
@@ -263,7 +260,6 @@ You can create a setDoc transaction in BEATOZ. The required arguments for `build
 - from : Sending address
 - to : Address where the setDoc will be set
 - nonce : Nonce of the account
-- amount : '0'
 - gas : Gas amount
 - gasPrice : Gas price
 - payload
@@ -292,7 +288,6 @@ const trxProto: TrxProto = TrxProtoBuilder.buildSetDocTrx({
     nonce: accountInfo.value.nonce,
     gas: 1000000,
     gasPrice: '250000000000',
-    amount: '0',
     payload: {
         name: "name",
         url: "URL",

@@ -116,8 +116,23 @@ describe.each(Object.keys(builders))('%s gasPrice', (name) => {
     });
 });
 
-describe.each(['proposal', 'voting', 'setdoc'])('%s', (name) => {
-    it('carries no amount', () => {
-        expect(builders[name]({ amount: '5' }).Amount).toHaveLength(0);
+// Proposal, voting and setdoc move no value. Their input types leave amount
+// out; one passed anyway must be zero, since the chain would accept any other
+// value and move nothing.
+describe.each([
+    ['proposal', 'a proposal'],
+    ['voting', 'a vote'],
+    ['setdoc', 'a setDoc'],
+])('%s', (name, kind) => {
+    it.each([undefined, '0', '00'])('carries no amount for %p', (amount) => {
+        expect(builders[name]({ amount }).Amount).toHaveLength(0);
+    });
+
+    it.each(['1', '5', '1000000000000000000'])('rejects amount %j', (amount) => {
+        expect(() => builders[name]({ amount })).toThrow(`${kind} moves no amount`);
+    });
+
+    it.each(['', '-1', 'abc', 5])('rejects malformed amount %p', (amount) => {
+        expect(() => builders[name]({ amount })).toThrow('amount must be a decimal string');
     });
 });
