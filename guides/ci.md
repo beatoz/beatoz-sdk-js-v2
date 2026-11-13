@@ -42,8 +42,16 @@ whoever pushed.
 
 ## Required checks
 
-The rulesets make checks required by name, so renaming a job or changing a
-matrix value means updating the ruleset in the same change.
+The rulesets `dev checks` and `main checks` make checks required by name, so
+renaming a job or changing a matrix value means updating the ruleset in the
+same change.
 
 - `dev`: the three checks of `ci.yml`.
 - `main`: the three checks of `ci.yml` and every release check.
+
+These rulesets have no bypass: a pull request with a failing or missing
+required check cannot be merged, and a push to the branch is refused, for
+admins too. A job skipped by its condition counts as passed, so the push of a
+`dev` commit to `main` passes `Commit messages` and `From dev`, which run only
+on pull requests. The other rules on the branches (review, merge method,
+force push, deletion) are in separate rulesets that admins bypass.
