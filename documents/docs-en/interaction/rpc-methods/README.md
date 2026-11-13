@@ -1001,25 +1001,38 @@ try {
 ```shell
 {
   value: {
-    version: '1',
-    maxValidatorCnt: '21',
-    minValidatorStake: '7000000000000000000000000',
-    rewardPerPower: '1585489599',
-    lazyRewardBlocks: '2592000',
-    lazyApplyingBlocks: '259200',
-    gasPrice: '250000000000',
-    minTrxGas: '4000',
-    maxTrxGas: '25000000',
-    maxBlockGas: '18446744073709551615',
-    minVotingPeriodBlocks: '259200',
-    maxVotingPeriodBlocks: '2592000',
-    minSelfStakeRatio: '50',
-    maxUpdatableStakeRatio: '30',
-    slashRatio: '50',
-    signedBlocksWindow: '10000',
-    minSignedBlocks: '500'
+    blockGasLimit: '120000000',
+    blockSizeLimit: '22020096',
+    bondingBlocksWeightPermil: 500,
+    deadAddress: '000000000000000000000000000000000000DEAD',
+    emptyBlockIntervalSecs: 60,
+    gasPrice: '48000000000',
+    inflationCycleBlocks: '10080',
+    inflationWeightPermil: 3,
+    lazyApplyingBlocks: '1440',
+    lazyUnbondingBlocks: '43200',
+    maxDelegatorsOfValidator: 1000,
+    maxIndividualPowerRate: 33,
+    maxTotalSupply: '700000000000000000000000000',
+    maxUpdatablePowerRate: 33,
+    maxValidatorCnt: 21,
+    maxValidatorsOfDelegator: 1,
+    maxVotingPeriodBlocks: '10080',
+    minBondingBlocks: '20160',
+    minDelegatorPower: '100',
+    minSelfPowerRate: 50,
+    minSignedBlocks: '500',
+    minTrxGas: '5000',
+    minValidatorPower: '100000',
+    minVotingPeriodBlocks: '1440',
+    rewardPoolAddress: '0000000000000000000000000000000000000000',
+    ripeningBlocks: '525600',
+    slashRate: 50,
+    txFeeRewardRate: 90,
+    validatorRewardRate: 30,
+    version: 4
   },
-  height: 563202
+  height: '2867'
 }
 ```
 

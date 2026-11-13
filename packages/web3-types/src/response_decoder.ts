@@ -53,6 +53,31 @@ import {
 import { apiToSmallInt } from './inthelpers.js';
 import assert from 'assert';
 
+// Zero for every typed rule parameter, in the JSON type the node uses for it.
+const ruleZeros: responses.RuleResponse['value'] = {
+    gasPrice: '0',
+    minTrxGas: '0',
+    blockGasLimit: '0',
+    blockSizeLimit: '0',
+    maxValidatorCnt: 0,
+    minValidatorPower: '0',
+    minDelegatorPower: '0',
+    maxValidatorsOfDelegator: 0,
+    maxDelegatorsOfValidator: 0,
+    minSelfPowerRate: 0,
+    maxUpdatablePowerRate: 0,
+    lazyUnbondingBlocks: '0',
+    validatorRewardRate: 0,
+    txFeeRewardRate: 0,
+    slashRate: 0,
+    minSignedBlocks: '0',
+    inflationCycleBlocks: '0',
+    inflationWeightPermil: 0,
+    bondingBlocksWeightPermil: 0,
+    ripeningBlocks: '0',
+    maxTotalSupply: '0',
+};
+
 export class ResponsesDecoder {
     public static decodeHealth(): responses.HealthResponse {
         return null;
@@ -219,7 +244,9 @@ export class ResponsesDecoder {
     public static decodeRule(
         response: JsonRpcResponseWithResult<responses.RuleResponse>,
     ): responses.RuleResponse {
-        return response.result as responses.RuleResponse;
+        const result = response.result as responses.RuleResponse;
+        // The node leaves a zero parameter out (omitempty), so put it back.
+        return { ...result, value: { ...ruleZeros, ...result.value } };
     }
 
     public static decodeAccount(
