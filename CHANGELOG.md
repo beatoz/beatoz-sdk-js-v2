@@ -120,6 +120,13 @@ entries below name the packages they apply to.
   fails before signing: `a vote moves no amount; leave amount out`. Remove
   `amount` from these calls. The signed bytes are unchanged.
 
+- `@beatoz/web3-accounts`: **BREAKING:** `signTrxProto`, `verifyTrxProto` and
+  `signedRawTrxProto` refuse a transaction type outside 1 to 8: `unknown
+  transaction type 9; the chain accepts types 1 to 8`. beatoz-go defines only
+  those and rejects any other, and the RLP encoding signed the payload as it
+  was for such a type. The builders always set a type from 1 to 8, so only a
+  `type` changed by hand is affected.
+
 ### Security
 
 - `@beatoz/web3-accounts`: `protobufjs` is now `^7.6.6`, up from an exact

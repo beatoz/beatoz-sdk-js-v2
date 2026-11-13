@@ -81,6 +81,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   signing: `a vote moves no amount; leave amount out`. Remove `amount` from
   these calls. The signed bytes are unchanged.
 
+- **BREAKING:** `signTrxProto`, `verifyTrxProto` and `signedRawTrxProto`
+  refuse a transaction type outside 1 to 8: `unknown transaction type 9; the
+  chain accepts types 1 to 8`. beatoz-go defines only those and rejects any
+  other, and the RLP encoding signed the payload as it was for such a type.
+  The builders always set a type from 1 to 8, so only a `type` changed by hand
+  is affected.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),
