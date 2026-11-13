@@ -137,6 +137,16 @@ export function payloadsTakePlainValues() {
     });
 }
 
+export function fieldsTheBuildersSetAreNotInputs() {
+    // @ts-expect-error each builder sets its own type
+    TrxProtoBuilder.buildTransferTrxProto({ ...base, type: 8 });
+    // @ts-expect-error the hash comes from the signed transaction
+    TrxProtoBuilder.buildTransferTrxProto({ ...base, hash: '0xab' });
+    // @ts-expect-error signTrxProto signs
+    TrxProtoBuilder.buildTransferTrxProto({ ...base, sig: '0xcd' });
+    TrxProtoBuilder.buildTransferTrxProto({ ...base, time: new Date() });
+}
+
 export function aWiderTransactionIsRejected(loose: Transaction<object>) {
     // @ts-expect-error `object` was assignable to every payload before
     TrxProtoBuilder.buildWithdrawTrx(loose);

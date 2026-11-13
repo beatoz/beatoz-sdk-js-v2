@@ -19,8 +19,9 @@ import { BytesUint8Array } from '@beatoz/web3-types';
 import { createHash, randomBytes } from 'crypto';
 import secp256k1 from 'secp256k1';
 
+// The builder input. `type`, `hash` and `sig` are not in it: each builder
+// sets its own type, and the hash and signature come from signing.
 interface TransactionFields {
-    hash?: string;
     version?: number;
     time?: Date;
     nonce?: number;
@@ -29,8 +30,6 @@ interface TransactionFields {
     amount: string;
     gas: number;
     gasPrice: string;
-    type?: number;
-    sig?: string;
 }
 
 /**

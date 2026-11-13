@@ -152,6 +152,15 @@ entries below name the packages they apply to.
   `optType` and `choice` must be non-negative 32-bit integers. The protobuf
   payload types are no longer part of the builder inputs.
 
+- `@beatoz/web3-accounts`: **BREAKING:** The builder input has no `type`,
+  `hash` or `sig`. No builder read them: each sets its own type, and the hash
+  and signature come from signing, so `type: 8` on a transfer still built a
+  transfer. Passing one no longer compiles, and one passed anyway fails before
+  anything is built: `type is not a builder input; each builder sets its own`.
+  Remove them from builder calls; the result is unchanged.
+- `@beatoz/web3-accounts`: `buildTransferTrxProto` uses the `time` it is given,
+  as the other builders do. It always used the current time before.
+
 ### Security
 
 - `@beatoz/web3-accounts`: `protobufjs` is now `^7.6.6`, up from an exact

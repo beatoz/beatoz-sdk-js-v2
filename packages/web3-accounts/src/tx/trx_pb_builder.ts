@@ -101,6 +101,25 @@ function parseOptions(options: string[]): Uint8Array[] {
     return options.map((option) => encoder.encode(option));
 }
 
+const ignoredFields: Record<string, string> = {
+    type: 'each builder sets its own',
+    hash: 'it is computed from the signed transaction',
+    sig: 'sign with signTrxProto',
+};
+
+/**
+ * Refuses `type`, `hash` or `sig` in a builder input. The input type leaves
+ * them out, but a JavaScript caller or a cast can still pass them, and the
+ * builders never read them: `type: 8` on a transfer still built a transfer.
+ */
+function refuseIgnoredFields(transaction: object): void {
+    for (const [field, reason] of Object.entries(ignoredFields)) {
+        if ((transaction as Record<string, unknown>)[field] !== undefined) {
+            throw Error(`${field} is not a builder input; ${reason}`);
+        }
+    }
+}
+
 /**
  * Refuses a non-zero `amount` on a transaction type that moves no value.
  *
@@ -263,9 +282,10 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
 }
 
 function buildTransferTrxProto(transaction: Transaction): TrxProto {
+    refuseIgnoredFields(transaction);
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
-        time: getNanoSecond(),
+        time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
         from: parseAddress('from', transaction.from),
         to: parseAddress('to', transaction.to),
@@ -285,6 +305,7 @@ function buildTransferTrxProto(transaction: Transaction): TrxProto {
 }
 
 function buildDelegateTrxProto(transaction: Transaction): TrxProto {
+    refuseIgnoredFields(transaction);
     return {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
@@ -308,6 +329,7 @@ function buildDelegateTrxProto(transaction: Transaction): TrxProto {
 function buildUnDelegateTrxProto(
     transaction: Transaction<TransactionPayloadUnDelegating>,
 ): TrxProto {
+    refuseIgnoredFields(transaction);
     const payload = transaction.payload;
     if (!isSet(payload) || !isSet(payload.txHash)) {
         throw Error('mandatory argument is missed');
@@ -340,6 +362,7 @@ function buildUnDelegateTrxProto(
 function buildProposalTrx(
     transaction: TransactionWithoutAmount<TransactionPayloadProposal>,
 ): TrxProto {
+    refuseIgnoredFields(transaction);
     refuseAmount('a proposal', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
@@ -375,6 +398,7 @@ function buildProposalTrx(
 }
 
 function buildVotingTrx(transaction: TransactionWithoutAmount<TransactionPayloadVoting>): TrxProto {
+    refuseIgnoredFields(transaction);
     refuseAmount('a vote', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
@@ -406,6 +430,7 @@ function buildVotingTrx(transaction: TransactionWithoutAmount<TransactionPayload
 }
 
 function buildContractTrxProto(transaction: Transaction<TransactionPayloadContract>): TrxProto {
+    refuseIgnoredFields(transaction);
     const payload = transaction.payload;
     if (!isSet(payload) || !isSet(payload.data)) {
         throw Error('mandatory argument is missed');
@@ -441,6 +466,7 @@ function buildContractTrxProto(transaction: Transaction<TransactionPayloadContra
  * above the reward the sender has accumulated as `insufficient reward`.
  */
 function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>): TrxProto {
+    refuseIgnoredFields(transaction);
     const payload = transaction.payload;
     if (!isSet(payload) || !isSet(payload.reqAmt)) {
         throw Error('mandatory argument is missed');
@@ -479,6 +505,7 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
 }
 
 function buildSetDocTrx(transaction: TransactionWithoutAmount<TransactionPayloadSetDoc>): TrxProto {
+    refuseIgnoredFields(transaction);
     refuseAmount('a setDoc', transaction.amount);
     const payload = transaction.payload;
     if (!isSet(payload)) {
