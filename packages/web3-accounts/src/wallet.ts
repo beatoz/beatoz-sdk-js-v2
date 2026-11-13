@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { KeyStore, Web3BaseWallet } from '@beatoz/web3-types';
+import { Web3BaseWallet } from '@beatoz/web3-types';
 import { Web3Account } from './types.js';
 import { isNullish } from '@beatoz/web3-utils';
 
@@ -91,34 +91,5 @@ export class Wallet extends Web3BaseWallet<Web3Account> {
         this._addressMap.clear();
         this.length = 0;
         return this;
-    }
-
-    public async encrypt(
-        _password: string,
-        _options?: Record<string, unknown>,
-    ): Promise<KeyStore[]> {
-        // Placeholder: actual implementation should encrypt each account
-        // and return an array of KeyStore objects
-        throw new Error('encrypt method not implemented');
-    }
-
-    public async decrypt(
-        _encryptedWallet: KeyStore[],
-        _password: string,
-        _options?: Record<string, unknown>,
-    ): Promise<this> {
-        // Placeholder: actual implementation should decrypt each keystore
-        // and populate this wallet with accounts
-        throw new Error('decrypt method not implemented');
-    }
-
-    public async save(_password: string, _keyName?: string): Promise<boolean | never> {
-        // Placeholder: actual implementation should persist the wallet
-        throw new Error('save method not implemented');
-    }
-
-    public async load(_password: string, _keyName?: string): Promise<this | never> {
-        // Placeholder: actual implementation should load the wallet
-        throw new Error('load method not implemented');
     }
 }

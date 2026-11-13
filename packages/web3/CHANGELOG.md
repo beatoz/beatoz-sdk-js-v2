@@ -78,6 +78,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save`
+  and `load`, `web3.accounts.decrypt`, the matching abstract methods of
+  `Web3BaseWallet`, `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`,
+  `CipherOptions`, `ScryptParams` and `PBKDF2SHA256Params` types. Every one of
+  them only threw `not implemented` or `Not supported yet`; they came with the
+  web3.js fork. Nothing changes for a caller that did not call them.
+
 - `.npmignore` is gone, from this package and from the repository root. `files`
   takes precedence over it, so keeping both would leave a file that looks like
   it decides what ships but does not. The root one had been reaching into the
