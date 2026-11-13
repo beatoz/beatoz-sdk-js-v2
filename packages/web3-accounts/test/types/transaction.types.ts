@@ -18,7 +18,6 @@
 // it. Each `@ts-expect-error` asserts that the next line does not compile; if
 // the types stop rejecting it, the directive itself becomes the error.
 
-import Long from 'long';
 import { DecodedTransaction, Transaction, TrxProtoBuilder } from '../../src';
 
 const base = {
@@ -29,7 +28,7 @@ const base = {
     gasPrice: '250000000000',
 };
 
-// Proposal, voting and setDoc move no value and take no amount.
+// A setDoc moves no value and takes no amount.
 const { amount: _amount, ...noAmount } = base;
 void _amount;
 
@@ -37,21 +36,6 @@ export function buildersTakeTheirOwnPayload() {
     TrxProtoBuilder.buildTransferTrxProto(base);
     TrxProtoBuilder.buildDelegateTrxProto(base);
     TrxProtoBuilder.buildUnDelegateTrxProto({ ...base, payload: { txHash: '0x03' } });
-    TrxProtoBuilder.buildProposalTrx({
-        ...noAmount,
-        payload: {
-            message: 'm',
-            startVotingHeight: 1,
-            votingBlocks: 1,
-            applyingHeight: 1,
-            optType: 0,
-            options: [],
-        },
-    });
-    TrxProtoBuilder.buildVotingTrx({
-        ...noAmount,
-        payload: { txHash: '0x04', choice: 0 },
-    });
     TrxProtoBuilder.buildContractTrxProto({ ...base, payload: { data: '0x6080' } });
     TrxProtoBuilder.buildSetDocTrx({ ...noAmount, payload: { name: 'n', url: 'u' } });
     TrxProtoBuilder.buildWithdrawTrx({ ...base, payload: { reqAmt: '1' } });
@@ -87,54 +71,23 @@ export function anotherTypesPayloadIsRejected() {
 }
 
 export function typesThatMoveNoValueTakeNoAmount() {
-    // @ts-expect-error a vote moves no amount
-    TrxProtoBuilder.buildVotingTrx({ ...base, payload: { txHash: '0x04', choice: 0 } });
     // @ts-expect-error a setDoc moves no amount
     TrxProtoBuilder.buildSetDocTrx({ ...base, payload: { name: 'n', url: 'u' } });
-    TrxProtoBuilder.buildProposalTrx({
-        ...base,
-        // @ts-expect-error a proposal moves no amount
-        amount: '5',
-        payload: {
-            message: 'm',
-            startVotingHeight: 1,
-            votingBlocks: 1,
-            applyingHeight: 1,
-            optType: 0,
-            options: [],
-        },
-    });
 }
 
 export function payloadsTakePlainValues() {
-    const proposal = {
-        message: 'm',
-        startVotingHeight: 1,
-        votingBlocks: 1,
-        applyingHeight: 1,
-        optType: 0x0101,
-        options: ['{"maxTrxGas":"100000"}'],
-    };
-    TrxProtoBuilder.buildProposalTrx({
-        ...noAmount,
-        // @ts-expect-error heights are numbers; Long belonged to the protobuf types
-        payload: { ...proposal, startVotingHeight: Long.fromNumber(1) },
-    });
-    TrxProtoBuilder.buildProposalTrx({
-        ...noAmount,
-        // @ts-expect-error options are text, not bytes
-        payload: { ...proposal, options: [new Uint8Array()] },
-    });
-    TrxProtoBuilder.buildVotingTrx({
-        ...noAmount,
-        // @ts-expect-error a proposal hash is the hex the node returns, not bytes
-        payload: { txHash: new Uint8Array(32), choice: 0 },
-    });
     TrxProtoBuilder.buildUnDelegateTrxProto({
         ...base,
-        // @ts-expect-error unstaking takes txHash, as voting does; txhash is gone
+        // @ts-expect-error unstaking takes txHash; txhash is gone
         payload: { txhash: '0x03' },
     });
+}
+
+export function proposalAndVotingAreNotBuilt() {
+    // @ts-expect-error only validators propose, with the wallet; the SDK has no builder
+    void TrxProtoBuilder.buildProposalTrx;
+    // @ts-expect-error only validators vote, with the wallet; the SDK has no builder
+    void TrxProtoBuilder.buildVotingTrx;
 }
 
 export function fieldsTheBuildersSetAreNotInputs() {

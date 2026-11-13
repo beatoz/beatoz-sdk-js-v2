@@ -37,25 +37,6 @@ const builders: Record<string, (f: Fields) => TrxProto> = {
         } as never),
     contract: (f) =>
         TrxProtoBuilder.buildContractTrxProto({ ...base, ...f, payload: { data: '00' } } as never),
-    proposal: (f) =>
-        TrxProtoBuilder.buildProposalTrx({
-            ...base,
-            ...f,
-            payload: {
-                message: 'm',
-                startVotingHeight: 10,
-                votingBlocks: 10,
-                applyingHeight: 30,
-                optType: 1,
-                options: [],
-            },
-        } as never),
-    voting: (f) =>
-        TrxProtoBuilder.buildVotingTrx({
-            ...base,
-            ...f,
-            payload: { txHash: '22'.repeat(32), choice: 0 },
-        } as never),
     setdoc: (f) =>
         TrxProtoBuilder.buildSetDocTrx({
             ...base,
@@ -63,7 +44,8 @@ const builders: Record<string, (f: Fields) => TrxProto> = {
             payload: { name: 'n', url: 'u' },
         } as never),
 };
-// Proposal, voting and setdoc move no value; their Amount is always empty.
+// A setDoc moves no value; its Amount is always empty. Withdraw has its own
+// tests.
 const withAmount = ['transfer', 'delegate', 'undelegate', 'contract'];
 
 const hex = (bytes: Uint8Array) => Buffer.from(bytes).toString('hex');
@@ -115,14 +97,9 @@ describe.each(Object.keys(builders))('%s gasPrice', (name) => {
     });
 });
 
-// Proposal, voting and setdoc move no value. Their input types leave amount
-// out; one passed anyway must be zero, since the chain would accept any other
-// value and move nothing.
-describe.each([
-    ['proposal', 'a proposal'],
-    ['voting', 'a vote'],
-    ['setdoc', 'a setDoc'],
-])('%s', (name, kind) => {
+// A setDoc moves no value. Its input type leaves amount out; one passed anyway
+// must be zero, since the chain would accept any other value and move nothing.
+describe.each([['setdoc', 'a setDoc']])('%s', (name, kind) => {
     it.each([undefined, '0', '00'])('carries no amount for %p', (amount) => {
         expect(builders[name]({ amount }).Amount).toHaveLength(0);
     });

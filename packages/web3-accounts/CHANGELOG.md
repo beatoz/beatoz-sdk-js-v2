@@ -73,13 +73,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   the node's raw JSON is a decimal string and is refused now; convert it with
   `Number()`, or read it with `web3.beatoz.getAccount`, which returns a number.
 
-- **BREAKING:** `buildProposalTrx`, `buildVotingTrx` and `buildSetDocTrx` take
-  no `amount`. Those transactions move no value, and the builders signed an
-  empty amount whatever was passed, so `amount: '5'` was dropped without a
-  word. Their input is the new `TransactionWithoutAmount<T>`, where passing
-  `amount` does not compile; a non-zero amount passed anyway fails before
-  signing: `a vote moves no amount; leave amount out`. Remove `amount` from
-  these calls. The signed bytes are unchanged.
+- **BREAKING:** `buildSetDocTrx` takes no `amount`. A setDoc moves no value, and
+  the builder signed an empty amount whatever was passed, so `amount: '5'` was
+  dropped without a word. Its input is the new `TransactionWithoutAmount<T>`,
+  where passing `amount` does not compile; a non-zero amount passed anyway fails
+  before signing: `a setDoc moves no amount; leave amount out`. Remove `amount`
+  from setDoc calls. The signed bytes are unchanged.
 
 - **BREAKING:** `signTrxProto`, `verifyTrxProto` and `signedRawTrxProto`
   refuse a transaction type outside 1 to 8: `unknown transaction type 9; the
@@ -95,23 +94,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `buildContractTrxProto` also accepts an empty `to`, which creates a
   contract.
 
-- **BREAKING:** The proposal, voting and unstaking payloads take plain values,
-  so callers no longer handle `long` or bytes:
-
-  - `buildProposalTrx`: `startVotingHeight`, `votingBlocks` and
-    `applyingHeight` are numbers instead of `Long`, checked as non-negative safe
-    integers; `options` is text (`string[]`, encoded as UTF-8) instead of
-    `Uint8Array[]`, such as `[JSON.stringify(params)]` for a governance
-    parameter change. The input type is the new `TransactionPayloadProposal`.
-  - `buildVotingTrx`: `txHash` is the proposal hash as hex, as the node returns
-    it, instead of `Uint8Array`. The input type is the new
-    `TransactionPayloadVoting`.
-  - `buildUnDelegateTrxProto`: `txhash` is renamed `txHash`, as in voting.
-    `decodeTransaction` returns it under the same name.
-  - `buildSetDocTrx` takes the new `TransactionPayloadSetDoc`, the same shape.
-
-  `optType` and `choice` must be non-negative 32-bit integers. The protobuf
-  payload types are no longer part of the builder inputs.
+- **BREAKING:** `buildUnDelegateTrxProto` takes the staking hash as `txHash`
+  instead of `txhash`, and `decodeTransaction` returns it under the same name.
+  `buildSetDocTrx` takes the new `TransactionPayloadSetDoc`, the same shape, so
+  no builder input is a protobuf payload type any more.
 
 - **BREAKING:** The builder input has no `type`, `hash` or `sig`. No builder
   read them: each sets its own type, and the hash and signature come from
@@ -217,6 +203,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `error TS2834: Relative import paths need explicit file extensions`.
 
 ### Removed
+
+- **BREAKING:** `buildProposalTrx`, `buildVotingTrx` and their input types
+  `TransactionPayloadProposal` and `TransactionPayloadVoting` are gone.
+  beatoz-go accepts proposals and votes only from validators, who send them with
+  the BEATOZ wallet, and no service used the SDK for them. `decodeTransaction`,
+  `signTrxProto` and `verifyTrxProto` still handle these transaction types.
 
 - No longer depends on `crypto-js`, `@types/crypto-js`, `constants-browserify`,
   `crypto-browserify` or `path-browserify`, none of which it imported. The three
