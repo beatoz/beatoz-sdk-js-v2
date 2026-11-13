@@ -61,7 +61,7 @@ import {
     ValidationSchemaInput,
     validator,
 } from '@beatoz/web3-validator';
-import { encodeMethodABI } from './encoding.js';
+import { decodeMethodReturn, encodeMethodABI } from './encoding.js';
 import { ContractExecutionError, Web3ContractError } from '@beatoz/web3-errors';
 import { getEthTxCallParams, getSendTxParams } from './utils.js';
 import {
@@ -360,7 +360,15 @@ export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecuti
             tx.from = tx.to;
         }
         try {
-            return await call(this, tx.to, tx.input ? tx.input.toString() : '0x', tx.from, height);
+            const res = await call(
+                this,
+                tx.to,
+                tx.input ? tx.input.toString() : '0x',
+                tx.from,
+                height,
+            );
+            // The node returns the call's bytes; the ABI says what they are.
+            return decodeMethodReturn(abi, res.value.returnData);
         } catch (error: unknown) {
             if (error instanceof ContractExecutionError) {
                 // this will parse the error data by trying to decode the ABI error inputs according to EIP-838

@@ -15,6 +15,18 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-contract`: **BREAKING:** A contract method's `call()` returns
+  its decoded result instead of the node's `vm_call` response: the value itself
+  for one output (`1000n`, `'MyToken'`), an array for more (`[1000n, true]`),
+  and `undefined` for none, as viem's `readContract` does. Callers decoded
+  `res.value.returnData` with `decodeParameter` themselves, although the
+  contract holds the ABI that says what the bytes are; drop that step.
+  `web3.beatoz.vmCall` still returns the whole response. `decodeMethodReturn`,
+  which does the decoding, returns `undefined` rather than `null` for no outputs
+  and an array rather than an object with `__length__` for several, takes hex
+  with or without `0x` (it cut two characters whatever they were), and no longer
+  returns constructor data as it was.
+
 - All packages: **BREAKING:** The minimum TypeScript version is 5.8, raised from
   5.7. The packages are ES modules only, and on 5.7 a CommonJS project that
   resolves them with `module`/`moduleResolution` `nodenext` cannot import them

@@ -17,7 +17,6 @@ import erc20Json from '../fixtures/erc20-abi.json';
 import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
 import { Contract } from '../../src';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { decodeParameter } from '@beatoz/web3-abi';
 import { Web3 } from '@beatoz/web3';
 
 describe('decimals test', () => {
@@ -36,8 +35,6 @@ describe('decimals test', () => {
         const erc20Contract = new Contract(erc20Json, deployedContract.address) as any;
         erc20Contract.setProvider(provider);
 
-        const resp = await erc20Contract.methods.decimals().call();
-
-        expect(decodeParameter('uint', resp.value.returnData)).toEqual(18n);
+        expect(await erc20Contract.methods.decimals().call()).toEqual(18n);
     });
 });
