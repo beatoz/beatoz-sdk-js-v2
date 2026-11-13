@@ -59,7 +59,8 @@ export const produceBlock = async (): Promise<void> => {
     const sender = (await rpc('account', { addr: account.address })).value;
 
     const tx = TrxProtoBuilder.buildTransferTrxProto({
-        nonce: sender.nonce,
+        // The node's JSON carries the nonce as a decimal string.
+        nonce: Number(sender.nonce),
         from: account.address,
         to: getTestAccountAddress().replace(/^0x/i, ''),
         amount: '10',
