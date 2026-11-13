@@ -113,6 +113,15 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `optType` and `choice` must be non-negative 32-bit integers. The protobuf
   payload types are no longer part of the builder inputs.
 
+- **BREAKING:** The builder input has no `type`, `hash` or `sig`. No builder
+  read them: each sets its own type, and the hash and signature come from
+  signing, so `type: 8` on a transfer still built a transfer. Passing one no
+  longer compiles, and one passed anyway fails before anything is built:
+  `type is not a builder input; each builder sets its own`. Remove them from
+  builder calls; the result is unchanged.
+- `buildTransferTrxProto` uses the `time` it is given, as the other builders
+  do. It always used the current time before.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),
