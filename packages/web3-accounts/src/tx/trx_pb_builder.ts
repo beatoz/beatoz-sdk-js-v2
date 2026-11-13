@@ -94,6 +94,22 @@ function refuseAmount(kind: string, amount: unknown): void {
 }
 
 /**
+ * Reads an address as hex and checks that it is 20 bytes.
+ *
+ * fromHex only checks the form, so an address with two digits dropped is read
+ * as 19 bytes and signed; beatoz-go's Trx.Validate then rejects it as
+ * ErrInvalidAddress. The node lets a contract transaction leave `to` empty to
+ * create a contract, so `allowEmpty` does too.
+ */
+function parseAddress(name: string, hex: string, allowEmpty = false): BytesUint8Array {
+    const bytes = BytesUint8Array.fromHex(hex);
+    if (bytes.length !== 20 && !(allowEmpty && bytes.length === 0)) {
+        throw Error(`${name} must be 20 bytes, got ${bytes.length}: ${JSON.stringify(hex)}`);
+    }
+    return bytes;
+}
+
+/**
  * Encodes a uint256 the way beatoz-go's uint256.Int.Bytes() does: minimal
  * big-endian, and no bytes at all for zero.
  *
@@ -229,8 +245,8 @@ function buildTransferTrxProto(transaction: Transaction): TrxProto {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         // proto3 default rule: If the field has default value, the filed should be omitted.
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
         gas: parseInt64('gas', transaction.gas),
@@ -251,8 +267,8 @@ function buildDelegateTrxProto(transaction: Transaction): TrxProto {
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
@@ -283,8 +299,8 @@ function buildUnDelegateTrxProto(
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
@@ -320,8 +336,8 @@ function buildProposalTrx(
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         Amount: new Uint8Array(),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
@@ -351,8 +367,8 @@ function buildVotingTrx(transaction: TransactionWithoutAmount<TrxPayloadVotingPr
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         Amount: new Uint8Array(),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
@@ -380,8 +396,8 @@ function buildContractTrxProto(transaction: Transaction<TransactionPayloadContra
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to, true),
         Amount: toUint256Bytes(parseUint256('amount', transaction.amount)),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
@@ -424,8 +440,8 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         Amount: new Uint8Array(),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),
@@ -455,8 +471,8 @@ function buildSetDocTrx(transaction: TransactionWithoutAmount<TrxPayloadSetDocPr
         version: isSet(transaction.version) ? Number(transaction.version) : 1,
         time: isSet(transaction.time) ? getNanoSecond(transaction.time) : getNanoSecond(),
         nonce: parseInt64('nonce', transaction.nonce ?? 0),
-        from: BytesUint8Array.fromHex(transaction.from),
-        to: BytesUint8Array.fromHex(transaction.to),
+        from: parseAddress('from', transaction.from),
+        to: parseAddress('to', transaction.to),
         Amount: new Uint8Array(),
         gas: parseInt64('gas', transaction.gas),
         GasPrice: toUint256Bytes(parseUint256('gasPrice', transaction.gasPrice)),

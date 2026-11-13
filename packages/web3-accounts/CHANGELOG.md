@@ -88,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   The builders always set a type from 1 to 8, so only a `type` changed by hand
   is affected.
 
+- **BREAKING:** Every transaction builder requires `from` and `to` to be 20
+  bytes: `to must be 20 bytes, got 19: "15633e..."`. An address with digits
+  dropped was still well-formed hex, so it was signed as 19 bytes and beatoz-go
+  rejected it as `invalid address` after it was sent. As on the node,
+  `buildContractTrxProto` also accepts an empty `to`, which creates a
+  contract.
+
 ### Added
 
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),
