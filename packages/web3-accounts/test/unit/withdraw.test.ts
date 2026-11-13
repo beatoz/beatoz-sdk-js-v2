@@ -96,7 +96,7 @@ describe('buildWithdrawTrx', () => {
         );
 
         expect(decoded.type).toEqual(8);
-        expect(decoded.payload).toEqual({ ReqAmt: '0de0b6b3a7640000' });
+        expect(decoded.payload).toEqual({ reqAmt: '1000000000000000000' });
         expect(TrxProtoBuilder.verifyTrxProto(tx, account, '0x1234')).toBe(true);
     });
 

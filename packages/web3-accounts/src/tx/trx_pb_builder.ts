@@ -185,9 +185,11 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     message: proposalPayload.message,
                     startVotingHeight: proposalPayload.startVotingHeight.toNumber(),
                     votingBlocks: proposalPayload.votingBlocks.toNumber(),
-                    applyHeight: proposalPayload.applyingHeight.toNumber(),
+                    applyingHeight: proposalPayload.applyingHeight.toNumber(),
                     optType: proposalPayload.optType,
-                    options: proposalPayload.options,
+                    options: proposalPayload.options.map((option) =>
+                        new BytesUint8Array(option).toHex(),
+                    ),
                 },
                 sig,
             };
@@ -215,7 +217,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                 ...fields,
                 type: tx.type,
                 payload: {
-                    Data: new BytesUint8Array(contractPayload.Data).toHex(),
+                    data: new BytesUint8Array(contractPayload.Data).toHex(),
                 },
                 sig,
             };
@@ -243,7 +245,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                 ...fields,
                 type: tx.type,
                 payload: {
-                    ReqAmt: new BytesUint8Array(withdrawPayload.ReqAmt).toHex(),
+                    reqAmt: new BN(withdrawPayload.ReqAmt).toString(10),
                 },
                 sig,
             };

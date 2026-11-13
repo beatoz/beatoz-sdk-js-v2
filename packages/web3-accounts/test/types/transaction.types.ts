@@ -105,12 +105,29 @@ export function aWiderTransactionIsRejected(loose: Transaction<object>) {
     TrxProtoBuilder.buildWithdrawTrx(loose);
 }
 
+export function decodedPayloadsUseTheBuilderNames(tx: DecodedTransaction) {
+    if (tx.type === 8) {
+        // @ts-expect-error the decoded withdraw amount is reqAmt, as in the builder input
+        void tx.payload.ReqAmt;
+    }
+    if (tx.type === 6) {
+        // @ts-expect-error the decoded contract payload is data, as in the builder input
+        void tx.payload.Data;
+    }
+    if (tx.type === 4) {
+        // @ts-expect-error the decoded proposal uses the chain's name, applyingHeight
+        void tx.payload.applyHeight;
+        const options: string[] = tx.payload.options;
+        void options;
+    }
+}
+
 export function decodedPayloadNarrowsOnType(tx: DecodedTransaction) {
     // @ts-expect-error the payload is unknown until the type is checked
-    void tx.payload.ReqAmt;
+    void tx.payload.reqAmt;
 
     if (tx.type === 8) {
-        const reqAmt: string = tx.payload.ReqAmt;
+        const reqAmt: string = tx.payload.reqAmt;
         void reqAmt;
     }
 
@@ -128,15 +145,15 @@ export function decodedPayloadNarrowsOnType(tx: DecodedTransaction) {
         case 3:
             return tx.payload.txHash;
         case 4:
-            return tx.payload.applyHeight;
+            return tx.payload.applyingHeight;
         case 5:
             return tx.payload.choice;
         case 6:
-            return tx.payload.Data;
+            return tx.payload.data;
         case 7:
             return tx.payload.url;
         case 8:
-            return tx.payload.ReqAmt;
+            return tx.payload.reqAmt;
         default: {
             // Every type is handled: adding a ninth member makes this fail.
             const exhaustive: never = tx;
