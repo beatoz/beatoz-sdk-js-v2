@@ -48,7 +48,8 @@ Leave it out for changes that span the repository.
 
 Required for `feat` and `fix`, and for anything whose reason is not obvious
 from the subject. Say what was wrong, what the change does about it, and how it
-was verified. Wrap at 72 columns.
+was verified. Separate it from the subject with a blank line; without one, Git
+reads the first body line as part of the subject. Wrap at 72 columns.
 
 ## Breaking changes
 
