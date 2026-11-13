@@ -16,7 +16,7 @@
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
 import { sendSampleTransfer, sendTransfers, waitUntil } from '../chain_fixtures';
-import { SubscriptionEvent } from '@beatoz/web3-types';
+import { TxSubscriptionEvent } from '@beatoz/web3-types';
 
 describe('subscribeTx check', () => {
     let web3: Web3;
@@ -38,7 +38,7 @@ describe('subscribeTx check', () => {
             complete: () => {
                 failure = new Error('the subscription completed on its own');
             },
-            next: (event: SubscriptionEvent) => {
+            next: (event: TxSubscriptionEvent) => {
                 expect(event.events['tm.event']).toContain('Tx');
                 received.push(event.events['tx.hash'][0]);
             },

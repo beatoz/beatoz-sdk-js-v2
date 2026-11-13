@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `subscribeNewBlock`, `subscribeNewBlockHeader` and `subscribeTx`
+  return streams of `NewBlockSubscriptionEvent`,
+  `NewBlockHeaderSubscriptionEvent` and `TxSubscriptionEvent`, whose
+  `data.value` is typed, instead of `SubscriptionEvent` with `value: any`.
+  `subscribe(query)` still returns `SubscriptionEvent`, whose `value` is now
+  `unknown`.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
   which builds and tests the repository, does not install below it, and the
   packages keep the repository's floor so that there is one number. 22.22.2 is a

@@ -20,6 +20,9 @@ import {
     BytesUint8Array,
     BeatozExecutionAPI,
     SubscriptionEvent,
+    NewBlockSubscriptionEvent,
+    NewBlockHeaderSubscriptionEvent,
+    TxSubscriptionEvent,
     AbiInput,
 } from '@beatoz/web3-types';
 import { Web3Context } from '@beatoz/web3-core';
@@ -415,19 +418,19 @@ export function subscribe(
 
 export function subscribeNewBlock(
     web3Context: Web3Context<BeatozExecutionAPI>,
-): Stream<SubscriptionEvent> {
+): Stream<NewBlockSubscriptionEvent> {
     return rpcMethods.subscribeNewBlock(web3Context.requestManager);
 }
 
 export function subscribeNewBlockHeader(
     web3Context: Web3Context<BeatozExecutionAPI>,
-): Stream<SubscriptionEvent> {
+): Stream<NewBlockHeaderSubscriptionEvent> {
     return rpcMethods.subscribeNewBlockHeader(web3Context.requestManager);
 }
 
 export function subscribeTx(
     web3Context: Web3Context<BeatozExecutionAPI>,
     query?: string,
-): Stream<SubscriptionEvent> {
+): Stream<TxSubscriptionEvent> {
     return rpcMethods.subscribeTx(web3Context.requestManager, query);
 }

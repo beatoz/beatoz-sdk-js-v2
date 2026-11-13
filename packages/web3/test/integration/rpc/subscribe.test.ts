@@ -16,7 +16,7 @@
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
 import { assertUnbroken, produceBlocks, sendSampleTransfer, waitUntil } from '../chain_fixtures';
-import { SubscriptionEvent } from '@beatoz/web3-types';
+import { NewBlockHeaderSubscriptionEvent, SubscriptionEvent } from '@beatoz/web3-types';
 
 describe('subscribe check', () => {
     let web3: Web3;
@@ -41,7 +41,9 @@ describe('subscribe check', () => {
             },
             next: (event: SubscriptionEvent) => {
                 expect(event.query).toEqual(query);
-                heights.push(Number(event.data.value.header.height));
+                // subscribe() does not know the event type; the query does.
+                const { header } = (event as NewBlockHeaderSubscriptionEvent).data.value;
+                heights.push(Number(header.height));
             },
         });
 
