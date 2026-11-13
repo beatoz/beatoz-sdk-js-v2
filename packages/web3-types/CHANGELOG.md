@@ -24,6 +24,20 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `SubscriptionEvent.data.value` is no longer `any`.
+  `SubscriptionEvent<Type, Value>` takes the event's `data.type` and
+  `data.value`, and defaults to `string` and `unknown`, since an arbitrary
+  subscription does not know what it receives. `NewBlockSubscriptionEvent`,
+  `NewBlockHeaderSubscriptionEvent` and `TxSubscriptionEvent` describe what the
+  node sends for its three events, checked against a live node: the node's JSON,
+  with integers as decimal strings and bytes as base64. They use the raw types
+  the decoder already had, now exported (`RpcBlock`, `RpcHeader`, `RpcTxData`,
+  `RpcEvent` and those they refer to); `RpcCommit.round` is `number | string`,
+  since the node sends a number. `ResponsesDecoder.decodeNewBlockEvent` and
+  `decodeNewBlockHeaderEvent` take the matching event type. Code reading `value`
+  from a plain `SubscriptionEvent` narrows it first, for example with `as
+  NewBlockHeaderSubscriptionEvent` when its query names that event.
+
 - **BREAKING:** `VmCallResponse.value.returnData` is hex, and the type says so.
   `web3.beatoz.vmCall` returned it as the base64 the node sends, while a
   contract call converted it to hex itself, under one type with `returnData:

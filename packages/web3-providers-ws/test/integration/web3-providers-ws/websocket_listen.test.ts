@@ -17,7 +17,7 @@ import { WebsocketProvider } from '../../../src';
 import { getTestWsServer } from '../e2e_utils';
 import { assertUnbroken, produceBlock, produceBlocks, waitUntil } from '../block_fixtures';
 import { createJsonRpcRequest } from './websocket_provider.test';
-import { SubscriptionEvent } from '@beatoz/web3-types';
+import { NewBlockHeaderSubscriptionEvent, SubscriptionEvent } from '@beatoz/web3-types';
 
 describe('WebsocketClient', () => {
     it('delivers every block header until the subscription is cancelled', async () => {
@@ -35,7 +35,9 @@ describe('WebsocketClient', () => {
             },
             next: (event: SubscriptionEvent) => {
                 expect(event.query).toEqual(query);
-                heights.push(Number(event.data.value.header.height));
+                // subscribe() does not know the event type; the query does.
+                const { header } = (event as NewBlockHeaderSubscriptionEvent).data.value;
+                heights.push(Number(header.height));
             },
         });
 

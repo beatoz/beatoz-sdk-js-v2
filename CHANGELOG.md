@@ -180,6 +180,23 @@ entries below name the packages they apply to.
   `vmErr`, which the node sends. Code that decoded base64 from `vmCall` reads
   hex instead; a contract call returns the same as before.
 
+- `@beatoz/web3-types`, `@beatoz/web3-rpc`, `@beatoz/web3-methods`:
+  **BREAKING:** `SubscriptionEvent.data.value` is no longer `any`.
+  `SubscriptionEvent<Type, Value>` takes the event's `data.type` and
+  `data.value`, and defaults to `string` and `unknown`, since an arbitrary
+  subscription does not know what it receives. `NewBlockSubscriptionEvent`,
+  `NewBlockHeaderSubscriptionEvent` and `TxSubscriptionEvent` describe what the
+  node sends for its three events, checked against a live node: the node's JSON,
+  with integers as decimal strings and bytes as base64. They use the raw types
+  the decoder already had, now exported (`RpcBlock`, `RpcHeader`, `RpcTxData`,
+  `RpcEvent` and those they refer to); `RpcCommit.round` is `number | string`,
+  since the node sends a number. `ResponsesDecoder.decodeNewBlockEvent` and
+  `decodeNewBlockHeaderEvent` take the matching event type. Code reading `value`
+  from a plain `SubscriptionEvent` narrows it first, for example with `as
+  NewBlockHeaderSubscriptionEvent` when its query names that event.
+  `subscribeNewBlock`, `subscribeNewBlockHeader` and `subscribeTx` return
+  streams of those three types; `subscribe(query)` returns `SubscriptionEvent`.
+
 ### Security
 
 - `@beatoz/web3-accounts`: `protobufjs` is now `^7.6.6`, up from an exact

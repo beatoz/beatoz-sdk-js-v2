@@ -22,6 +22,9 @@ import {
     ConsensusParamsResponse,
     ResponsesDecoder,
     SubscriptionEvent,
+    NewBlockSubscriptionEvent,
+    NewBlockHeaderSubscriptionEvent,
+    TxSubscriptionEvent,
     TrxProto,
 } from '@beatoz/web3-types';
 import { BytesUint8Array } from '@beatoz/web3-types';
@@ -660,44 +663,49 @@ export function subscribe(
     });
 }
 
-export function subscribeNewBlock(requestManager: Web3RequestManager): Stream<SubscriptionEvent> {
+export function subscribeNewBlock(
+    requestManager: Web3RequestManager,
+): Stream<NewBlockSubscriptionEvent> {
     const request = { type: SubscriptionEventType.NewBlock };
+    // The query names the event type, so every event on this stream is one.
     return subscribe(
         requestManager,
         encodeSubscribeQuery({
             method: Method.Subscribe,
             query: request,
         }),
-    );
+    ) as Stream<NewBlockSubscriptionEvent>;
 }
 
 export function subscribeNewBlockHeader(
     requestManager: Web3RequestManager,
-): Stream<SubscriptionEvent> {
+): Stream<NewBlockHeaderSubscriptionEvent> {
     const request = { type: SubscriptionEventType.NewBlockHeader };
 
+    // The query names the event type, so every event on this stream is one.
     return subscribe(
         requestManager,
         encodeSubscribeQuery({
             method: Method.Subscribe,
             query: request,
         }),
-    );
+    ) as Stream<NewBlockHeaderSubscriptionEvent>;
 }
 
 export function subscribeTx(
     requestManager: Web3RequestManager,
     query?: string,
-): Stream<SubscriptionEvent> {
+): Stream<TxSubscriptionEvent> {
     const request = { type: SubscriptionEventType.Tx, raw: query };
 
+    // The query names the event type, so every event on this stream is one.
     return subscribe(
         requestManager,
         encodeSubscribeQuery({
             method: Method.Subscribe,
             query: request,
         }),
-    );
+    ) as Stream<TxSubscriptionEvent>;
 }
 
 function encodeSubscribeQuery(req: SubscribeRequest): string {

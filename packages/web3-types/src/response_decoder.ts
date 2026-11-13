@@ -26,7 +26,10 @@ import {
     dictionaryToStringMap,
     may,
 } from './encodings.js';
-import { SubscriptionEvent } from './subscription_event.js';
+import {
+    NewBlockHeaderSubscriptionEvent,
+    NewBlockSubscriptionEvent,
+} from './subscription_event.js';
 import * as responses from './responses.js';
 import {
     Block,
@@ -210,12 +213,14 @@ export class ResponsesDecoder {
         return decodeStatus(response.result as RpcStatusResponse);
     }
 
-    public static decodeNewBlockEvent(event: SubscriptionEvent): NewBlockEvent {
-        return decodeBlock(event.data.value.block as RpcBlock);
+    public static decodeNewBlockEvent(event: NewBlockSubscriptionEvent): NewBlockEvent {
+        return decodeBlock(event.data.value.block);
     }
 
-    public static decodeNewBlockHeaderEvent(event: SubscriptionEvent): NewBlockHeaderEvent {
-        return decodeHeader(event.data.value.header as RpcHeader);
+    public static decodeNewBlockHeaderEvent(
+        event: NewBlockHeaderSubscriptionEvent,
+    ): NewBlockHeaderEvent {
+        return decodeHeader(event.data.value.header);
     }
 
     public static decodeTx(
@@ -878,7 +883,7 @@ interface RpcBlockSearchResponse {
     readonly total_count: string;
 }
 
-interface RpcAttribute {
+export interface RpcAttribute {
     /** base64 encoded */
     readonly key: string;
     /** base64 encoded */
@@ -886,7 +891,7 @@ interface RpcAttribute {
     readonly index: boolean;
 }
 
-interface RpcTxData {
+export interface RpcTxData {
     readonly codespace?: string;
     readonly code?: number;
     readonly log?: string;
@@ -897,7 +902,7 @@ interface RpcTxData {
     readonly gas_used?: string;
 }
 
-interface RpcConsensusParams {
+export interface RpcConsensusParams {
     readonly block: RpcBlockParams;
     readonly evidence: RpcEvidenceParams;
     readonly validator: RpcValidatorParams;
@@ -905,13 +910,13 @@ interface RpcConsensusParams {
 }
 
 // for block results
-interface RpcValidatorUpdate {
+export interface RpcValidatorUpdate {
     readonly pub_key: string;
     // When omitted, this means zero (see https://github.com/cosmos/cosmjs/issues/1177#issuecomment-1160115080)
     readonly power?: string;
 }
 
-interface RpcEvent {
+export interface RpcEvent {
     readonly type: string;
     /** Can be omitted (see https://github.com/cosmos/cosmjs/pull/1198) */
     readonly attributes?: readonly RpcAttribute[];
@@ -926,23 +931,23 @@ interface RpcBlockResultsResponse {
     readonly consensus_param_updates: RpcConsensusParams | null;
 }
 
-interface RpcBlockParams {
+export interface RpcBlockParams {
     readonly max_bytes: string;
     readonly max_gas: string;
     readonly time_iota_ms: string;
 }
 
-interface RpcEvidenceParams {
+export interface RpcEvidenceParams {
     readonly max_age_num_blocks: string;
     readonly max_age_duration: string;
     readonly max_bytes: string;
 }
 
-interface RpcValidatorParams {
+export interface RpcValidatorParams {
     readonly pub_key_types: readonly string[];
 }
 
-interface RpcVersionParams {
+export interface RpcVersionParams {
     readonly app_version: string;
 }
 
@@ -951,7 +956,7 @@ interface RpcBlockResponse {
     readonly block: RpcBlock;
 }
 
-type RpcSignature = {
+export type RpcSignature = {
     readonly block_id_flag: number;
     /** hex encoded */
     readonly validator_address: string;
@@ -965,16 +970,17 @@ type RpcSignature = {
 // We lost track on how the evidence structure actually looks like.
 // This is any now and passed to the caller untouched.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type RpcEvidence = any;
+export type RpcEvidence = any;
 
-interface RpcCommit {
+export interface RpcCommit {
     readonly block_id: RpcBlockId;
     readonly height: string;
-    readonly round: string;
+    /** A number from beatoz-go's Tendermint fork; the decoder accepts either. */
+    readonly round: number | string;
     readonly signatures: readonly RpcSignature[];
 }
 
-interface RpcBlock {
+export interface RpcBlock {
     readonly header: RpcHeader;
     readonly last_commit: RpcCommit;
     readonly data: {
@@ -993,7 +999,7 @@ interface RpcBlockchainResponse {
     readonly block_metas: readonly RpcBlockMeta[];
 }
 
-interface RpcBlockId {
+export interface RpcBlockId {
     /** hex encoded */
     readonly hash: string;
     readonly parts: {
@@ -1003,12 +1009,12 @@ interface RpcBlockId {
     };
 }
 
-interface RpcBlockVersion {
+export interface RpcBlockVersion {
     readonly block: string;
     readonly app?: string;
 }
 
-interface RpcHeader {
+export interface RpcHeader {
     readonly version: RpcBlockVersion;
     readonly chain_id: string;
     readonly height: string;

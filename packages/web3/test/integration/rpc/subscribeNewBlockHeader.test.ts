@@ -16,7 +16,7 @@
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
 import { assertUnbroken, produceBlocks, sendSampleTransfer, waitUntil } from '../chain_fixtures';
-import { SubscriptionEvent } from '@beatoz/web3-types';
+import { NewBlockHeaderSubscriptionEvent } from '@beatoz/web3-types';
 
 describe('subscribeNewBlockHeader check', () => {
     let web3: Web3;
@@ -38,7 +38,7 @@ describe('subscribeNewBlockHeader check', () => {
             complete: () => {
                 failure = new Error('the subscription completed on its own');
             },
-            next: (event: SubscriptionEvent) => {
+            next: (event: NewBlockHeaderSubscriptionEvent) => {
                 expect(event.events['tm.event']).toContain('NewBlockHeader');
                 heights.push(Number(event.data.value.header.height));
             },
