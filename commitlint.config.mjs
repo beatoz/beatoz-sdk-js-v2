@@ -59,6 +59,9 @@ export default {
         'subject-case': [0],
         'subject-lowercase-start': [2, 'always'],
         'header-max-length': [2, 'always', 72],
+        // Without the blank line, Git reads the first body line as part of the
+        // subject.
+        'body-leading-blank': [2, 'always'],
         // Wrap at 72; a warning, since code and URLs in a body cannot always wrap.
         'body-max-line-length': [1, 'always', 72],
         'body-required-for-type': [2, 'always', ['feat', 'fix']],
