@@ -73,18 +73,8 @@ export async function call(
     from: string,
     height?: number,
 ) {
-    const vmCallResult = await vmCall(
-        web3Context,
-        from,
-        contractAddress,
-        height ? height : 0,
-        encodeFunctionSignature,
-    );
-    if (vmCallResult.value.returnData) {
-        const bytes = BytesUint8Array.b64ToBytes(vmCallResult.value.returnData);
-        vmCallResult.value.returnData = bytes.toHex();
-    }
-    return vmCallResult;
+    // vmCall already returns returnData as hex.
+    return vmCall(web3Context, from, contractAddress, height ? height : 0, encodeFunctionSignature);
 }
 
 export async function health(web3Context: Web3Context<BeatozExecutionAPI>) {
