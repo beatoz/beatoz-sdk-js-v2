@@ -212,27 +212,19 @@ export const encodeMethodABI = (
     return `${encodeFunctionSignature(abi)}${params}`;
 };
 
-export const decodeMethodReturn = (abi: AbiFunctionFragment, returnValues?: HexString) => {
-    // If it was constructor then we need to return contract address
-    if (abi.type === 'constructor') {
-        return returnValues;
+/**
+ * Decodes what a contract call returned, by the function's outputs: nothing
+ * for no outputs, the value itself for one, an array for more, as viem's
+ * decodeFunctionResult does. `returnValues` is hex, with or without 0x.
+ */
+export const decodeMethodReturn = (abi: AbiFunctionFragment, returnValues: HexString): unknown => {
+    const outputs = abi.outputs ?? [];
+    if (outputs.length === 0) {
+        return undefined;
     }
-
-    if (!returnValues) {
-        // Using "null" value intentionally to match legacy behavior
-
-        return null;
-    }
-
-    const value = returnValues.length >= 2 ? returnValues.slice(2) : returnValues;
-    if (!abi.outputs) {
-        return null;
-    }
-    const result = decodeParameters([...abi.outputs], value);
-
-    if (result.__length__ === 1) {
+    const result = decodeParameters([...outputs], returnValues.replace(/^0x/i, ''));
+    if (outputs.length === 1) {
         return result[0];
     }
-
-    return result;
+    return outputs.map((_, i) => result[i]);
 };

@@ -33,7 +33,6 @@
 
 import type { Web3 } from '@beatoz/web3';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { decodeParameter } from '@beatoz/web3-abi';
 import type { BroadcastTxCommitResponse } from '@beatoz/web3-types';
 import tokenJson from '../fixtures/erc20-contract.json';
 
@@ -187,6 +186,5 @@ export const assertCommitted = (res: BroadcastTxCommitResponse): void => {
 
 /** Reads an ERC20 balance through the contract's own `balanceOf`. */
 export const tokenBalance = async (contract: any, owner: string): Promise<bigint> => {
-    const resp = await contract.methods.balanceOf(owner).call();
-    return BigInt(String(decodeParameter('uint', resp.value.returnData)));
+    return (await contract.methods.balanceOf(owner).call()) as bigint;
 };

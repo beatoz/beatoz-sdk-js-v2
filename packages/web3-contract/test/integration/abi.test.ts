@@ -17,7 +17,6 @@ import { Contract } from '../../src';
 import erc20Json from '../fixtures/erc20-abi.json';
 import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { decodeParameter } from '@beatoz/web3-abi';
 import { Web3 } from '@beatoz/web3';
 
 describe('abi test', () => {
@@ -40,7 +39,7 @@ describe('abi test', () => {
         const symbol = await erc20Contract.methods.symbol().call();
 
         // The values deployTestToken passes to the constructor.
-        expect(decodeParameter('string', name.value.returnData)).toEqual('BeatozToken');
-        expect(decodeParameter('string', symbol.value.returnData)).toEqual('RGT');
+        expect(name).toEqual('BeatozToken');
+        expect(symbol).toEqual('RGT');
     });
 });
