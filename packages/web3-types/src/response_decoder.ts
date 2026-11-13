@@ -965,10 +965,8 @@ export type RpcSignature = {
      */
     readonly signature: string | null;
 };
-// We lost track on how the evidence structure actually looks like.
-// This is any now and passed to the caller untouched.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type RpcEvidence = any;
+// Passed to the caller untouched; see Evidence in responses.ts.
+export type RpcEvidence = unknown;
 
 export interface RpcCommit {
     readonly block_id: RpcBlockId;

@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `Evidence`, the type of `Block.evidence`, is `unknown` instead
+  of `any`. It holds Tendermint's `DuplicateVoteEvidence` or
+  `LightClientAttackEvidence` as the node sends it, which only exists after a
+  validator misbehaves, so its shape could not be checked against a node; a
+  precise type can follow without breaking anyone. Code reading its fields
+  checks them first. Slashing is also reported as events in the block results.
+
 - **BREAKING:** `SubscriptionEvent.data.value` is no longer `any`.
   `SubscriptionEvent<Type, Value>` takes the event's `data.type` and
   `data.value`, and defaults to `string` and `unknown`, since an arbitrary
