@@ -73,6 +73,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `Web3RequestManager`, `Web3Context` and `Web3ContextObject`
+  take no `API` type parameter; the API spec it named is gone (#37). `send()`
+  takes a method name and returns the node's result as `unknown`, before
+  decoding, which is what it always returned at runtime. `isWeb3Provider`,
+  `isEIP1193Provider`, `isLegacyRequestProvider`, `isLegacySendProvider`,
+  `isLegacySendAsyncProvider` and `isSupportedProvider` are gone; nothing used
+  them, and the providers they checked for are not the SDK's.
+
 - **BREAKING:** `Web3RequestManager`'s second constructor argument,
   `useRpcCallSpecification`, is gone. `Web3` never passed it, so it was always
   off; the error classes it switched to are removed from `@beatoz/web3-errors`.

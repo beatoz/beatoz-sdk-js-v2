@@ -133,6 +133,23 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The API spec types are gone (#37): `BeatozExecutionAPI`,
+  `EthExecutionAPI` with the Ethereum `*API` types it used, `Web3APISpec`,
+  `Web3APIMethod`, `Web3APIParams` and `Web3APIReturnType`. The spec checked
+  nothing: a bug made every string a method name, and it listed methods the
+  node does not have (`vmCall`, `proposal`) in place of the ones the SDK sends
+  (`vm_call`, `vm_estimate_gas`, `proposals`). Its result types were the
+  decoded responses, while a request returns the node's result before
+  decoding. `Web3APIRequest` and `Web3APIPayload` take no type parameters and
+  a method name as a string, and the `ResponsesDecoder` methods take the
+  node's result as `unknown`. Also gone, unused and typed by the spec:
+  `Web3BaseProvider`, `SupportedProviders`, `EIP1193Provider`,
+  `SimpleProvider`, `LegacyRequestProvider`, `LegacySendProvider`,
+  `LegacySendAsyncProvider`, `SocketRequestItem`, `ProviderMessage`,
+  `ProviderRpcError`, `ProviderConnectInfo`, `ProviderInfo`,
+  `ProviderChainId`, `ProviderAccounts`, `Eip1193EventName`, the
+  `Web3Provider*` callback and status types, and `ContractInitOptions.provider`.
+
 - **BREAKING:** The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save`
   and `load`, `web3.accounts.decrypt`, the matching abstract methods of
   `Web3BaseWallet`, `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`,

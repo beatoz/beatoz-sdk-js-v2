@@ -20,17 +20,10 @@ import { HttpProviderOptions } from './types.js';
 
 export { HttpProviderOptions } from './types.js';
 
-import {
-    JsonRpcResponseWithResult,
-    Web3APIMethod,
-    Web3APIReturnType,
-    Web3APISpec,
-    BeatozExecutionAPI,
-    Web3APIPayload,
-} from '@beatoz/web3-types';
+import { JsonRpcResponseWithResult, Web3APIPayload } from '@beatoz/web3-types';
 import { ResponseError } from '@beatoz/web3-errors';
 
-export default class HttpProvider<API extends Web3APISpec = BeatozExecutionAPI> {
+export default class HttpProvider {
     private readonly clientUrl: string;
     private readonly httpProviderOptions: HttpProviderOptions | undefined;
     public constructor(clientUrl: string, httpProviderOptions?: HttpProviderOptions) {
@@ -38,13 +31,10 @@ export default class HttpProvider<API extends Web3APISpec = BeatozExecutionAPI> 
         this.httpProviderOptions = httpProviderOptions;
     }
 
-    public async request<
-        Method extends Web3APIMethod<API>,
-        ResponseType = Web3APIReturnType<API, Method>,
-    >(
-        payload: Web3APIPayload<API, Method>,
+    public async request(
+        payload: Web3APIPayload,
         requestOptions?: RequestInit,
-    ): Promise<JsonRpcResponseWithResult<ResponseType>> {
+    ): Promise<JsonRpcResponseWithResult<unknown>> {
         const providerOptionsCombined = {
             ...this.httpProviderOptions?.providerOptions,
             ...requestOptions,
@@ -62,7 +52,7 @@ export default class HttpProvider<API extends Web3APISpec = BeatozExecutionAPI> 
 
         if (!response.ok) throw new ResponseError(await response.json());
 
-        return (await response.json()) as JsonRpcResponseWithResult<ResponseType>;
+        return (await response.json()) as JsonRpcResponseWithResult<unknown>;
     }
 
     public getClientUrl(): string {

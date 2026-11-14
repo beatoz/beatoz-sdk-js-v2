@@ -19,5 +19,4 @@ export * from './web3_context.js';
 export * from './web3_request_manager.js';
 export * from './web3_event_emitter.js';
 
-export * from './utils.js';
 export * from './web3_promi_event.js';

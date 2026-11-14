@@ -74,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `HttpProvider` takes no `API` type parameter; the API spec it
+  named is gone (#37). `request()` returns the node's result as `unknown`.
+
 - `.npmignore` is gone, from this package and from the repository root. `files`
   takes precedence over it, so keeping both would leave a file that looks like
   it decides what ships but does not. The root one had been reaching into the

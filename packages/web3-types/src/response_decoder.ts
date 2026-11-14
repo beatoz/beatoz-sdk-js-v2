@@ -86,127 +86,127 @@ export class ResponsesDecoder {
     }
 
     public static decodeNetInfo(
-        response: JsonRpcResponseWithResult<responses.NetInfoResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.NetInfoResponse {
-        return assertObject(response.result);
+        return assertObject(response.result as responses.NetInfoResponse);
     }
 
     public static decodeAbciInfo(
-        response: JsonRpcResponseWithResult<AbciInfoResult>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.AbciInfoResponse {
         return decodeAbciInfo(assertObject((response.result as AbciInfoResult).response));
     }
 
     public static decodeAbciQuery(
-        response: JsonRpcResponseWithResult<AbciQueryResult>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.AbciQueryResponse {
         return decodeAbciQuery(assertObject((response.result as AbciQueryResult).response));
     }
 
     public static decodeCheckTx(
-        response: JsonRpcResponseWithResult<responses.CheckTxResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.CheckTxResponse {
         return response.result as responses.CheckTxResponse;
     }
 
     public static decodeBlock(
-        response: JsonRpcResponseWithResult<RpcBlockResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BlockResponse {
         return decodeBlockResponse(response.result as RpcBlockResponse);
     }
 
     public static decodeBlockByHash(
-        response: JsonRpcResponseWithResult<RpcBlockResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BlockResponse {
         return decodeBlockResponse(response.result as RpcBlockResponse);
     }
 
     public static decodeBlockResults(
-        response: JsonRpcResponseWithResult<RpcBlockResultsResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BlockResultsResponse {
         return decodeBlockResults(response.result as RpcBlockResultsResponse);
     }
 
     public static decodeBlockSearch(
-        response: JsonRpcResponseWithResult<RpcBlockSearchResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BlockSearchResponse {
         return decodeBlockSearch(response.result as RpcBlockSearchResponse);
     }
 
     public static decodeBlockchain(
-        response: JsonRpcResponseWithResult<RpcBlockchainResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BlockchainResponse {
         return decodeBlockchain(response.result as RpcBlockchainResponse);
     }
 
     public static decodeBroadcastTxSync(
-        response: JsonRpcResponseWithResult<RpcBroadcastTxSyncResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BroadcastTxSyncResponse {
         return decodeBroadcastTxSync(response.result as RpcBroadcastTxSyncResponse);
     }
 
     public static decodeBroadcastTxAsync(
-        response: JsonRpcResponseWithResult<RpcBroadcastTxSyncResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BroadcastTxAsyncResponse {
         return ResponsesDecoder.decodeBroadcastTxSync(response);
     }
 
     public static decodeBroadcastTxCommit(
-        response: JsonRpcResponseWithResult<RpcBroadcastTxCommitResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.BroadcastTxCommitResponse {
         return decodeBroadcastTxCommit(response.result as RpcBroadcastTxCommitResponse);
     }
 
     public static decodeCommit(
-        response: JsonRpcResponseWithResult<RpcCommitResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.CommitResponse {
         return decodeCommitResponse(response.result as RpcCommitResponse);
     }
 
     public static decodeGenesis(
-        response: JsonRpcResponseWithResult<GenesisResult>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.GenesisResponse {
         return decodeGenesis(assertObject((response.result as GenesisResult).genesis));
     }
 
     public static decodeGenesisChunked(
-        response: JsonRpcResponseWithResult<responses.GenesisChunkedResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.GenesisChunkedResponse {
         return response.result as responses.GenesisChunkedResponse;
     }
 
     public static decodeDumpConsensusState(
-        response: JsonRpcResponseWithResult<responses.DumpConsensusStateResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.DumpConsensusStateResponse {
         return response.result as responses.DumpConsensusStateResponse;
     }
 
     public static decodeConsensusState(
-        response: JsonRpcResponseWithResult<responses.ConsensusStateResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.ConsensusStateResponse {
         return response.result as responses.ConsensusStateResponse;
     }
 
     public static decodeConsensusParams(
-        response: JsonRpcResponseWithResult<responses.ConsensusParamsResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.ConsensusParamsResponse {
         return response.result as responses.ConsensusParamsResponse;
     }
 
     public static decodeUnconfirmedTxs(
-        response: JsonRpcResponseWithResult<responses.UnconfirmedTxsResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.UnconfirmedTxsResponse {
         return response.result as responses.UnconfirmedTxsResponse;
     }
 
     public static decodeNumUnconfirmedTxs(
-        response: JsonRpcResponseWithResult<RpcNumUnconfirmedTxsResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.NumUnconfirmedTxsResponse {
         return decodeNumUnconfirmedTxs(response.result as RpcNumUnconfirmedTxsResponse);
     }
 
     public static decodeStatus(
-        response: JsonRpcResponseWithResult<RpcStatusResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.StatusResponse {
         return decodeStatus(response.result as RpcStatusResponse);
     }
@@ -221,58 +221,54 @@ export class ResponsesDecoder {
         return decodeHeader(event.data.value.header);
     }
 
-    public static decodeTx(
-        response: JsonRpcResponseWithResult<RpcTxResponse>,
-    ): responses.TxResponse {
+    public static decodeTx(response: JsonRpcResponseWithResult<unknown>): responses.TxResponse {
         return decodeTxResponse(response.result as RpcTxResponse);
     }
 
     public static decodeTxSearch(
-        response: JsonRpcResponseWithResult<RpcTxSearchResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.TxSearchResponse {
         return decodeTxSearch(response.result as RpcTxSearchResponse);
     }
 
     public static decodeValidators(
-        response: JsonRpcResponseWithResult<RpcValidatorsResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.ValidatorsResponse {
         return decodeValidators(response.result as RpcValidatorsResponse);
     }
 
     public static decodeDelegatee(
-        response: JsonRpcResponseWithResult<responses.DelegateeResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.DelegateeResponse {
         return response.result as responses.DelegateeResponse;
     }
 
-    public static decodeRule(
-        response: JsonRpcResponseWithResult<responses.RuleResponse>,
-    ): responses.RuleResponse {
+    public static decodeRule(response: JsonRpcResponseWithResult<unknown>): responses.RuleResponse {
         const result = response.result as responses.RuleResponse;
         // The node leaves a zero parameter out (omitempty), so put it back.
         return { ...result, value: { ...ruleZeros, ...result.value } };
     }
 
     public static decodeAccount(
-        response: JsonRpcResponseWithResult<RpcAccountResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.AccountResponse {
         return decodeAccount(response.result as RpcAccountResponse);
     }
 
     public static decodeStakes(
-        response: JsonRpcResponseWithResult<responses.StakesResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.StakesResponse {
         return response.result as responses.StakesResponse;
     }
 
     public static decodeReward(
-        response: JsonRpcResponseWithResult<responses.RewardResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.RewardResponse {
         return response.result as responses.RewardResponse;
     }
 
     public static decodeVmCall(
-        response: JsonRpcResponseWithResult<responses.VmCallResponse>,
+        response: JsonRpcResponseWithResult<unknown>,
     ): responses.VmCallResponse {
         const result = response.result as responses.VmCallResponse;
         // The node sends returnData as base64 and leaves out empty fields

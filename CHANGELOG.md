@@ -323,6 +323,30 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-types`, `@beatoz/web3-core`, `@beatoz/web3-providers-http`,
+  `@beatoz/web3-providers-ws`, `@beatoz/web3-methods`, `@beatoz/web3-contract`:
+  **BREAKING:** The API spec types are gone (#37): `BeatozExecutionAPI`,
+  `EthExecutionAPI` with the Ethereum `*API` types it used, `Web3APISpec`,
+  `Web3APIMethod`, `Web3APIParams`, `Web3APIReturnType`, and the `API` type
+  parameter of `Web3RequestManager`, `Web3Context`, `Web3ContextObject`,
+  `HttpProvider` and `WebsocketProvider`. The spec checked nothing: a bug made
+  every string a method name, and it listed methods the node does not have
+  (`vmCall`, `proposal`) in place of the ones the SDK sends (`vm_call`,
+  `vm_estimate_gas`, `proposals`). Its result types were the decoded responses,
+  while `send()` returns the node's result before decoding. `send()` and the
+  providers' `request()` now take a method name and return the node's result
+  as `unknown`, and the `ResponsesDecoder` methods take it as such; the rpc
+  methods decode it and return what they did. Gone with the spec, unused and
+  typed by it: `Web3BaseProvider`, `SupportedProviders`, `EIP1193Provider`,
+  `SimpleProvider`, `LegacyRequestProvider`, `LegacySendProvider`,
+  `LegacySendAsyncProvider`, `SocketRequestItem`, the `Provider*` and
+  `Web3Provider*` event types, `ContractInitOptions.provider`, and
+  `@beatoz/web3-core`'s `isWeb3Provider`, `isEIP1193Provider`,
+  `isLegacyRequestProvider`, `isLegacySendProvider`,
+  `isLegacySendAsyncProvider` and `isSupportedProvider`.
+  `@beatoz/web3-utils`' `jsonRpc.toPayload` is typed as the one
+  `JsonRpcRequest` it returns rather than a request or a batch.
+
 - `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3`: **BREAKING:**
   The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save` and `load`,
   `web3.accounts.decrypt`, the matching abstract methods of `Web3BaseWallet`,

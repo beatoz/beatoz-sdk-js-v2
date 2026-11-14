@@ -16,7 +16,6 @@
 
 export * from './bytes_unit8array.js';
 export * from './error_types.js';
-export * from './apis/beatoz_execution_api.js';
 
 export * from './data_format_types.js';
 
@@ -31,7 +30,6 @@ export * from './web3_base_wallet.js';
 export * from './web3_deferred_promise_type.js';
 export * from './trx_proto.js';
 export * from './subscription_event.js';
-export * from './web3_base_provider.js';
 
 export * from './beatoz_abi_types.js';
 export * from './eth_contract_types.js';

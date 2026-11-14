@@ -16,7 +16,6 @@
 
 import { isNullish } from '@beatoz/web3-validator';
 import {
-    JsonRpcPayload,
     JsonRpcResponse,
     JsonRpcResponseWithResult,
     JsonRpcResponseWithError,
@@ -96,7 +95,7 @@ export const setRequestIdStart = (start: number | undefined) => {
 
 export const toPayload = <ParamType = unknown[]>(
     request: JsonRpcOptionalRequest<ParamType>,
-): JsonRpcPayload<ParamType> => {
+): JsonRpcRequest<ParamType> => {
     if (typeof requestIdSeed !== 'undefined') {
         requestIdSeed += 1;
     }

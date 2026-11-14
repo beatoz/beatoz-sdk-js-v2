@@ -82,6 +82,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The rpc method wrappers take a `Web3Context` with no type
+  argument; `Web3Context<BeatozExecutionAPI>` is gone with the API spec (#37).
+
 - No longer depends on `@beatoz/web3-utils`, which it never imported.
 
 ### Added

@@ -18,12 +18,7 @@ import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
 import { isNullish, jsonRpc } from '@beatoz/web3-utils';
 import {
-    BeatozExecutionAPI,
-    Web3APISpec,
-    Web3APIMethod,
     Web3APIRequest,
-    Web3APIReturnType,
-    Web3APIPayload,
     JsonRpcPayload,
     JsonRpcResponse,
     JsonRpcResponseWithError,
@@ -31,7 +26,6 @@ import {
     JsonRpcRequest,
     JsonRpcResponseWithResult,
     SubscriptionEvent,
-    SupportedProviders,
 } from '@beatoz/web3-types';
 import { InvalidResponseError, ResponseError } from '@beatoz/web3-errors';
 import { Stream } from 'xstream';
@@ -47,10 +41,8 @@ const availableProviders = {
     WebsocketProvider: WebsocketProvider,
 };
 
-export class Web3RequestManager<
-    API extends Web3APISpec = BeatozExecutionAPI,
-> extends Web3EventEmitter<{
-    [key in Web3RequestManagerEvent]: SupportedProviders<API> | undefined;
+export class Web3RequestManager extends Web3EventEmitter<{
+    [key in Web3RequestManagerEvent]: HttpProvider | WebsocketProvider | undefined;
 }> {
     private _provider?: HttpProvider | WebsocketProvider;
 
@@ -94,19 +86,16 @@ export class Web3RequestManager<
         return this._provider!;
     }
 
-    public async send<
-        Method extends Web3APIMethod<API>,
-        ResponseType = Web3APIReturnType<API, Method>,
-    >(request: Web3APIRequest<API, Method>): Promise<JsonRpcResponseWithResult<ResponseType>> {
+    /**
+     * Sends a request to the node and returns its result as the node sent it,
+     * not yet decoded.
+     */
+    public async send(request: Web3APIRequest): Promise<JsonRpcResponseWithResult<unknown>> {
         const { provider } = this;
 
         const payload = jsonRpc.toPayload(request);
 
-        const response = await provider.request<Method, ResponseType>(
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            payload as Web3APIPayload<API, Method>,
-        );
+        const response = await provider.request(payload);
 
         if (jsonRpc.isResponseWithResult(response)) {
             return response;
@@ -210,9 +199,7 @@ export class Web3RequestManager<
         return false;
     }
 
-    public subscribe<Method extends Web3APIMethod<API>>(
-        request: Web3APIRequest<API, Method>,
-    ): Stream<SubscriptionEvent> {
+    public subscribe(request: Web3APIRequest): Stream<SubscriptionEvent> {
         // Only Websocket Provider can subscribe.
         if (!(this.provider instanceof WebsocketProvider)) {
             throw new Error('only websocket provider can subscribe.');
