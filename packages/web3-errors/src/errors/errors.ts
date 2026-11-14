@@ -42,12 +42,3 @@ export class TimeoutError extends BaseError {
         super(shortMessage, args);
     }
 }
-
-/** A contract call or deployment the SDK refused or could not complete. */
-export class Web3ContractError extends BaseError {
-    public override name = 'Web3ContractError';
-
-    public constructor(shortMessage: string, args?: BaseErrorParameters) {
-        super(shortMessage, args);
-    }
-}

@@ -16,6 +16,9 @@
 import {
     AbiError,
     BaseError,
+    ContractFunctionRevertedError,
+    ContractFunctionZeroDataError,
+    TransactionFailedError,
     formatValue,
     HttpRequestError,
     InvalidInputError,
@@ -138,5 +141,73 @@ describe('formatValue', () => {
         [new Uint8Array(3), 'Uint8Array(3)'],
     ])('%p as %s', (value, expected) => {
         expect(formatValue(value)).toBe(expected);
+    });
+});
+
+describe('ContractFunctionRevertedError', () => {
+    const base = { functionName: 'transfer', data: '0x', vmErr: 'execution reverted' };
+
+    it('says the reason when there is one', () => {
+        const err = new ContractFunctionRevertedError({
+            ...base,
+            reason: 'ERC20: transfer amount exceeds balance',
+            errorName: 'Error',
+            metaMessages: ['Contract: 0xabc'],
+        });
+        expect(err.shortMessage).toBe(
+            'The contract function "transfer" reverted with the reason: ERC20: transfer amount exceeds balance',
+        );
+        expect(err.details).toBe('execution reverted');
+        expect(err.message).toContain('Contract: 0xabc');
+    });
+
+    it('names a custom error with its arguments', () => {
+        const err = new ContractFunctionRevertedError({
+            ...base,
+            errorName: 'ERC20InsufficientBalance',
+            args: ['0xabc', 0n, 1000n],
+        });
+        expect(err.shortMessage).toBe(
+            'The contract function "transfer" reverted with the error: ERC20InsufficientBalance(0xabc, 0, 1000)',
+        );
+    });
+
+    it('gives the selector of an error it could not name', () => {
+        const err = new ContractFunctionRevertedError({ ...base, signature: '0x12345678' });
+        expect(err.shortMessage).toBe(
+            'The contract function "transfer" reverted with an error the ABI does not have: 0x12345678',
+        );
+    });
+
+    it('says only that it reverted when nothing more is known', () => {
+        expect(new ContractFunctionRevertedError(base).shortMessage).toBe(
+            'The contract function "transfer" reverted.',
+        );
+    });
+});
+
+describe('ContractFunctionZeroDataError', () => {
+    it('says the function returned nothing', () => {
+        expect(new ContractFunctionZeroDataError({ functionName: 'decimals' }).shortMessage).toBe(
+            'The contract function "decimals" returned no data ("0x").',
+        );
+    });
+});
+
+describe('TransactionFailedError', () => {
+    it("keeps the node's code and log", () => {
+        const err = new TransactionFailedError({
+            stage: 'check_tx',
+            code: 3,
+            log: 'invalid nonce',
+            hash: 'AB',
+        });
+        expect(err).toMatchObject({ stage: 'check_tx', code: 3, log: 'invalid nonce', hash: 'AB' });
+        expect(err.message).toBe(
+            'The node refused the transaction.\n\nCode: 3\nHash: AB\n\nDetails: invalid nonce',
+        );
+        expect(new TransactionFailedError({ stage: 'deliver_tx', code: 1 }).shortMessage).toBe(
+            'The transaction failed in the block.',
+        );
     });
 });

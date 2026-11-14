@@ -18,6 +18,7 @@ import { format, isNullish, keccak256 } from '@beatoz/web3-utils';
 
 import {
     AbiConstructorFragment,
+    AbiErrorFragment,
     AbiEventFragment,
     AbiFunctionFragment,
     LogsInput,
@@ -33,6 +34,7 @@ import {
 import {
     decodeLog,
     decodeParameters,
+    encodeErrorSignature,
     encodeEventSignature,
     encodeFunctionSignature,
     encodeParameter,
@@ -263,4 +265,69 @@ export const decodeMethodReturn = (abi: AbiFunctionFragment, returnValues: HexSt
     const result = decodeParameters([...(abi.outputs ?? [])], returnValues.replace(/^0x/i, ''));
     const values = outputs.map((output, i) => toAbitypeShape(output, result[i]));
     return values.length === 1 ? values[0] : values;
+};
+
+// Solidity's built-in errors: require/revert with a message, and a panic.
+const ERROR_SELECTOR = '0x08c379a0'; // Error(string)
+const PANIC_SELECTOR = '0x4e487b71'; // Panic(uint256)
+
+// https://docs.soliditylang.org/en/latest/control-structures.html#panic-via-assert-and-error-via-require
+const panicReasons: Record<number, string> = {
+    0x01: 'An `assert` condition failed.',
+    0x11: 'Arithmetic operation resulted in underflow or overflow.',
+    0x12: 'Division or modulo by zero (e.g. `5 / 0` or `23 % 0`).',
+    0x21: 'Attempted to convert to an invalid type.',
+    0x22: 'Attempted to access a storage byte array that is incorrectly encoded.',
+    0x31: 'Performed `.pop()` on an empty array',
+    0x32: 'Array index is out of bounds.',
+    0x41: 'Allocated too much memory or created an array which is too large.',
+    0x51: 'Attempted to call a zero-initialized variable of internal function type.',
+};
+
+export type DecodedRevert = {
+    reason?: string;
+    errorName?: string;
+    args?: readonly unknown[];
+    signature?: string;
+};
+
+/**
+ * Decodes what a contract reverted with: `Error(string)`, `Panic(uint256)`,
+ * or one of `errors` from the contract's ABI, matched by its 4-byte
+ * selector. A selector none of them has is returned as `signature`. Data
+ * shorter than a selector, as from `revert()` with nothing, decodes to
+ * nothing. Arguments take the shapes `call()` returns.
+ */
+export const decodeRevert = (
+    errors: readonly AbiErrorFragment[],
+    data: HexString,
+): DecodedRevert => {
+    const hex = data.replace(/^0x/i, '').toLowerCase();
+    if (hex.length < 8) {
+        return {};
+    }
+    const selector = `0x${hex.slice(0, 8)}`;
+    const body = hex.slice(8);
+    if (selector === ERROR_SELECTOR) {
+        const reason = decodeParameters(['string'], body)[0] as string;
+        return { reason, errorName: 'Error', args: [reason] };
+    }
+    if (selector === PANIC_SELECTOR) {
+        const code = decodeParameters(['uint256'], body)[0] as bigint;
+        return {
+            reason: panicReasons[Number(code)] ?? `Panic with code 0x${code.toString(16)}.`,
+            errorName: 'Panic',
+            args: [code],
+        };
+    }
+    const error = errors.find((e) => encodeErrorSignature(e).slice(0, 10) === selector);
+    if (error === undefined) {
+        return { signature: selector };
+    }
+    const inputs = (error.inputs ?? []) as readonly OutputParameter[];
+    const decoded = decodeParameters([...(error.inputs ?? [])], body);
+    return {
+        errorName: error.name,
+        args: inputs.map((input, i) => toAbitypeShape(input, decoded[i])),
+    };
 };

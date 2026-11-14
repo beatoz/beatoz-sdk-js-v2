@@ -70,6 +70,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `ContractFunctionRevertedError` (`reason`, `errorName`, `args`,
+  `signature`, `data`), `ContractFunctionZeroDataError` and
+  `TransactionFailedError` (`stage`, `code`, `log`, `hash`), for contract
+  calls and transactions that fail (#100, #101).
+
 - Adds a `files` field, so the published package carries `lib/`, `src/`,
   `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
   Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which
