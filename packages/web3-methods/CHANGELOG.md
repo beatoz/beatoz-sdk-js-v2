@@ -82,6 +82,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- `subscribe(query)` no longer prints `subscribe query <query>` to the console
+  on every call (#103).
+
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`
   files as ES modules rather than CommonJS. Without it the runtime half of the
