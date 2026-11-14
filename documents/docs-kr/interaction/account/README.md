@@ -32,7 +32,8 @@ const account: Web3Account = privateKeyToAccount(privateKey);
     prvKey: PrvKey,
     pubKey: PubKey,
     sign: [Function: sign],
-    signTransaction: [Function: signTransaction]
+    signTransaction: [Function: signTransaction],
+    signTransactionAsPayer: [Function: signTransactionAsPayer]
 }
 ```
 
@@ -99,3 +100,20 @@ console.log(result);
   }
 }
 ```
+
+### `signTransactionAsPayer(trxProto, chainId)`
+`signTransactionAsPayer` 는 다른 계정이 트랜잭션의 수수료를 대신 내게 합니다. 보내는 사람이 먼저 `signTransaction` 으로 서명하고, 수수료를 낼 계정(payer)이 이어서 서명하면 `payer` 와 `payerSig` 가 채워집니다. 체인은 수수료를 payer 에게서 뺍니다. 보내는 사람은 보내는 금액만, payer 는 수수료(`gas` × `gasPrice`)만 있으면 됩니다.
+
+보내는 사람의 서명에는 payer 가 들어가지 않으므로, 보통 두 서명은 다른 곳에서 합니다. 사용자의 앱이 보내는 사람으로 서명해 서버로 보내고, 서버가 payer 로 서명해 노드로 보냅니다. payer 의 서명에는 보내는 사람의 서명이 들어가므로, 그 뒤에 보내는 사람이 다시 서명하면 payer 서명은 무효가 됩니다.
+
+```typescript
+// 사용자의 앱
+const tx = TrxProtoBuilder.buildTransferTrxProto({ from: user.address, /* ... */ });
+user.signTransaction(tx, chainId);
+
+// 수수료를 내는 서버
+const { rawTransaction } = feePayer.signTransactionAsPayer(tx, chainId);
+const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
+```
+
+보내는 사람이 서명하지 않았거나 payer 가 보내는 사람과 같으면 에러를 냅니다.

@@ -32,7 +32,8 @@ The returned `Web3Account` object is as follows.
     prvKey: PrvKey,
     pubKey: PubKey,
     sign: [Function: sign],
-    signTransaction: [Function: signTransaction]
+    signTransaction: [Function: signTransaction],
+    signTransactionAsPayer: [Function: signTransactionAsPayer]
 }
 ```
 
@@ -98,3 +99,20 @@ The result of the code is as follows.
   }
 }
 ```
+
+### `signTransactionAsPayer(trxProto, chainId)`
+`signTransactionAsPayer` lets another account pay a transaction's fee. The sender signs first with `signTransaction`; the payer then adds its signature, which sets `payer` and `payerSig`. The chain charges the fee to the payer: the sender only needs the amount it sends, the payer the fee (`gas` × `gasPrice`).
+
+The sender's signature does not cover the payer, so the two usually sign in different places: a user's app signs as the sender and sends the transaction to a server, which signs as the payer and broadcasts it. The payer's signature covers the sender's, so signing again as the sender afterwards makes it invalid.
+
+```typescript
+// in the user's app
+const tx = TrxProtoBuilder.buildTransferTrxProto({ from: user.address, /* ... */ });
+user.signTransaction(tx, chainId);
+
+// on the server that pays the fee
+const { rawTransaction } = feePayer.signTransactionAsPayer(tx, chainId);
+const result = await web3.beatoz.broadcastRawTxCommit(rawTransaction);
+```
+
+It throws if the sender has not signed, or if the payer is the sender.

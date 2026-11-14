@@ -30,6 +30,6 @@ export interface TrxProto {
     sig: Uint8Array;
     /** Account paying the fee on behalf of `from`. Empty when unused. */
     payer: Uint8Array;
-    /** Signature of `payer` over the same preimage. Empty when unused. */
+    /** Signature of `payer`, over the transaction with `sig` in it. Empty when unused. */
     payerSig: Uint8Array;
 }

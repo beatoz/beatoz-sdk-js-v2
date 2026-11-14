@@ -126,6 +126,17 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `signTransactionAsPayer(trxProto, privateKey, chainId)` and
+  `Web3Account.signTransactionAsPayer(trxProto, chainId)`: fee delegation
+  (#3). After the sender signs, another account signs as the payer, which sets
+  `payer` and `payerSig`; the chain then charges the fee to the payer, so the
+  sender needs only the amount it sends. The sender's signature does not cover
+  the payer, so the payer can sign elsewhere (a server paying its users' fees).
+  The payer signs the node's v0 preimage with the sender's signature in it, as
+  beatoz-go's `SignerV0` verifies it; moving both signatures to v1 is #119. It
+  throws if the sender has not signed or the payer is the sender.
+  `decodeTransaction` returns `payer` and `payerSig` when they are set.
+
 - `getContractAddress(from, nonce)`: the address of the contract a deploy
   transaction from `from` with `nonce` creates, the last 20 bytes of
   keccak256(rlp([from, nonce])) as the node computes it (#42).
@@ -171,6 +182,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   eight types beatoz-go accepts, and the integration suites pass.
 
 ### Fixed
+
+- `signTransaction` on a transaction that already has a signature signed
+  over that signature, which the node leaves out, so the node rejected the
+  result as `invalid signature`. It now clears `sig` first, as
+  `TrxProtoBuilder.signTrxProto` does (#3).
 
 - **Signing works in the ESM build.** `privateKeyToAccount` and everything
   downstream of it threw `TypeError: secp256k1.privateKeyVerify is not a

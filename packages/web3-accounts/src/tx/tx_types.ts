@@ -93,6 +93,9 @@ interface DecodedTransactionFields {
     /** Decimal string. */
     gasPrice: string;
     sig: string;
+    /** The account paying the fee, present only when one does. */
+    payer?: string;
+    payerSig?: string;
 }
 
 // The payloads decodeTransaction returns. Where a builder exists, the shape is
