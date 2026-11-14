@@ -27,13 +27,7 @@ import {
     validator,
 } from '@beatoz/web3-validator';
 
-import {
-    HexProcessingError,
-    InvalidAddressError,
-    InvalidBytesError,
-    InvalidNumberError,
-    InvalidUnitError,
-} from '@beatoz/web3-errors';
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 
 const base = BigInt(10);
 const expo10 = (expo: number) => base ** BigInt(expo);
@@ -78,7 +72,9 @@ export const bytesToUint8Array = (data: Bytes): Uint8Array | never => {
         return validatorUtils.hexToUint8Array(data);
     }
 
-    throw new InvalidBytesError(data);
+    throw new InvalidInputError(
+        `bytes must be a Uint8Array, an array of bytes or a hex string, got ${formatValue(data)}`,
+    );
 };
 
 /**
@@ -291,7 +287,7 @@ export const toHex = (
         }
     }
 
-    throw new HexProcessingError(value);
+    throw new InvalidInputError(`value cannot be converted to hex, got ${formatValue(value)}`);
 };
 
 /**
@@ -332,7 +328,9 @@ export const toNumber = (value: Numbers): number | bigint => {
     try {
         return toNumber(BigInt(value));
     } catch {
-        throw new InvalidNumberError(value);
+        throw new InvalidInputError(
+            `value must be a number, a bigint or a numeric string, got ${formatValue(value)}`,
+        );
     }
 };
 
@@ -362,7 +360,9 @@ export const toBigInt = (value: unknown): bigint => {
         return BigInt(value);
     }
 
-    throw new InvalidNumberError(value);
+    throw new InvalidInputError(
+        `value must be a number, a bigint or a numeric string, got ${formatValue(value)}`,
+    );
 };
 
 /**
@@ -381,7 +381,9 @@ export const fromWei = (number: Numbers, unit: BeatozUnits): string => {
     const denomination = beatozUnitMap[unit];
 
     if (!denomination) {
-        throw new InvalidUnitError(unit);
+        throw new InvalidInputError(
+            `unit must be one of ${Object.keys(beatozUnitMap).join(', ')}, got ${formatValue(unit)}`,
+        );
     }
 
     // value in wei would always be integer
@@ -440,7 +442,9 @@ export const toWei = (number: Numbers, unit: BeatozUnits): string => {
     const denomination = beatozUnitMap[unit];
 
     if (!denomination) {
-        throw new InvalidUnitError(unit);
+        throw new InvalidInputError(
+            `unit must be one of ${Object.keys(beatozUnitMap).join(', ')}, got ${formatValue(unit)}`,
+        );
     }
 
     // if value is decimal e.g. 24.56 extract `integer` and `fraction` part
@@ -486,7 +490,7 @@ export const toWei = (number: Numbers, unit: BeatozUnits): string => {
  */
 export const toChecksumAddress = (address: Address): string => {
     if (!isAddress(address, false)) {
-        throw new InvalidAddressError(address);
+        throw new InvalidInputError(`address must be 20 bytes of hex, got ${formatValue(address)}`);
     }
 
     const lowerCaseAddress = address.toLowerCase().replace(/^0x/i, '');

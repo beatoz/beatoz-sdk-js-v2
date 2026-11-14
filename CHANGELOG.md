@@ -15,6 +15,42 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- All packages: **BREAKING:** One error design (#100, first part). Every
+  error class the SDK throws extends `BaseError` from `@beatoz/web3-errors`,
+  shaped like viem's: `shortMessage` says what failed, `details` why (the
+  cause's message), `cause` keeps the original error, and `walk()` follows the
+  cause chain. Kinds are told apart by class or `name`; the numeric codes
+  (`ERR_RESPONSE` and the other 20 `ERR_*`) and `BaseWeb3Error`'s `code` and
+  `innerError` are gone.
+  - A node's JSON-RPC error is an `RpcRequestError` with the node's `code`
+    (-32602, -32603, ...) and `data`, over HTTP and WebSocket alike (#71).
+    It replaces `ResponseError`, whose `code` was always 100.
+  - An HTTP request that fails without a JSON-RPC answer (no connection, a
+    non-2xx status with another body, a body that is not JSON) is an
+    `HttpRequestError` with `status` and `url`. The HTTP provider used to
+    call `response.json()` on any failed status, so a 502 page threw a JSON
+    parse error.
+  - An answer with neither a result nor an error is an `InvalidResponseError`
+    with the `response`.
+  - `OperationTimeoutError` is `TimeoutError`; `waitForTx` puts the node's
+    last answer in `cause` (was `innerError`).
+  - The eleven `Invalid*Error` classes inherited from web3.js
+    (`InvalidBytesError`, `InvalidNumberError`, `InvalidAddressError`, ...),
+    `HexProcessingError`, `NibbleWidthError` and `FormatterError` are one
+    `InvalidInputError`, with messages that name what was expected and what
+    was given (`unit must be one of ..., got "uwei"`).
+    `Web3ValidatorError` extends it and lists its errors in
+    `metaMessages`.
+  - `AbiError` and `Web3ContractError` take their cause as `{ cause }`.
+  - Removed, never thrown: `ContractExecutionError`, `Eip838ExecutionError`,
+    `InvalidValueError`, `web3-abi`'s `decodeContractErrorData`, the
+    `Web3Error` interface in `web3-types`, `web3-utils`'
+    `ChunkResponseParser`, and `web3-methods`' `SendTransactionEvents` and
+    `ETH_DATA_FORMAT`. A contract call that reverts is still not an error;
+    that is the next part of #100 (#101).
+  - `@beatoz/web3-errors` no longer depends on `@beatoz/web3-types`, so every
+    package can throw its errors.
+
 - `@beatoz/web3-contract`, `@beatoz/web3-methods`: **BREAKING:** Deploying
   takes one call and resolves with the contract's address (#42):
   `contract.deploy({ bytecode, args }).send({ from })` returns `{ address,

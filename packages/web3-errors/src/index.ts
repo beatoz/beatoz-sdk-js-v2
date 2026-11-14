@@ -14,9 +14,6 @@
     limitations under the License.
 */
 
-export * from './error_codes.js';
-export * from './web3_error_base.js';
-export * from './errors/contract_errors.js';
-export * from './errors/generic_errors.js';
-export * from './errors/utils_errors.js';
-export * from './errors/response_errors.js';
+export * from './base_error.js';
+export * from './errors/errors.js';
+export * from './errors/request_errors.js';

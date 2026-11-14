@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { BaseWeb3Error, ERR_VALIDATION } from '@beatoz/web3-errors';
+import { InvalidInputError } from '@beatoz/web3-errors';
 import { Web3ValidationErrorObject } from '@beatoz/web3-types';
 
 import { isNullish } from './validation/object.js';
@@ -41,22 +41,15 @@ const errorFormatter = (error: Web3ValidationErrorObject): string => {
     return 'unspecified error';
 };
 
-export class Web3ValidatorError extends BaseWeb3Error {
-    public code = ERR_VALIDATION;
+/** Values that do not match the ABI types they are checked against. */
+export class Web3ValidatorError extends InvalidInputError {
+    public override name = 'Web3ValidatorError';
     public readonly errors: Web3ValidationErrorObject[];
 
     public constructor(errors: Web3ValidationErrorObject[]) {
-        super();
-
+        super(`Web3 validator found ${errors.length} error[s]:`, {
+            metaMessages: errors.map(errorFormatter),
+        });
         this.errors = errors;
-
-        super.message = `Web3 validator found ${
-            errors.length
-        } error[s]:\n${this._compileErrors().join('\n')}`;
-    }
-
-    private _compileErrors(): string[] {
-        const errorMsgs = this.errors.map(errorFormatter);
-        return errorMsgs;
     }
 }

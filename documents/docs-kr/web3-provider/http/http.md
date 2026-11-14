@@ -40,11 +40,11 @@ let httpProviderInstance = new HttpProvider(clientUrl, httpProviderOptions);
 
 ### 멤버 함수
 
-1. `request(payload: Web3APIPayload<API, Method>, requestOptions?: RequestInit)`
+1. `request(payload: Web3APIPayload, requestOptions?: RequestInit)`
 
    제공된 Web3 API 페이로드 및 선택적 요청 옵션을 기반으로 HTTP 요청을 보냅니다.
 
-   응답이 성공적이지 않으면 `ResponseError`를 발생시킵니다.
+   노드가 JSON-RPC 에러로 답하면 노드의 `code` 와 `data` 를 담은 `RpcRequestError` 를 던집니다. JSON-RPC 답 없이 요청이 실패하면 (연결 실패, 또는 다른 본문의 2xx 가 아닌 상태) `status` 와 `url` 을 담은 `HttpRequestError` 를 던집니다. 둘 다 `@beatoz/web3-errors` 의 `BaseError` 를 상속합니다.
 
    사용 예:
 

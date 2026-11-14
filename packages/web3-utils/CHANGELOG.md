@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Invalid input throws `InvalidInputError` from
+  `@beatoz/web3-errors` (#100) instead of `InvalidBytesError`,
+  `InvalidNumberError`, `InvalidAddressError`, `InvalidUnitError`,
+  `HexProcessingError`, `NibbleWidthError`, `FormatterError` and the other
+  `Invalid*Error` classes, with messages that name what was expected and what
+  was given. `Web3DeferredPromise` times out with `TimeoutError`.
+  `ChunkResponseParser`, which nothing used, is gone.
+
 - `jsonRpc.toPayload` is typed as the one `JsonRpcRequest` it returns rather
   than `JsonRpcPayload`, a request or a batch (#37).
 

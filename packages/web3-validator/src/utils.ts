@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { InvalidBytesError, InvalidNumberError } from '@beatoz/web3-errors';
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import { VALID_BEATOZ_BASE_TYPES } from './constants.js';
 import {
     FullValidationSchema,
@@ -409,7 +409,9 @@ export const numberToHex = (value: ValidInputTypes): string => {
         return numberToHex(BigInt(value));
     }
 
-    throw new InvalidNumberError(value);
+    throw new InvalidInputError(
+        `value must be a number, a bigint or a numeric string, got ${formatValue(value)}`,
+    );
 };
 
 /**
@@ -444,7 +446,7 @@ export function hexToUint8Array(hex: string): Uint8Array {
         value = hex;
     }
     if (value.length % 2 !== 0) {
-        throw new InvalidBytesError(`hex string has odd length: ${hex}`);
+        throw new InvalidInputError(`hex must be whole bytes, got ${formatValue(hex)}`);
     }
     const bytes = new Uint8Array(Math.ceil(value.length / 2));
     for (let i = 0; i < bytes.length; i += 1) {

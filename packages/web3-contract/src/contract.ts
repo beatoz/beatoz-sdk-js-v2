@@ -47,7 +47,6 @@ import {
 import { ContractMethodsInterface, DeployParams } from './method_types.js';
 import { bytesToHex, format, isNullish, toChecksumAddress } from '@beatoz/web3-utils';
 import {
-    decodeContractErrorData,
     encodeFunctionSignature,
     encodeParameters,
     isAbiErrorFragment,
@@ -61,7 +60,7 @@ import {
     validator,
 } from '@beatoz/web3-validator';
 import { decodeMethodReturn, encodeMethodABI } from './encoding.js';
-import { ContractExecutionError, Web3ContractError } from '@beatoz/web3-errors';
+import { Web3ContractError } from '@beatoz/web3-errors';
 import { getEthTxCallParams, getSendTxParams } from './utils.js';
 import {
     broadcastTxAsync,
@@ -326,24 +325,9 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         if (!tx.from) {
             tx.from = tx.to;
         }
-        try {
-            const res = await call(
-                this,
-                tx.to,
-                tx.input ? tx.input.toString() : '0x',
-                tx.from,
-                height,
-            );
-            // The node returns the call's bytes; the ABI says what they are.
-            return decodeMethodReturn(abi, res.value.returnData);
-        } catch (error: unknown) {
-            if (error instanceof ContractExecutionError) {
-                // this will parse the error data by trying to decode the ABI error inputs according to EIP-838
-                decodeContractErrorData([], error.innerError);
-                // decodeContractErrorData(errorsAbi, error.innerError);
-            }
-            throw error;
-        }
+        const res = await call(this, tx.to, tx.input ? tx.input.toString() : '0x', tx.from, height);
+        // The node returns the call's bytes; the ABI says what they are.
+        return decodeMethodReturn(abi, res.value.returnData);
     }
 
     private async _contractMethodEstimateGas<Options extends NonPayableCallOptions>(
@@ -366,57 +350,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         if (!tx.from) {
             tx.from = tx.to;
         }
-        try {
-            return await vmEstimateGas(this, tx.from, tx.to, tx.input ? tx.input.toString() : '0x');
-        } catch (error: unknown) {
-            if (error instanceof ContractExecutionError) {
-                // this will parse the error data by trying to decode the ABI error inputs according to EIP-838
-                decodeContractErrorData([], error.innerError);
-                // decodeContractErrorData(errorsAbi, error.innerError);
-            }
-            throw error;
-        }
-    }
-
-    // DEPRECATED
-    private _contractMethodSend<Options extends PayableCallOptions | NonPayableCallOptions>(
-        abi: AbiFunctionFragment,
-        params: unknown[],
-        errorsAbi: AbiErrorFragment[],
-        options?: Options,
-        contractOptions?: ContractOptions,
-    ) {
-        let modifiedContractOptions = contractOptions ?? this.options;
-        modifiedContractOptions = {
-            ...modifiedContractOptions,
-            input: undefined,
-            from: modifiedContractOptions.from ?? undefined,
-        };
-
-        getSendTxParams({
-            abi,
-            params,
-            options,
-            contractOptions: modifiedContractOptions,
-        });
-
-        const transactionToSend = Promise.resolve('');
-        //
-        // const transactionToSend = sendTransaction(this, tx, {
-        //     // TODO Should make this configurable by the user
-        //     checkRevertBeforeSending: false,
-        // });
-
-        // TODO: PromiEvent has no signature for the `error` event.
-        // @ts-expect-error remove once the PromiEvent event types are filled in
-        void transactionToSend.on('error', (error: unknown) => {
-            if (error instanceof ContractExecutionError) {
-                // this will parse the error data by trying to decode the ABI error inputs according to EIP-838
-                decodeContractErrorData(errorsAbi, error.innerError);
-            }
-        });
-
-        return transactionToSend;
+        return vmEstimateGas(this, tx.from, tx.to, tx.input ? tx.input.toString() : '0x');
     }
 
     private async _contractMethodBroadcast<

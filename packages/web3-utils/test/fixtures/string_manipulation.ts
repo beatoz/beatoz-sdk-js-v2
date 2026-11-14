@@ -33,8 +33,11 @@ export const padInvalidData: [[any, number, string], string][] = [
     [[9.5, 64, 'f'], 'value "9.5" at "/0" must pass "int" validation'],
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
-    [[null, 8, '0'], 'Web3 validator found 1 error[s]:\nvalue at "/0" must pass "int" validation'],
-    [[undefined, 8, '0'], 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [
+        [null, 8, '0'],
+        'Web3 validator found 1 error[s]:\n\nvalue at "/0" must pass "int" validation',
+    ],
+    [[undefined, 8, '0'], 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [[{}, 3, 'f'], 'value "[object Object]" at "/0" must pass "int" validation'],
 ];
 
@@ -89,18 +92,9 @@ export const toTwosComplementInvalidData: [[Numbers, number], string][] = [
     [['ab0x', 2], 'value "ab0x" at "/0" must pass "int" validation'],
     [[25.5, 32], 'value "25.5" at "/0" must pass "int" validation'],
     [['-120.0', 4], 'value "-120.0" at "/0" must pass "int" validation'],
-    [
-        [-256, 2],
-        'Invalid value given "value: -256, nibbleWidth: 2". Error: value greater than the nibble width.',
-    ],
-    [
-        ['-0x1000', 3],
-        'Invalid value given "value: -0x1000, nibbleWidth: 3". Error: value greater than the nibble width.',
-    ],
-    [
-        [BigInt(-160000), 1],
-        'Invalid value given "value: -160000, nibbleWidth: 1". Error: value greater than the nibble width.',
-    ],
+    [[-256, 2], "value must fit in 2 hex digits as two's complement, got -256"],
+    [['-0x1000', 3], 'value must fit in 3 hex digits as two\'s complement, got "-0x1000"'],
+    [[BigInt(-160000), 1], "value must fit in 1 hex digits as two's complement, got -160000n"],
 ];
 
 export const fromTwosComplementInvalidData: [[Numbers, number], string][] = [
@@ -109,12 +103,6 @@ export const fromTwosComplementInvalidData: [[Numbers, number], string][] = [
     [['ab0x', 2], 'value "ab0x" at "/0" must pass "int" validation'],
     [[25.5, 32], 'value "25.5" at "/0" must pass "int" validation'],
     [['-120.0', 4], 'value "-120.0" at "/0" must pass "int" validation'],
-    [
-        [1000, 2],
-        'Invalid value given "value: 1000, nibbleWidth: 2". Error: value greater than the nibble width.',
-    ],
-    [
-        ['0xa05', 1],
-        'Invalid value given "value: 0xa05, nibbleWidth: 1". Error: value greater than the nibble width.',
-    ],
+    [[1000, 2], "value must fit in 2 hex digits as two's complement, got 1000"],
+    [['0xa05', 1], 'value must fit in 1 hex digits as two\'s complement, got "0xa05"'],
 ];

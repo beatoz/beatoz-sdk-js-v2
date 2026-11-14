@@ -51,7 +51,7 @@ export const encodeParameters = (abi: ReadonlyArray<AbiInput>, params: unknown[]
             modifiedParams,
         );
     } catch (err) {
-        throw new AbiError(`Parameter encoding error`, err as Error);
+        throw new AbiError('Parameter encoding error', { cause: err });
     }
 };
 
@@ -106,7 +106,7 @@ export const decodeParametersWith = (
         );
         return formatArrayResToObject(res);
     } catch (err) {
-        throw new AbiError(`Parameter decoding error: ${(err as Error).message}`);
+        throw new AbiError('Parameter decoding error', { cause: err });
     }
 };
 

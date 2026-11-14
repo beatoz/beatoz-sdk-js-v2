@@ -164,14 +164,14 @@ export const soliditySha3RawValidData: [
 ];
 
 export const soliditySha3InvalidData: [any, string][] = [
-    [{ t: 'int8', v: 500 }, 'Invalid value given "500". Error: value is larger than size.'],
+    [{ t: 'int8', v: 500 }, 'int8 value must fit in 8 bits, got "500"'],
     [
         { t: 'bytes', v: '0x407D73d8a49eeb85D32Cf465507dd71d507100c' },
-        'Invalid value given "0x407D73d8a49eeb85D32Cf465507dd71d507100c". Error: can not parse as byte data.',
+        'bytes value must be whole bytes of hex, got "0x407D73d8a49eeb85D32Cf465507dd71d507100c"',
     ],
     [
         { t: 'bytes8', v: '0x407D73d8a49eeb85D32Cf465507dd71d507100' },
-        'Invalid value given "0x407D73d8a49eeb85D32Cf465507dd71d507100". Error: can not parse as byte data.',
+        'bytes8 value must be at most 8 bytes, got "0x407D73d8a49eeb85D32Cf465507dd71d507100"',
     ],
 ];
 
@@ -257,32 +257,23 @@ export const encodePackData: [TypedObject[] | TypedObjectAbbreviated[], any][] =
 ];
 
 export const encodePackedInvalidData: [any, string][] = [
-    [{ type: 'string', value: 1234 }, 'Invalid value given "1234". Error: not a valid string.'],
-    [{ type: 'string', value: true }, 'Invalid value given "true". Error: not a valid string.'],
-    [{ type: 'string', value: 1234 }, 'Invalid value given "1234". Error: not a valid string.'],
-    [{ type: 'boolean', value: 1234 }, 'Invalid value given "1234". Error: not a valid boolean.'],
+    [{ type: 'string', value: 1234 }, 'string value must be a string, got 1234'],
+    [{ type: 'string', value: true }, 'string value must be a string, got true'],
+    [{ type: 'string', value: 1234 }, 'string value must be a string, got 1234'],
+    [{ type: 'boolean', value: 1234 }, 'bool value must be a boolean, got 1234'],
+    [{ type: 'address', value: 1234 }, 'address value must be 20 bytes of hex, got "1234"'],
+    [{ type: 'address', value: '0x2' }, 'address value must be 20 bytes of hex, got "0x2"'],
     [
-        { type: 'address', value: 1234 },
-        'Invalid value given "1234". Error: invalid beatoz chain address',
+        { type: 'uint612', value: 13 },
+        'uint size must be a multiple of 8 from 8 to 256, got "uint612"',
     ],
+    [{ type: 'uint8', value: 1000 }, 'uint8 value must fit in 8 bits, got "1000"'],
+    [{ type: 'uint256', value: -1 }, 'uint256 value must not be negative, got "-1"'],
     [
-        { type: 'address', value: '0x2' },
-        'Invalid value given "0x2". Error: invalid beatoz chain address',
+        { type: 'int255', value: 100 },
+        'int size must be a multiple of 8 from 8 to 256, got "int255"',
     ],
-    [{ type: 'uint612', value: 13 }, 'Invalid value given "13". Error: invalid size given.'],
-    [
-        { type: 'uint8', value: 1000 },
-        'Invalid value given "1000". Error: value is larger than size.',
-    ],
-    [
-        { type: 'uint256', value: -1 },
-        'Invalid value given "-1". Error: not a valid unsigned integer.',
-    ],
-    [{ type: 'int255', value: 100 }, 'Invalid value given "int255". Error: invalid size given.'],
-    [
-        { type: 'bytes32', value: '0x1' },
-        'Invalid value given "0x1". Error: can not parse as byte data.',
-    ],
+    [{ type: 'bytes32', value: '0x1' }, 'bytes32 value must be whole bytes of hex, got "0x1"'],
 ];
 
 export const keccak256ValidData: [string | Uint8Array | bigint, string][] = [

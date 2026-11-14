@@ -4,7 +4,6 @@ module.exports = {
     ...base,
     testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/constructor.(spec|test).(js|ts)'],
-    // testMatch: ['<rootDir>/test/unit/**/decodeContractErrorData.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/types.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/utils.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/api/errors_api.(spec|test).(js|ts)'],

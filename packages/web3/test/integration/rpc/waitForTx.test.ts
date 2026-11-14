@@ -24,7 +24,7 @@ import {
 } from '../e2e_utils';
 import { asNodeAddress } from '../chain_fixtures';
 import { privateKeyToAccount, TrxProtoBuilder } from '@beatoz/web3-accounts';
-import { OperationTimeoutError } from '@beatoz/web3-errors';
+import { RpcRequestError, TimeoutError } from '@beatoz/web3-errors';
 
 describe.each([
     ['HTTP', getTestServer],
@@ -73,9 +73,13 @@ describe.each([
             .waitForTx('ab'.repeat(32), { timeoutMs: 1500, intervalMs: 200 })
             .catch((e: unknown) => e);
 
-        expect(err).toBeInstanceOf(OperationTimeoutError);
+        expect(err).toBeInstanceOf(TimeoutError);
         expect(Date.now() - started).toBeGreaterThanOrEqual(1500);
-        expect((err as OperationTimeoutError).innerError).toMatchObject({
+        // Whichever provider carried it, the node's error keeps its code.
+        const cause = (err as TimeoutError).cause;
+        expect(cause).toBeInstanceOf(RpcRequestError);
+        expect(cause).toMatchObject({
+            code: -32603,
             data: `tx (${'AB'.repeat(32)}) not found`,
         });
     });

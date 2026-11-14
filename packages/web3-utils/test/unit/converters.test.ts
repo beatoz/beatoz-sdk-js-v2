@@ -355,14 +355,14 @@ describe('converters', () => {
             expect(Object.keys(beatozUnitMap)).toEqual(unitNames);
         });
 
-        it.each([['fromWei', fromWei], ['toWei', toWei]])(
-            '%s rejects a name outside the set',
-            (_, convert) => {
-                expect(() => convert('1', 'notaunit' as never)).toThrow(
-                    'Invalid value given "notaunit". Error: invalid unit.',
-                );
-            },
-        );
+        it.each([
+            ['fromWei', fromWei],
+            ['toWei', toWei],
+        ])('%s rejects a name outside the set', (_, convert) => {
+            expect(() => convert('1', 'notaunit' as never)).toThrow(
+                'unit must be one of nobeatoz, wei, kwei, mwei, gwei, szabo, finney, beatoz, kbeatoz, grand, mbeatoz, gbeatoz, tbeatoz, got "notaunit"',
+            );
+        });
     });
 
     describe('toWei', () => {
