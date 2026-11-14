@@ -14,47 +14,9 @@
     limitations under the License.
 */
 import WebSocket from 'ws';
-import { AddressInfo } from 'net';
 import { RpcRequestError, SocketClosedError } from '@beatoz/web3-errors';
 import WebsocketProvider from '../../src';
-
-// A local WebSocket server stands in for the node, so the tests can drop the
-// connection when they need to. `onMessage` answers each request.
-type Handler = (request: { id: string; method: string }, socket: WebSocket) => void;
-
-const startServer = (onMessage: Handler, port = 0) =>
-    new Promise<{ server: WebSocket.Server; port: number; received: string[] }>((resolve) => {
-        const received: string[] = [];
-        const server = new WebSocket.Server({ port }, () =>
-            resolve({ server, port: (server.address() as AddressInfo).port, received }),
-        );
-        server.on('connection', (socket) => {
-            socket.on('message', (data) => {
-                received.push(String(data));
-                onMessage(JSON.parse(String(data)), socket);
-            });
-        });
-    });
-
-const stop = (server: WebSocket.Server) =>
-    new Promise<void>((resolve) => {
-        server.clients.forEach((c) => c.terminate());
-        server.close(() => resolve());
-    });
-
-const request = (method = 'status') => ({
-    jsonrpc: '2.0' as const,
-    id: `${method}-${Math.random()}`,
-    method,
-    params: method === 'subscribe' ? { query: "tm.event='NewBlock'" } : {},
-});
-const errorFrom = (p: Promise<unknown>) =>
-    p.then(
-        () => undefined,
-        (e: unknown) => e,
-    );
-const answer = (socket: WebSocket, id: string, result: unknown = {}) =>
-    socket.send(JSON.stringify({ jsonrpc: '2.0', id, result }));
+import { answer, errorFrom, request, startServer, stop } from './ws_server';
 
 describe('WebsocketProvider when the connection closes', () => {
     let server: WebSocket.Server | undefined;
