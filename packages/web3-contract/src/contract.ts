@@ -29,7 +29,6 @@ import {
     Mutable,
     NonPayableCallOptions,
     PayableCallOptions,
-    BeatozExecutionAPI,
     Web3ValidationErrorObject,
     BroadcastTxAsyncResponse,
 } from '@beatoz/web3-types';
@@ -81,7 +80,7 @@ type ContractBoundMethod = (
     ...params: unknown[]
 ) => NonPayableMethodObject<unknown[], unknown> | PayableMethodObject<unknown[], unknown>;
 
-export class Contract<Abi extends ContractAbi> extends Web3Context<BeatozExecutionAPI> {
+export class Contract<Abi extends ContractAbi> extends Web3Context {
     public readonly options: ContractOptions;
     private _address?: Address;
 

@@ -89,6 +89,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `Contract` extends `Web3Context` with no type argument; the
+  API spec it named is gone (#37).
+
 - **BREAKING:** `LogsSubscription`, `ContractBoundEvent` and
   `ContractEventsInterface` are gone. `LogsSubscription` extended the
   `Web3Subscription` class removed from `@beatoz/web3-core`, and the chain above

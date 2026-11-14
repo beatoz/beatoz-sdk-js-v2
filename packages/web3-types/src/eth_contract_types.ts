@@ -15,9 +15,7 @@
 */
 
 import { Address, Uint } from './eth_types.js';
-import { SupportedProviders } from './web3_base_provider.js';
 import { Bytes, HexString } from './primitives_types.js';
-import { EthExecutionAPI } from './apis/eth_execution_api.js';
 
 export interface ContractInitOptions {
     /**
@@ -39,7 +37,6 @@ export interface ContractInitOptions {
     readonly data?: Bytes;
     readonly input?: Bytes;
 
-    readonly provider?: SupportedProviders<EthExecutionAPI> | string;
     /**
      * If `true`, the defaults of the contract instance will be updated automatically based on the changes of the context used to instantiate the contract.
      */

@@ -81,6 +81,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `WebsocketProvider` takes no `API` type parameter; the API
+  spec it named is gone (#37). `request()` and `execute()` return the node's
+  result as `unknown`.
+
 - No longer depends on `@beatoz/web3-errors`, which it never imported. `ws` stays:
   `isomorphic-ws` declares it as a peer dependency, so it is required even though
   no file names it.

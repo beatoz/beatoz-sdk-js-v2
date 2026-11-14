@@ -18,7 +18,6 @@ import { Web3ContractError } from '@beatoz/web3-errors';
 import {
     TransactionForAccessList,
     AbiFunctionFragment,
-    TransactionWithSenderAPI,
     TransactionCall,
     HexString,
     Address,
@@ -112,36 +111,6 @@ export const getEthTxCallParams = ({
     };
 
     return txParams;
-};
-
-export const getEstimateGasParams = ({
-    abi,
-    params,
-    options,
-    contractOptions,
-}: {
-    abi: AbiFunctionFragment;
-    params: unknown[];
-    options?: PayableCallOptions | NonPayableCallOptions;
-    contractOptions: ContractOptions;
-}): Partial<TransactionWithSenderAPI> => {
-    let txParams = mergeDeep(
-        {
-            to: contractOptions.address,
-            gas: contractOptions.gas,
-            gasPrice: contractOptions.gasPrice,
-            from: contractOptions.from,
-            input: contractOptions.input,
-        },
-        options as unknown as Record<string, unknown>,
-    ) as unknown as TransactionCall;
-
-    txParams = {
-        ...txParams,
-        input: encodeMethodABI(abi, params, txParams.input ? toHex(txParams.input) : undefined),
-    };
-
-    return txParams as TransactionWithSenderAPI;
 };
 
 export const getCreateAccessListParams = ({

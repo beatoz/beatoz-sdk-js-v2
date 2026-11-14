@@ -18,7 +18,6 @@ import {
     AbiFunctionFragment,
     BroadcastTxCommitResponse,
     BytesUint8Array,
-    BeatozExecutionAPI,
     SubscriptionEvent,
     NewBlockSubscriptionEvent,
     NewBlockHeaderSubscriptionEvent,
@@ -35,7 +34,7 @@ import { OperationTimeoutError } from '@beatoz/web3-errors';
 import { WaitForTxOptions } from './types.js';
 
 export async function sendDeploy(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     abi: AbiFunctionFragment,
     bytecode: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- contract arguments need ABI-derived inference; to be resolved by the typed API work.
@@ -70,7 +69,7 @@ export async function sendDeploy(
 }
 
 export async function call(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     contractAddress: string,
     encodeFunctionSignature: string,
     from: string,
@@ -80,56 +79,44 @@ export async function call(
     return vmCall(web3Context, from, contractAddress, height ? height : 0, encodeFunctionSignature);
 }
 
-export async function health(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function health(web3Context: Web3Context) {
     return rpcMethods.health(web3Context.requestManager);
 }
 
-export async function status(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function status(web3Context: Web3Context) {
     return rpcMethods.status(web3Context.requestManager);
 }
 
-export async function netInfo(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function netInfo(web3Context: Web3Context) {
     return rpcMethods.netInfo(web3Context.requestManager);
 }
 
 export async function blockchain(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     minHeight?: number | string,
     maxHeight?: number | string,
 ) {
     return rpcMethods.blockchain(web3Context.requestManager, minHeight, maxHeight);
 }
 
-export async function block(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    height?: string | number,
-) {
+export async function block(web3Context: Web3Context, height?: string | number) {
     return rpcMethods.block(web3Context.requestManager, height);
 }
 
-export async function blockByHash(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    hash: string | Uint8Array,
-) {
+export async function blockByHash(web3Context: Web3Context, hash: string | Uint8Array) {
     return rpcMethods.blockByHash(web3Context.requestManager, hash);
 }
 
-export async function blockResults(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    height?: string | number,
-) {
+export async function blockResults(web3Context: Web3Context, height?: string | number) {
     return rpcMethods.blockResults(web3Context.requestManager, height);
 }
 
-export async function commit(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    height?: number | string,
-) {
+export async function commit(web3Context: Web3Context, height?: number | string) {
     return rpcMethods.commit(web3Context.requestManager, height);
 }
 
 export async function validators(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     height: number | string,
     page?: number | string,
     per_page?: number | string,
@@ -137,41 +124,32 @@ export async function validators(
     return rpcMethods.validators(web3Context.requestManager, height, page, per_page);
 }
 
-export async function genesis(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function genesis(web3Context: Web3Context) {
     return rpcMethods.genesis(web3Context.requestManager);
 }
 
-export async function genesisChunked(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    chunk: number | string,
-) {
+export async function genesisChunked(web3Context: Web3Context, chunk: number | string) {
     return rpcMethods.genesisChunked(web3Context.requestManager, chunk);
 }
 
-export async function dumpConsensusState(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function dumpConsensusState(web3Context: Web3Context) {
     return rpcMethods.dumpConsensusState(web3Context.requestManager);
 }
 
-export async function consensusState(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function consensusState(web3Context: Web3Context) {
     return rpcMethods.consensusState(web3Context.requestManager);
 }
 
-export async function consensusParams(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    height?: number | string,
-) {
+export async function consensusParams(web3Context: Web3Context, height?: number | string) {
     return rpcMethods.consensusParams(web3Context.requestManager, height);
 }
 
-export async function unconfirmedTxs(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    limit: number | string,
-) {
+export async function unconfirmedTxs(web3Context: Web3Context, limit: number | string) {
     return rpcMethods.unconfirmedTxs(web3Context.requestManager, limit);
 }
 
 export async function txSearch(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     query: string,
     prove?: boolean,
     page?: number | string,
@@ -181,7 +159,7 @@ export async function txSearch(
     return rpcMethods.txSearch(web3Context.requestManager, query, prove, page, per_page, order_by);
 }
 
-export async function tx(web3Context: Web3Context<BeatozExecutionAPI>, hash: string | Uint8Array) {
+export async function tx(web3Context: Web3Context, hash: string | Uint8Array) {
     return rpcMethods.tx(web3Context.requestManager, hash);
 }
 
@@ -226,7 +204,7 @@ const beforeDeadline = <T>(promise: Promise<T>, deadline: number): Promise<T | u
  * the transaction succeeded.
  */
 export async function waitForTx(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     hash: string | Uint8Array,
     options: WaitForTxOptions = {},
 ) {
@@ -279,10 +257,7 @@ export async function waitForTx(
     );
 }
 
-export async function contractAddrFromTx(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    hash: string | Uint8Array,
-) {
+export async function contractAddrFromTx(web3Context: Web3Context, hash: string | Uint8Array) {
     const txResponse = await rpcMethods.tx(web3Context.requestManager, hash);
     if (!txResponse.result || !txResponse.result.events || txResponse.result.events.length <= 0) {
         throw Error('not found contract address');
@@ -301,12 +276,12 @@ export async function contractAddrFromTx(
     return contractAddress.toLowerCase();
 }
 
-export async function abciInfo(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function abciInfo(web3Context: Web3Context) {
     return rpcMethods.abciInfo(web3Context.requestManager);
 }
 
 export async function abciQuery(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     path: string,
     data: string,
     height?: number | string,
@@ -315,83 +290,68 @@ export async function abciQuery(
     return rpcMethods.abciQuery(web3Context.requestManager, path, data, height, prove);
 }
 
-export async function checkTx(web3Context: Web3Context<BeatozExecutionAPI>, tx: TrxProto) {
+export async function checkTx(web3Context: Web3Context, tx: TrxProto) {
     return rpcMethods.checkTx(web3Context.requestManager, tx);
 }
 
-export async function numUnconfirmedTxs(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function numUnconfirmedTxs(web3Context: Web3Context) {
     return rpcMethods.numUnconfirmedTxs(web3Context.requestManager);
 }
 
-export async function broadcastEvidence(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    evidence: string,
-) {
+export async function broadcastEvidence(web3Context: Web3Context, evidence: string) {
     return rpcMethods.broadcastEvidence(web3Context.requestManager, evidence);
 }
 
-export async function broadcastTxSync(web3Context: Web3Context<BeatozExecutionAPI>, tx: TrxProto) {
+export async function broadcastTxSync(web3Context: Web3Context, tx: TrxProto) {
     return rpcMethods.broadcastTxSync(web3Context.requestManager, tx);
 }
 
-export async function broadcastTxAsync(web3Context: Web3Context<BeatozExecutionAPI>, tx: TrxProto) {
+export async function broadcastTxAsync(web3Context: Web3Context, tx: TrxProto) {
     return rpcMethods.broadcastTxAsync(web3Context.requestManager, tx);
 }
 
-export async function broadcastTxCommit(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    tx: TrxProto,
-) {
+export async function broadcastTxCommit(web3Context: Web3Context, tx: TrxProto) {
     return rpcMethods.broadcastTxCommit(web3Context.requestManager, tx);
 }
 
-export async function broadcastRawTxSync(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    signedRawTx: string,
-) {
+export async function broadcastRawTxSync(web3Context: Web3Context, signedRawTx: string) {
     return rpcMethods.broadcastRawTxSync(web3Context.requestManager, signedRawTx);
 }
 
-export async function broadcastRawTxAsync(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    signedRawTx: string,
-) {
+export async function broadcastRawTxAsync(web3Context: Web3Context, signedRawTx: string) {
     return rpcMethods.broadcastRawTxAsync(web3Context.requestManager, signedRawTx);
 }
 
-export async function broadcastRawTxCommit(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    signedRawTx: string,
-) {
+export async function broadcastRawTxCommit(web3Context: Web3Context, signedRawTx: string) {
     return rpcMethods.broadcastRawTxCommit(web3Context.requestManager, signedRawTx);
 }
 
-export async function delegatee(web3Context: Web3Context<BeatozExecutionAPI>, addr: string) {
+export async function delegatee(web3Context: Web3Context, addr: string) {
     return rpcMethods.delegatee(web3Context.requestManager, addr);
 }
 
-export async function rule(web3Context: Web3Context<BeatozExecutionAPI>) {
+export async function rule(web3Context: Web3Context) {
     return rpcMethods.rule(web3Context.requestManager);
 }
 
-export async function getAccount(web3Context: Web3Context<BeatozExecutionAPI>, addr: string) {
+export async function getAccount(web3Context: Web3Context, addr: string) {
     return rpcMethods.getAccount(web3Context.requestManager, addr);
 }
 
-export async function proposals(web3Context: Web3Context<BeatozExecutionAPI>, txHash: string) {
+export async function proposals(web3Context: Web3Context, txHash: string) {
     return rpcMethods.proposals(web3Context.requestManager, txHash);
 }
 
-export async function stakes(web3Context: Web3Context<BeatozExecutionAPI>, addr: string) {
+export async function stakes(web3Context: Web3Context, addr: string) {
     return rpcMethods.stakes(web3Context.requestManager, addr);
 }
 
-export async function reward(web3Context: Web3Context<BeatozExecutionAPI>, addr: string) {
+export async function reward(web3Context: Web3Context, addr: string) {
     return rpcMethods.reward(web3Context.requestManager, addr);
 }
 
 export async function vmCall(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     addr: string,
     to: string,
     height: number,
@@ -401,7 +361,7 @@ export async function vmCall(
 }
 
 export async function vmEstimateGas(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
     addr: string,
     to: string,
     data: string,
@@ -409,28 +369,20 @@ export async function vmEstimateGas(
     return rpcMethods.vmEstimateGas(web3Context.requestManager, addr, to, data);
 }
 
-export function subscribe(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    query: string,
-): Stream<SubscriptionEvent> {
+export function subscribe(web3Context: Web3Context, query: string): Stream<SubscriptionEvent> {
     return rpcMethods.subscribe(web3Context.requestManager, query);
 }
 
-export function subscribeNewBlock(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-): Stream<NewBlockSubscriptionEvent> {
+export function subscribeNewBlock(web3Context: Web3Context): Stream<NewBlockSubscriptionEvent> {
     return rpcMethods.subscribeNewBlock(web3Context.requestManager);
 }
 
 export function subscribeNewBlockHeader(
-    web3Context: Web3Context<BeatozExecutionAPI>,
+    web3Context: Web3Context,
 ): Stream<NewBlockHeaderSubscriptionEvent> {
     return rpcMethods.subscribeNewBlockHeader(web3Context.requestManager);
 }
 
-export function subscribeTx(
-    web3Context: Web3Context<BeatozExecutionAPI>,
-    query?: string,
-): Stream<TxSubscriptionEvent> {
+export function subscribeTx(web3Context: Web3Context, query?: string): Stream<TxSubscriptionEvent> {
     return rpcMethods.subscribeTx(web3Context.requestManager, query);
 }

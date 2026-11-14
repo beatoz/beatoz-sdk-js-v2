@@ -17,8 +17,6 @@
 import { Web3Config } from './web3_config.js';
 import { Web3RequestManager } from './web3_request_manager.js';
 import {
-    Web3APISpec,
-    BeatozExecutionAPI,
     Web3AccountProvider,
     Web3BaseWalletAccount,
     Web3BaseWallet,
@@ -32,16 +30,16 @@ export type Web3ContextConstructor<T extends Web3Context, T2 extends unknown[]> 
 ) => T;
 
 // To avoid circular dependencies, we need to export type from here.
-export type Web3ContextObject<API extends Web3APISpec = BeatozExecutionAPI> = {
-    requestManager: Web3RequestManager<API>;
+export type Web3ContextObject = {
+    requestManager: Web3RequestManager;
     wallet?: Web3BaseWallet<Web3BaseWalletAccount>;
     accountProvider?: Web3AccountProvider<Web3BaseWalletAccount>;
     chainId?: string;
 };
 
-export class Web3Context<API extends Web3APISpec = unknown> extends Web3Config {
+export class Web3Context extends Web3Config {
     public readonly providers = Web3RequestManager.providers;
-    protected _requestManager: Web3RequestManager<API>;
+    protected _requestManager: Web3RequestManager;
     protected _accountProvider?: Web3AccountProvider<Web3BaseWalletAccount>;
     protected _wallet?: Web3BaseWallet<Web3BaseWalletAccount>;
     protected _chainId?: string;
@@ -65,14 +63,7 @@ export class Web3Context<API extends Web3APISpec = unknown> extends Web3Config {
 
     public constructor(providerOrContext?: string) {
         super();
-
-        // //If "providerOrContext" is provided as "string" or an objects matching "SupportedProviders" interface
-        // if (
-        //     isNullish(providerOrContext) ||
-        //     (typeof providerOrContext === 'string' && providerOrContext.trim() !== '')
-        // ) {
-        this._requestManager = new Web3RequestManager(providerOrContext as undefined | string);
-        // }
+        this._requestManager = new Web3RequestManager(providerOrContext);
     }
 
     public use<T extends Web3Context, T2 extends unknown[]>(
@@ -87,7 +78,7 @@ export class Web3Context<API extends Web3APISpec = unknown> extends Web3Config {
         return useContext;
     }
 
-    public getContextObject(): Web3ContextObject<API> {
+    public getContextObject(): Web3ContextObject {
         return {
             requestManager: this.requestManager,
             wallet: this.wallet,

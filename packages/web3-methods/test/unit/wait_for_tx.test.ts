@@ -15,7 +15,6 @@
 */
 import { Web3Context } from '@beatoz/web3-core';
 import { OperationTimeoutError, ResponseError } from '@beatoz/web3-errors';
-import { BeatozExecutionAPI } from '@beatoz/web3-types';
 import { waitForTx } from '../../src/rpc_method_wrappers';
 
 const HASH = 'ab'.repeat(32);
@@ -38,8 +37,7 @@ const indexed = {
 };
 
 // waitForTx reaches the node only through requestManager.send.
-const contextWith = (send: jest.Mock) =>
-    ({ requestManager: { send } }) as unknown as Web3Context<BeatozExecutionAPI>;
+const contextWith = (send: jest.Mock) => ({ requestManager: { send } }) as unknown as Web3Context;
 
 describe('waitForTx', () => {
     it('looks again while the node has not indexed the transaction', async () => {

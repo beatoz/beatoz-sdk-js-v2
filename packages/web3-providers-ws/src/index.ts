@@ -23,11 +23,7 @@ import {
     JsonRpcResponse,
     JsonRpcResponseWithError,
     JsonRpcResponseWithResult,
-    BeatozExecutionAPI,
-    Web3APIMethod,
     Web3APIPayload,
-    Web3APIReturnType,
-    Web3APISpec,
     SubscriptionEvent,
 } from '@beatoz/web3-types';
 import { ConnectionStatus } from './socket/queueing_streaming_socket.js';
@@ -139,7 +135,7 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
     }
 }
 
-export default class WebsocketProvider<API extends Web3APISpec = BeatozExecutionAPI> {
+export default class WebsocketProvider {
     private readonly url: string;
     private readonly socket: ReconnectingSocket;
 
@@ -173,17 +169,11 @@ export default class WebsocketProvider<API extends Web3APISpec = BeatozExecution
         this.socket.connect();
     }
 
-    public async request<
-        Method extends Web3APIMethod<API>,
-        ResponseType = Web3APIReturnType<API, Method>,
-    >(payload: Web3APIPayload<API, Method>): Promise<JsonRpcResponseWithResult<ResponseType>> {
+    public async request(payload: Web3APIPayload): Promise<JsonRpcResponseWithResult<unknown>> {
         return this.execute(payload as JsonRpcRequest);
     }
 
-    public async execute<
-        Method extends Web3APIMethod<API>,
-        ResponseType = Web3APIReturnType<API, Method>,
-    >(payload: Web3APIPayload<API, Method>): Promise<JsonRpcResponseWithResult<ResponseType>> {
+    public async execute(payload: Web3APIPayload): Promise<JsonRpcResponseWithResult<unknown>> {
         const pendingResponse = this.responseForRequestId(payload.id);
 
         this.socket.queueRequest(JSON.stringify(payload));
@@ -194,7 +184,7 @@ export default class WebsocketProvider<API extends Web3APISpec = BeatozExecution
             // error keeps its code and data whichever provider carried it.
             throw new ResponseError(response);
         }
-        return response as unknown as JsonRpcResponseWithResult<ResponseType>;
+        return response as JsonRpcResponseWithResult<unknown>;
     }
 
     public listen(request: JsonRpcRequest): Stream<SubscriptionEvent> {
