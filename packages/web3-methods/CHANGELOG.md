@@ -82,6 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `sendDeploy` and `web3.beatoz.contractAddrFromTx` are gone
+  (#42); `contract.deploy().send()` deploys and returns the address.
+  `contractAddrFromTx` took the last `contractAddress` in the transaction's
+  events, which is another contract's when the constructor calls one that
+  logs. The package no longer depends on `@beatoz/web3-abi` and
+  `@beatoz/web3-accounts`.
+
 - **BREAKING:** The rpc method wrappers take a `Web3Context` with no type
   argument; `Web3Context<BeatozExecutionAPI>` is gone with the API spec (#37).
 

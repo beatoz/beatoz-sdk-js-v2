@@ -15,58 +15,18 @@
 */
 
 import {
-    AbiFunctionFragment,
-    BroadcastTxCommitResponse,
     BytesUint8Array,
     SubscriptionEvent,
     NewBlockSubscriptionEvent,
     NewBlockHeaderSubscriptionEvent,
     TxSubscriptionEvent,
-    AbiInput,
 } from '@beatoz/web3-types';
 import { Web3Context } from '@beatoz/web3-core';
 import { rpcMethods } from '@beatoz/web3-rpc';
 import { TrxProto } from '@beatoz/web3-types';
 import { Stream } from 'xstream';
-import { Web3Account, TrxProtoBuilder } from '@beatoz/web3-accounts';
-import { encodeParameters } from '@beatoz/web3-abi';
 import { OperationTimeoutError } from '@beatoz/web3-errors';
 import { WaitForTxOptions } from './types.js';
-
-export async function sendDeploy(
-    web3Context: Web3Context,
-    abi: AbiFunctionFragment,
-    bytecode: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- contract arguments need ABI-derived inference; to be resolved by the typed API work.
-    args: any[],
-    rWeb3Account: Web3Account,
-    chainId: string,
-    gas: number,
-): Promise<BroadcastTxCommitResponse> {
-    let encodedArguments;
-    let bytecodeWithArguments;
-
-    if (args.length > 0) {
-        encodedArguments = encodeParameters(abi.inputs as AbiInput[], args);
-        bytecodeWithArguments = bytecode + encodedArguments.slice(2);
-    } else {
-        bytecodeWithArguments = bytecode;
-    }
-    const searchAccount = await getAccount(web3Context, rWeb3Account.address);
-    const ruleObject = await rule(web3Context);
-
-    const tx = TrxProtoBuilder.buildContractTrxProto({
-        from: rWeb3Account.address,
-        to: '0000000000000000000000000000000000000000',
-        nonce: searchAccount.value.nonce,
-        gas: gas,
-        gasPrice: ruleObject.value.gasPrice,
-        amount: '0',
-        payload: { data: bytecodeWithArguments },
-    });
-    TrxProtoBuilder.signTrxProto(tx, rWeb3Account, chainId);
-    return broadcastTxCommit(web3Context, tx);
-}
 
 export async function call(
     web3Context: Web3Context,
@@ -255,25 +215,6 @@ export async function waitForTx(
             : `transaction ${hex} was not looked up within ${timeoutMs}ms; the node did not answer`,
         notFound,
     );
-}
-
-export async function contractAddrFromTx(web3Context: Web3Context, hash: string | Uint8Array) {
-    const txResponse = await rpcMethods.tx(web3Context.requestManager, hash);
-    if (!txResponse.result || !txResponse.result.events || txResponse.result.events.length <= 0) {
-        throw Error('not found contract address');
-    }
-
-    let contractAddress = '';
-    for (const event of txResponse.result.events) {
-        if (event.type !== 'evm') continue;
-        for (const attribute of event.attributes) {
-            if (globalThis.atob(attribute.key) !== 'contractAddress') continue;
-            contractAddress = globalThis.atob(attribute.value);
-        }
-    }
-
-    if (!contractAddress.startsWith('0x')) contractAddress = '0x' + contractAddress;
-    return contractAddress.toLowerCase();
 }
 
 export async function abciInfo(web3Context: Web3Context) {

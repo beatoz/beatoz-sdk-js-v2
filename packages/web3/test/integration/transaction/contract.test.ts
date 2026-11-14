@@ -14,13 +14,8 @@
     limitations under the License.
 */
 import { Web3 } from '../../../src';
-import {
-    getTestChainId,
-    getTestProposalAccountPrivateKey,
-    getTestWsServer,
-    closeProvider,
-} from '../e2e_utils';
-import { privateKeyToAccount, Web3Account } from '@beatoz/web3-accounts';
+import { getTestProposalAccountPrivateKey, getTestWsServer, closeProvider } from '../e2e_utils';
+import { privateKeyToAccount } from '@beatoz/web3-accounts';
 import tokenJson from '../../fixtures/erc20-contract.json';
 
 describe('contract test', () => {
@@ -32,13 +27,24 @@ describe('contract test', () => {
 
     afterAll(() => closeProvider(web3));
 
-    it('deploy', async () => {
-        const account = privateKeyToAccount(getTestProposalAccountPrivateKey()) as Web3Account;
-        const _nonce = (await web3.beatoz.getAccount(account.address)).value.nonce;
-        const contract = new web3.beatoz.Contract(tokenJson.abi);
-        const result = await contract
-            .deploy(tokenJson.bytecode, ['TEST', 'TST'], account, getTestChainId(), 10000000)
-            .send();
-        console.log(result);
+    it('deploys at the address the node gives the contract', async () => {
+        const account = privateKeyToAccount(getTestProposalAccountPrivateKey());
+        web3.beatoz.accounts.wallet.add(account.privateKey);
+
+        const { address, contract, hash } = await new web3.beatoz.Contract(tokenJson.abi)
+            .deploy({ bytecode: tokenJson.bytecode, args: ['TEST', 'TST'] })
+            .send({ from: account.address });
+
+        // The token's constructor mints, so the node's evm event names the
+        // contract that logged it: the new one.
+        const tx = await web3.beatoz.waitForTx(hash);
+        const fromEvents = tx.tx_result.events
+            .filter((e) => e.type === 'evm')
+            .flatMap((e) => e.attributes)
+            .filter((a) => atob(a.key) === 'contractAddress')
+            .map((a) => '0x' + atob(a.value).toLowerCase());
+        expect(fromEvents).toContain(address.toLowerCase());
+
+        expect(await contract.methods.symbol().call()).toBe('TST');
     });
 });

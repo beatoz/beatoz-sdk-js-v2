@@ -16,6 +16,7 @@
 
 import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
 import { Web3 } from '@beatoz/web3';
+import { toChecksumAddress } from '@beatoz/web3-utils';
 
 describe('deploy test', () => {
     const web3 = new Web3(netInfo.WS);
@@ -26,6 +27,7 @@ describe('deploy test', () => {
 
     it('deploy function', async () => {
         const { address } = await deployTestToken(web3);
-        expect(address).toMatch(/^0x[0-9a-f]{40}$/);
+        expect(address).toMatch(/^0x[0-9a-fA-F]{40}$/);
+        expect(address).toBe(toChecksumAddress(address));
     });
 });

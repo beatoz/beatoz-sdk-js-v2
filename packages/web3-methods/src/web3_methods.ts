@@ -100,10 +100,6 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.waitForTx(this, hash, options);
     }
 
-    contractAddrFromTx(hash: string | Uint8Array) {
-        return rpcMethodsWrappers.contractAddrFromTx(this, hash);
-    }
-
     abciInfo() {
         return rpcMethodsWrappers.abciInfo(this);
     }

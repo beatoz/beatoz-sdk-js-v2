@@ -97,3 +97,25 @@ export type ContractMethodsInterface<A extends ContractAbi> =
                   ...args: ArgsOf<FunctionsNamed<A, N>>
               ) => MethodObjectOf<FunctionsNamed<A, N>>;
           };
+
+type ConstructorOf<A extends ContractAbi> = A[number] extends infer E
+    ? E extends { type: 'constructor' }
+        ? E
+        : never
+    : never;
+
+/**
+ * The arguments of the ABI's constructor, as a tuple; none when the ABI has
+ * no constructor. An ABI read from JSON takes any.
+ */
+export type ConstructorArgs<A extends ContractAbi> = string extends A[number]['type']
+    ? unknown[]
+    : [ConstructorOf<A>] extends [never]
+      ? []
+      : LooseHex<AbiParametersToPrimitiveTypes<Parameters<ConstructorOf<A>['inputs']>, 'inputs'>>;
+
+/** What `contract.deploy()` takes; `args` may be left out when there are none. */
+export type DeployParams<A extends ContractAbi> = {
+    /** The contract's creation bytecode, hex with or without 0x. */
+    bytecode: string;
+} & ([] extends ConstructorArgs<A> ? { args?: ConstructorArgs<A> } : { args: ConstructorArgs<A> });

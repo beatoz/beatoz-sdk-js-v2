@@ -37,26 +37,13 @@ describe('estimateGas test', () => {
                 const contract = new web3.beatoz.Contract(rep1155Json.abi);
                 contract.setProvider(provider);
 
-                const resp = await contract
-                    .deploy(
-                        rep1155Json.bytecode,
-                        ['http://myurl', deployerAcct.address],
-                        deployerAcct,
-                        netInfo.CHAINID,
-                        10000000,
-                    )
-                    .send();
-                if (resp?.deliver_tx?.code !== 0) {
-                    console.error(resp?.deliver_tx?.log);
-                    throw new Error(resp?.deliver_tx?.log);
-                }
-
-                // `deliver_tx.data` is the merkle root of this transaction's
-                // event log - a 32 byte digest, not the 20 byte address this
-                // used to read out of it. The address is an attribute on the
-                // events themselves, which is what contractAddrFromTx reads.
-                await web3.beatoz.waitForTx(resp.hash);
-                const contAddr = await web3.beatoz.contractAddrFromTx(resp.hash);
+                // Gives the gas, so a deploy without the estimate is covered too.
+                const { address: contAddr } = await contract
+                    .deploy({
+                        bytecode: rep1155Json.bytecode,
+                        args: ['http://myurl', deployerAcct.address],
+                    })
+                    .send({ from: deployerAcct.address, gas: 10000000 });
                 process.stdout.write(`contract address: ${contAddr}\n`);
                 process.stdout.write(`deployer address: ${deployerAcct.address}\n`);
                 return contAddr;

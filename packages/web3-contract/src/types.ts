@@ -37,6 +37,16 @@ export type BroadcastTxOptions = {
     sendMode?: string; // 'async' | 'sync' | 'commit'
 };
 
+/** What a deploy's `send()` takes. */
+export interface DeployOptions {
+    /** The deployer; its account must be in the wallet. */
+    from: Address;
+    /** The gas limit. Left out, the node's estimate for this deploy. */
+    gas?: number;
+    /** The gas price in wei, as a decimal string. Left out, the chain's. */
+    gasPrice?: string;
+}
+
 export type ContractAbiWithSignature = ReadonlyArray<AbiFragment & { signature: HexString }>;
 
 export interface EventLog {

@@ -27,6 +27,11 @@ const blockResponse: BlockResponse = await web3.beatoz.block();
 const contract = new web3.beatoz.Contract(abi, address);
 const contractMethod = contract.methods.methodName();
 
+// deploy: the account of `from` must be in the wallet
+const { address, contract: deployed } = await new web3.beatoz.Contract(abi)
+    .deploy({ bytecode, args: ['MyToken', 'MTK'] })
+    .send({ from });
+
 
 ```
 

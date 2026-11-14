@@ -126,6 +126,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `getContractAddress(from, nonce)`: the address of the contract a deploy
+  transaction from `from` with `nonce` creates, the last 20 bytes of
+  keccak256(rlp([from, nonce])) as the node computes it (#42).
+
 - `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),
   which moves part of the sender's accumulated staking reward into its balance.
   The chain accepted these all along; the SDK could decode one but not build it.
