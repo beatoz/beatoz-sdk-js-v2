@@ -15,19 +15,10 @@
 */
 
 import { InvalidInputError } from '@beatoz/web3-errors';
-import {
-    TransactionForAccessList,
-    AbiFunctionFragment,
-    TransactionCall,
-    HexString,
-    Address,
-    NonPayableCallOptions,
-    PayableCallOptions,
-    ContractInitOptions,
-} from '@beatoz/web3-types';
-import { isNullish, mergeDeep, toHex } from '@beatoz/web3-utils';
+import { AbiFunctionFragment, TransactionCall, HexString, Address } from '@beatoz/web3-types';
+import { mergeDeep, toHex } from '@beatoz/web3-utils';
 import { encodeMethodABI } from './encoding.js';
-import { ContractOptions } from './types.js';
+import { CallOptions, ContractOptions, PayableTxOptions } from './types.js';
 
 export const getSendTxParams = ({
     abi,
@@ -37,7 +28,7 @@ export const getSendTxParams = ({
 }: {
     abi: AbiFunctionFragment;
     params: unknown[];
-    options?: (PayableCallOptions | NonPayableCallOptions) & {
+    options?: PayableTxOptions & {
         input?: HexString;
         data?: HexString;
         to?: Address;
@@ -59,12 +50,8 @@ export const getSendTxParams = ({
     let txParams = mergeDeep(
         {
             to: contractOptions.address,
-            gas: contractOptions.gas,
-            gasPrice: contractOptions.gasPrice,
             from: contractOptions.from,
             input: contractOptions.input,
-            maxPriorityFeePerGas: contractOptions.maxPriorityFeePerGas,
-            maxFeePerGas: contractOptions.maxFeePerGas,
         },
         options as unknown as Record<string, unknown>,
     ) as unknown as TransactionCall;
@@ -87,7 +74,7 @@ export const getEthTxCallParams = ({
 }: {
     abi: AbiFunctionFragment;
     params: unknown[];
-    options?: (PayableCallOptions | NonPayableCallOptions) & { to?: Address };
+    options?: CallOptions & { to?: Address };
     contractOptions: ContractOptions;
 }): TransactionCall => {
     if (!options?.to && !contractOptions.address) {
@@ -99,12 +86,8 @@ export const getEthTxCallParams = ({
     let txParams = mergeDeep(
         {
             to: contractOptions.address,
-            gas: contractOptions.gas,
-            gasPrice: contractOptions.gasPrice,
             from: contractOptions.from,
             input: contractOptions.input,
-            maxPriorityFeePerGas: contractOptions.maxPriorityFeePerGas,
-            maxFeePerGas: contractOptions.maxFeePerGas,
         },
         options as unknown as Record<string, unknown>,
     ) as unknown as TransactionCall;
@@ -116,62 +99,3 @@ export const getEthTxCallParams = ({
 
     return txParams;
 };
-
-export const getCreateAccessListParams = ({
-    abi,
-    params,
-    options,
-    contractOptions,
-}: {
-    abi: AbiFunctionFragment;
-    params: unknown[];
-    options?: (PayableCallOptions | NonPayableCallOptions) & { to?: Address };
-    contractOptions: ContractOptions;
-}): TransactionForAccessList => {
-    if (!options?.to && !contractOptions.address) {
-        throw new InvalidInputError(
-            'the contract address must be set, in the contract or the options',
-        );
-    }
-
-    if (!options?.from && !contractOptions.from) {
-        throw new InvalidInputError('from must be set, in the contract or the options');
-    }
-
-    let txParams = mergeDeep(
-        {
-            to: contractOptions.address,
-            gas: contractOptions.gas,
-            gasPrice: contractOptions.gasPrice,
-            from: contractOptions.from,
-            input: contractOptions.input,
-            maxPriorityFeePerGas: contractOptions.maxPriorityFeePerGas,
-            maxFeePerGas: contractOptions.maxFeePerGas,
-        },
-        options as unknown as Record<string, unknown>,
-    ) as unknown as TransactionForAccessList;
-
-    if (!txParams.input || abi.type === 'constructor') {
-        txParams = {
-            ...txParams,
-            input: encodeMethodABI(abi, params, txParams.input as HexString),
-        };
-    }
-
-    return txParams;
-};
-
-export const isContractInitOptions = (options: unknown): options is ContractInitOptions =>
-    typeof options === 'object' &&
-    !isNullish(options) &&
-    [
-        'input',
-        'data',
-        'from',
-        'gas',
-        'gasPrice',
-        'gasLimit',
-        'address',
-        'jsonInterface',
-        'syncWithContext',
-    ].some((key) => key in options);

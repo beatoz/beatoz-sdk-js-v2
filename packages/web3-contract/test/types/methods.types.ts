@@ -67,6 +67,7 @@ const abi = [
         ],
     },
     { type: 'function', name: 'noop', stateMutability: 'nonpayable', inputs: [], outputs: [] },
+    { type: 'function', name: 'deposit', stateMutability: 'payable', inputs: [], outputs: [] },
     { type: 'event', name: 'Transfer', inputs: [], anonymous: false },
 ] as const;
 const c = new Contract(abi, '0x15633e505d01691a71f40049e15ba1340c0eea29');
@@ -98,6 +99,27 @@ export async function methodTypes() {
     const j = new Contract(erc20Json, '0x00');
     const loose = await j.methods.balanceOf('0x00').call();
     return [bal, bal2, dec, ok, pr, inf, nothing, wrong, loose];
+}
+
+export async function optionTypes() {
+    const from = '0x15633e505d01691a71f40049e15ba1340c0eea29';
+    await c.methods.noop().broadcast({ from, nonce: 3, gas: 300000, gasPrice: '250000000000' });
+    await c.methods.noop().broadcast({ from, sendMode: 'sync' });
+    await c.methods.deposit().broadcast({ from, value: '1000000000000000000000' });
+    // @ts-expect-error gas is a number
+    await c.methods.noop().broadcast({ from, gas: '300000' });
+    // @ts-expect-error gasPrice is a decimal string
+    await c.methods.noop().broadcast({ from, gasPrice: 250000000000 });
+    // @ts-expect-error nonce is a number
+    await c.methods.noop().broadcast({ from, nonce: '0x3' });
+    // @ts-expect-error a nonpayable function takes no value
+    await c.methods.noop().broadcast({ from, value: '1' });
+    // @ts-expect-error the node has no fee market
+    await c.methods.noop().broadcast({ from, maxFeePerGas: '1' });
+    // @ts-expect-error a call runs with only the caller
+    await c.methods.noop().call({ from, gas: 300000 });
+    // @ts-expect-error an estimate runs with a value of zero
+    await c.methods.deposit().estimateGas({ from, value: '1' });
 }
 
 const tokenAbi = [

@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `NonPayableCallOptions`, `PayableCallOptions` and
+  `ContractInitOptions` are removed (#6). `@beatoz/web3-contract` now defines
+  its own method options (`CallOptions`, `NonPayableTxOptions`,
+  `PayableTxOptions`) with the builder's types: `gas` and `nonce` numbers,
+  `gasPrice` and `value` decimal strings.
+
 - **BREAKING:** Decoding a node answer whose values have the wrong shape
   throws `InvalidResponseError`, and `BytesUint8Array.fromHex` throws
   `InvalidInputError`, instead of `Error`, with messages that name what was

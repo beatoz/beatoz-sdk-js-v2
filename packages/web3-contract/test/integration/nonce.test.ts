@@ -46,7 +46,7 @@ describe('transfer token test', () => {
 
         const res = await erc20Contract.methods
             .transfer(RECIPIENT, '1000')
-            .broadcast({ from: fromAcct.address, gas: '250000' });
+            .broadcast({ from: fromAcct.address, gas: 250000 });
 
         assertCommitted(res);
         expect(await tokenBalance(erc20Contract, RECIPIENT)).toEqual(before + 1000n);

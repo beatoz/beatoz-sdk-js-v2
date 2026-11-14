@@ -106,7 +106,10 @@ describe('estimateGas test', () => {
                         prices.slice(idx * batchCnt, idx * batchCnt + batchCnt),
                     );
                     let gasEsti = await tx.estimateGas(commitOpt);
-                    let resp = await tx.broadcast({ ...commitOpt, gas: gasEsti.value.usedGas });
+                    let resp = await tx.broadcast({
+                        ...commitOpt,
+                        gas: Number(gasEsti.value.usedGas),
+                    });
                     process.stdout.write(
                         `gas estimated:${gasEsti.toString()}, wanted:${resp.deliver_tx.gas_wanted}, used:${resp.deliver_tx.gas_used}\n`,
                     );
@@ -129,7 +132,7 @@ describe('estimateGas test', () => {
                         '0x',
                     );
                     gasEsti = await tx.estimateGas(commitOpt);
-                    resp = await tx.broadcast({ ...commitOpt, gas: gasEsti.value.usedGas });
+                    resp = await tx.broadcast({ ...commitOpt, gas: Number(gasEsti.value.usedGas) });
                     process.stdout.write(
                         `gas estimated:${gasEsti.toString()}, wanted:${resp.deliver_tx.gas_wanted}, used:${resp.deliver_tx.gas_used}\n`,
                     );
@@ -147,7 +150,7 @@ describe('estimateGas test', () => {
             )!;
             const commitOpt = {
                 from: deployerAcct.address,
-                gas: '6000000',
+                gas: 6000000,
                 sendMode: 'commit',
             };
 

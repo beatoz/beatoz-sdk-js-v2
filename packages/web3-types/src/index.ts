@@ -32,4 +32,3 @@ export * from './trx_proto.js';
 export * from './subscription_event.js';
 
 export * from './beatoz_abi_types.js';
-export * from './eth_contract_types.js';
