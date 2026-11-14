@@ -177,7 +177,6 @@ export class Web3Method extends Web3Context {
     }
 
     subscribe(query: string) {
-        console.log('subscribe query', query);
         return rpcMethodsWrappers.subscribe(this, query);
     }
 

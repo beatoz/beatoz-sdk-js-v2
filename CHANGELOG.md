@@ -738,6 +738,9 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-methods`: `subscribe(query)` no longer prints `subscribe query
+  <query>` to the console on every call (#103).
+
 - `@beatoz/web3-accounts`: `signTransaction` on a transaction that already has a signature signed
   over that signature, which the node leaves out, so the node rejected the
   result as `invalid signature`. It now clears `sig` first, as
