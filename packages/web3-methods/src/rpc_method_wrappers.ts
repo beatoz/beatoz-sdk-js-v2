@@ -25,7 +25,7 @@ import { Web3Context } from '@beatoz/web3-core';
 import { rpcMethods } from '@beatoz/web3-rpc';
 import { TrxProto } from '@beatoz/web3-types';
 import { Stream } from 'xstream';
-import { TimeoutError } from '@beatoz/web3-errors';
+import { formatValue, InvalidInputError, TimeoutError } from '@beatoz/web3-errors';
 import { WaitForTxOptions } from './types.js';
 
 export async function call(
@@ -175,10 +175,14 @@ export async function waitForTx(
         ['intervalMs', intervalMs],
     ] as const) {
         if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-            throw Error(`${name} must be a positive number of milliseconds, got ${value}`);
+            throw new InvalidInputError(
+                `${name} must be a positive number of milliseconds, got ${formatValue(value)}`,
+            );
         }
         if (value > MAX_DELAY_MS) {
-            throw Error(`${name} must be at most ${MAX_DELAY_MS} milliseconds, got ${value}`);
+            throw new InvalidInputError(
+                `${name} must be at most ${MAX_DELAY_MS} milliseconds, got ${formatValue(value)}`,
+            );
         }
     }
 

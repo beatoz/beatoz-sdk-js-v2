@@ -45,13 +45,10 @@
         "test": "jest --config=./test/unit/jest.config.js",
         "test:silent": "jest --silent --config=./test/unit/jest.config.js"
     },
-    "devDependencies": {
-        "@types/bn.js": "^5.1.1"
-    },
+    "devDependencies": {},
     "dependencies": {
+        "@beatoz/web3-errors": "^1.6.5",
         "@types/crypto-js": "^4.1.1",
-        "base64-js": "1.5.1",
-        "bn.js": "^5.2.1",
         "crypto-js": "^4.1.1",
         "long": "5.2.3",
         "readonly-date": "^1.0.0"

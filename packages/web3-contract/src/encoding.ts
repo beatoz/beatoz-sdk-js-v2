@@ -45,7 +45,7 @@ import {
 
 import { blockSchema, logSchema } from '@beatoz/web3-methods';
 
-import { Web3ContractError } from '@beatoz/web3-errors';
+import { InvalidInputError } from '@beatoz/web3-errors';
 
 import { ContractOptions, ContractAbiWithSignature, EventLog } from './types.js';
 
@@ -188,8 +188,8 @@ export const encodeMethodABI = (
     const inputLength = Array.isArray(abi.inputs) ? abi.inputs.length : 0;
 
     if (inputLength !== args.length) {
-        throw new Web3ContractError(
-            `The number of arguments is not matching the methods required number. You need to pass ${inputLength} arguments.`,
+        throw new InvalidInputError(
+            `${isAbiConstructorFragment(abi) ? 'the constructor' : abi.name} takes ${inputLength} arguments, got ${args.length}`,
         );
     }
 
@@ -200,8 +200,8 @@ export const encodeMethodABI = (
 
     if (isAbiConstructorFragment(abi)) {
         if (!deployData)
-            throw new Web3ContractError(
-                'The contract has no contract data option set. This is necessary to append the constructor parameters.',
+            throw new InvalidInputError(
+                'the bytecode must be set to append the constructor arguments to',
             );
 
         if (!deployData.startsWith('0x')) {

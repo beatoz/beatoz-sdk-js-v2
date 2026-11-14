@@ -23,7 +23,12 @@ import {
     JsonRpcResponseWithResult,
     SubscriptionEvent,
 } from '@beatoz/web3-types';
-import { InvalidResponseError, isRpcErrorObject, RpcRequestError } from '@beatoz/web3-errors';
+import {
+    InvalidInputError,
+    InvalidResponseError,
+    isRpcErrorObject,
+    RpcRequestError,
+} from '@beatoz/web3-errors';
 import { Stream } from 'xstream';
 import { Web3EventEmitter } from './web3_event_emitter.js';
 
@@ -108,7 +113,7 @@ export class Web3RequestManager extends Web3EventEmitter<{
     public subscribe(request: Web3APIRequest): Stream<SubscriptionEvent> {
         // Only Websocket Provider can subscribe.
         if (!(this.provider instanceof WebsocketProvider)) {
-            throw new Error('only websocket provider can subscribe.');
+            throw new InvalidInputError('subscribe needs a WebSocket provider');
         }
 
         const { provider } = this;

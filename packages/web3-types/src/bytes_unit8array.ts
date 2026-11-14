@@ -14,6 +14,7 @@
     limitations under the License.
 */
 
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import cryptojs from 'crypto-js';
 
 export class BytesUint8Array extends Uint8Array {
@@ -26,14 +27,16 @@ export class BytesUint8Array extends Uint8Array {
      */
     static fromHex(hex: string): BytesUint8Array {
         if (typeof hex !== 'string') {
-            throw Error(`hex must be a string, got ${typeof hex}`);
+            throw new InvalidInputError(`hex must be a string, got ${formatValue(hex)}`);
         }
         const digits = hex.startsWith('0x') ? hex.substring(2) : hex;
         if (!/^[0-9a-fA-F]*$/.test(digits)) {
-            throw Error(`invalid hex: ${JSON.stringify(hex)}`);
+            throw new InvalidInputError(`hex must be hex digits, got ${formatValue(hex)}`);
         }
         if (digits.length % 2 !== 0) {
-            throw Error(`hex must have an even number of digits: ${JSON.stringify(hex)}`);
+            throw new InvalidInputError(
+                `hex must have an even number of digits, got ${formatValue(hex)}`,
+            );
         }
         const ret = new BytesUint8Array(digits.length / 2);
         for (let i = 0; i < ret.length; i++) {

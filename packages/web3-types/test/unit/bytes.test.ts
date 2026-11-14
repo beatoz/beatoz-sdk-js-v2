@@ -39,7 +39,7 @@ describe('BytesUint8Array class tests', () => {
         'fromHex rejects %j',
         (hex) => {
             expect(() => BytesUint8Array.fromHex(hex)).toThrow(
-                `invalid hex: ${JSON.stringify(hex)}`,
+                `hex must be hex digits, got ${JSON.stringify(hex)}`,
             );
         },
     );
@@ -48,14 +48,14 @@ describe('BytesUint8Array class tests', () => {
         'fromHex rejects an odd number of digits, %j',
         (hex) => {
             expect(() => BytesUint8Array.fromHex(hex)).toThrow(
-                `hex must have an even number of digits: ${JSON.stringify(hex)}`,
+                `hex must have an even number of digits, got ${JSON.stringify(hex)}`,
             );
         },
     );
 
     test('fromHex rejects a value that is not a string', () => {
         expect(() => BytesUint8Array.fromHex(12 as unknown as string)).toThrow(
-            'hex must be a string, got number',
+            'hex must be a string, got 12',
         );
     });
 

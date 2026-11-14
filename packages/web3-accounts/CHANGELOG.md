@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Builders, signing and `getContractAddress` throw
+  `InvalidInputError` instead of `Error` (#100, #66). The four `mandatory
+  argument is missed` errors name the missing field (`payload`,
+  `payload.txHash`, `payload.data`, `payload.reqAmt`), and some messages are
+  reworded: `... must fit in 256 bits, got ...`, `transaction type must be 1
+  to 8, the types the chain accepts, got ...`.
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error

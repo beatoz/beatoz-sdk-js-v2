@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Decoding a node answer whose values have the wrong shape
+  throws `InvalidResponseError`, and `BytesUint8Array.fromHex` throws
+  `InvalidInputError`, instead of `Error`, with messages that name what was
+  expected and what was given (#100). Unused internal helpers are removed
+  (`Uint32`, `Uint53`, `Uint64`, the amino encoders, `apiToBigInt`,
+  `smallIntToApi`, `assert.ts`, `base64.ts`) with the `bn.js` and `base64-js`
+  dependencies.
+
 - **BREAKING:** The `Web3Error` interface is gone; SDK errors extend
   `BaseError` from `@beatoz/web3-errors` (#100).
 

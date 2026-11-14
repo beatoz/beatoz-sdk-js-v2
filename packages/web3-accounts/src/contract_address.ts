@@ -14,6 +14,7 @@
     limitations under the License.
 */
 
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import BN from 'bn.js';
 import { generateAddress } from 'ethereumjs-util';
 import { toChecksumAddress } from '@beatoz/web3-utils';
@@ -27,10 +28,12 @@ import { toChecksumAddress } from '@beatoz/web3-utils';
 export function getContractAddress(from: string, nonce: number): string {
     const hex = from.startsWith('0x') ? from.slice(2) : from;
     if (!/^[0-9a-fA-F]{40}$/.test(hex)) {
-        throw new Error(`from must be 20 bytes, got ${hex.length / 2}: "${from}"`);
+        throw new InvalidInputError(`from must be 20 bytes of hex, got ${formatValue(from)}`);
     }
     if (!Number.isSafeInteger(nonce) || nonce < 0) {
-        throw new Error(`nonce must be a non-negative safe integer, got ${String(nonce)}`);
+        throw new InvalidInputError(
+            `nonce must be a non-negative safe integer, got ${formatValue(nonce)}`,
+        );
     }
     return toChecksumAddress(
         '0x' +

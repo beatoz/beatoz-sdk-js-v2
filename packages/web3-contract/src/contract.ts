@@ -64,8 +64,9 @@ import { decodeMethodReturn, decodeRevert, DecodedRevert, encodeMethodABI } from
 import {
     ContractFunctionRevertedError,
     ContractFunctionZeroDataError,
+    BaseError,
+    InvalidInputError,
     TransactionFailedError,
-    Web3ContractError,
 } from '@beatoz/web3-errors';
 import { getEthTxCallParams, getSendTxParams } from './utils.js';
 import {
@@ -439,11 +440,11 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
         const fromAcct = this.wallet?.get(_tx.from!);
         if (fromAcct === undefined) {
-            throw new Web3ContractError(`not found account of ${_tx.from}`);
+            throw new InvalidInputError(`from must be an account in the wallet, got ${_tx.from}`);
         }
         // getSendTxParams always sets input to the encoded call.
         if (isNullish(_tx.input)) {
-            throw new Web3ContractError('no call data to send');
+            throw new BaseError('The call data was not encoded.');
         }
 
         const chainId = this.chainId ?? (await this.decideChainId());
@@ -487,9 +488,9 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         try {
             return validatorUtils.transformJsonDataToAbiFormat(abi.inputs ?? [], params);
         } catch (error) {
-            throw new Web3ContractError(
-                `Invalid parameters for method ${abi.name}: ${(error as Error).message}`,
-            );
+            throw new InvalidInputError(`the arguments of ${abi.name} do not match its ABI`, {
+                cause: error,
+            });
         }
     }
 
@@ -520,7 +521,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         const inputs = (ctor?.inputs ?? []) as AbiInput[];
         const args = (params.args ?? []) as unknown[];
         if (args.length !== inputs.length) {
-            throw new Web3ContractError(
+            throw new InvalidInputError(
                 `the constructor takes ${inputs.length} arguments, got ${args.length}`,
             );
         }
@@ -538,7 +539,9 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
     private async _deploy(data: string, options: DeployOptions): Promise<DeployResult<Abi>> {
         const account = this.wallet?.get(options.from);
         if (account === undefined) {
-            throw new Web3ContractError(`not found account of ${options.from}`);
+            throw new InvalidInputError(
+                `from must be an account in the wallet, got ${options.from}`,
+            );
         }
 
         const chainId = this.chainId ?? (await this.decideChainId());

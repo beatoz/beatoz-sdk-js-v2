@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { AbiError } from '@beatoz/web3-errors';
+import { AbiError, formatValue } from '@beatoz/web3-errors';
 import { AbiCoder, ParamType } from '@ethersproject/abi';
 import { isNullish, leftPad, rightPad, toHex } from '@beatoz/web3-utils';
 import {
@@ -252,7 +252,7 @@ export const flattenTypes = (
         if (typeof param.components === 'object') {
             if (!param.type.startsWith('tuple')) {
                 throw new AbiError(
-                    `Invalid value given "${param.type}". Error: components found but type is not tuple.`,
+                    `a parameter with components must be a tuple, got type ${formatValue(param.type)}`,
                 );
             }
             const arrayBracket = param.type.indexOf('[');

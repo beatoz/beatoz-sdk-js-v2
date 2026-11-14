@@ -88,14 +88,16 @@ describe('signTransactionAsPayer', () => {
 
     it('refuses a transaction the sender has not signed', () => {
         expect(() => payer.signTransactionAsPayer(build(), chainId)).toThrow(
-            'sign the transaction as its sender before signing it as the payer',
+            'the transaction must be signed by its sender before its payer signs it',
         );
     });
 
     it('refuses the sender as its own payer', () => {
         const tx = build();
         sender.signTransaction(tx, chainId);
-        expect(() => sender.signTransactionAsPayer(tx, chainId)).toThrow('the payer is the sender');
+        expect(() => sender.signTransactionAsPayer(tx, chainId)).toThrow(
+            'the payer must not be the sender',
+        );
     });
 
     it('signs the sender over the same bytes when signed again', () => {

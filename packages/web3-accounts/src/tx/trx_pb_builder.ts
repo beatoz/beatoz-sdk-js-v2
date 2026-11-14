@@ -17,6 +17,7 @@
 import * as trxPb from './trx_pb.js';
 import Long from 'long';
 import { BytesUint8Array } from '@beatoz/web3-types';
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import BN from 'bn.js';
 import { fromNanoSecond, getNanoSecond } from '@beatoz/web3-utils';
 import { createHash } from 'crypto';
@@ -39,6 +40,13 @@ function isSet(value: any): boolean {
     return value !== undefined;
 }
 
+/** Refuses a required builder input left out. */
+function requireSet(name: string, value: unknown): void {
+    if (value === undefined) {
+        throw new InvalidInputError(`${name} must be set, got undefined`);
+    }
+}
+
 /**
  * Parses a decimal string as a uint256.
  *
@@ -51,11 +59,13 @@ function isSet(value: any): boolean {
  */
 function parseUint256(name: string, value: string): BN {
     if (typeof value !== 'string' || !/^[0-9]+$/.test(value)) {
-        throw Error(`${name} must be a decimal string of digits, got ${JSON.stringify(value)}`);
+        throw new InvalidInputError(
+            `${name} must be a decimal string of digits, got ${formatValue(value)}`,
+        );
     }
     const n = new BN(value, 10);
     if (n.bitLength() > 256) {
-        throw Error(`${name} does not fit in 256 bits: ${value}`);
+        throw new InvalidInputError(`${name} must fit in 256 bits, got ${value}`);
     }
     return n;
 }
@@ -70,7 +80,9 @@ function parseUint256(name: string, value: string): BN {
  */
 function parseInt64(name: string, value: number): Long {
     if (!Number.isSafeInteger(value) || value < 0) {
-        throw Error(`${name} must be a non-negative safe integer, got ${String(value)}`);
+        throw new InvalidInputError(
+            `${name} must be a non-negative safe integer, got ${formatValue(value)}`,
+        );
     }
     return Long.fromNumber(value);
 }
@@ -89,7 +101,7 @@ const ignoredFields: Record<string, string> = {
 function refuseIgnoredFields(transaction: object): void {
     for (const [field, reason] of Object.entries(ignoredFields)) {
         if ((transaction as Record<string, unknown>)[field] !== undefined) {
-            throw Error(`${field} is not a builder input; ${reason}`);
+            throw new InvalidInputError(`${field} is not a builder input; ${reason}`);
         }
     }
 }
@@ -104,7 +116,7 @@ function refuseIgnoredFields(transaction: object): void {
  */
 function refuseAmount(kind: string, amount: unknown): void {
     if (amount !== undefined && !parseUint256('amount', amount as string).isZero()) {
-        throw Error(`${kind} moves no amount; leave amount out`);
+        throw new InvalidInputError(`${kind} moves no amount; leave amount out`);
     }
 }
 
@@ -119,7 +131,9 @@ function refuseAmount(kind: string, amount: unknown): void {
 function parseAddress(name: string, hex: string, allowEmpty = false): BytesUint8Array {
     const bytes = BytesUint8Array.fromHex(hex);
     if (bytes.length !== 20 && !(allowEmpty && bytes.length === 0)) {
-        throw Error(`${name} must be 20 bytes, got ${bytes.length}: ${JSON.stringify(hex)}`);
+        throw new InvalidInputError(
+            `${name} must be 20 bytes, got ${bytes.length}: ${formatValue(hex)}`,
+        );
     }
     return bytes;
 }
@@ -266,7 +280,9 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
         default:
             // beatoz-go defines types 1 to 8 and rejects any other as
             // ErrInvalidTrxPayloadType, so such bytes are not a transaction.
-            throw Error(`unknown transaction type ${tx.type}; the chain accepts types 1 to 8`);
+            throw new InvalidInputError(
+                `transaction type must be 1 to 8, the types the chain accepts, got ${tx.type}`,
+            );
     }
 }
 
@@ -316,9 +332,8 @@ function buildUnDelegateTrxProto(
 ): TrxProto {
     refuseIgnoredFields(transaction);
     const payload = transaction.payload;
-    if (!isSet(payload) || !isSet(payload.txHash)) {
-        throw Error('mandatory argument is missed');
-    }
+    requireSet('payload', payload);
+    requireSet('payload.txHash', payload.txHash);
 
     const payloadBytes = trxPb.TrxPayloadUnstakingProto.encode({
         txHash: BytesUint8Array.fromHex(payload.txHash),
@@ -345,9 +360,8 @@ function buildUnDelegateTrxProto(
 function buildContractTrxProto(transaction: Transaction<TransactionPayloadContract>): TrxProto {
     refuseIgnoredFields(transaction);
     const payload = transaction.payload;
-    if (!isSet(payload) || !isSet(payload.data)) {
-        throw Error('mandatory argument is missed');
-    }
+    requireSet('payload', payload);
+    requireSet('payload.data', payload.data);
     const payloadBytes = trxPb.TrxPayloadContractProto.encode({
         Data: BytesUint8Array.fromHex(payload.data),
     }).finish();
@@ -379,17 +393,18 @@ function buildContractTrxProto(transaction: Transaction<TransactionPayloadContra
 function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>): TrxProto {
     refuseIgnoredFields(transaction);
     const payload = transaction.payload;
-    if (!isSet(payload) || !isSet(payload.reqAmt)) {
-        throw Error('mandatory argument is missed');
-    }
+    requireSet('payload', payload);
+    requireSet('payload.reqAmt', payload.reqAmt);
     const reqAmt = parseUint256('payload.reqAmt', payload.reqAmt);
     // The chain accepts a zero request, but it moves nothing and still costs
     // the fee - typically a ledger read as 0 and passed straight through.
     if (reqAmt.isZero()) {
-        throw Error('payload.reqAmt must be greater than 0; withdrawing 0 only pays the fee');
+        throw new InvalidInputError(
+            'payload.reqAmt must be greater than 0, got 0; withdrawing 0 only pays the fee',
+        );
     }
     if (!parseUint256('amount', transaction.amount).isZero()) {
-        throw Error('a withdraw moves no amount; put the value in payload.reqAmt');
+        throw new InvalidInputError('a withdraw moves no amount; put the value in payload.reqAmt');
     }
     const payloadBytes = trxPb.TrxPayloadWithdrawProto.encode({
         ReqAmt: toUint256Bytes(reqAmt),
@@ -417,9 +432,7 @@ function buildSetDocTrx(transaction: TransactionWithoutAmount<TransactionPayload
     refuseIgnoredFields(transaction);
     refuseAmount('a setDoc', transaction.amount);
     const payload = transaction.payload;
-    if (!isSet(payload)) {
-        throw Error('mandatory argument is missed');
-    }
+    requireSet('payload', payload);
     const payloadBytes = trxPb.TrxPayloadSetDocProto.encode({
         name: payload.name,
         url: payload.url,

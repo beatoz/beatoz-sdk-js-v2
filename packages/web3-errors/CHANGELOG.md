@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `Web3ContractError` is gone; the contract package throws
+  `InvalidInputError` for what it reported (#100). `InvalidResponseError`'s
+  `response` is optional, for a value in a response rather than the whole.
+
 - **BREAKING:** Rewritten around `BaseError`, shaped like viem's (#100):
   `shortMessage`, `details`, `cause`, `metaMessages`, `walk()`, and a `name`
   per kind. The classes are `InvalidInputError`, `AbiError`, `TimeoutError`,

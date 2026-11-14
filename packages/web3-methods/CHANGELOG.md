@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `waitForTx` refuses a bad `timeoutMs` or `intervalMs` with
+  `InvalidInputError` (#100).
+
 - **BREAKING:** `waitForTx` times out with `TimeoutError` (was
   `OperationTimeoutError`) and keeps the node's last answer in `cause` (was
   `innerError`) (#100). `SendTransactionEvents` and `ETH_DATA_FORMAT`, left

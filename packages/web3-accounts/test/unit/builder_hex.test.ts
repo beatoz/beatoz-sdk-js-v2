@@ -36,7 +36,7 @@ describe('builders read hex strictly', () => {
 
     it.each([
         // A letter that is not hex. It used to become 00 and be sent.
-        ['a non-hex digit', `${to.slice(0, -1)}g`, 'invalid hex'],
+        ['a non-hex digit', `${to.slice(0, -1)}g`, 'hex must be hex digits'],
         // One digit dropped. It used to gain a leading 0, shifting every byte.
         ['a dropped digit', to.slice(1), 'hex must have an even number of digits'],
     ])('rejects a recipient with %s', (_, mistyped, message) => {
@@ -48,7 +48,7 @@ describe('builders read hex strictly', () => {
     it('rejects a sender that is not hex', () => {
         expect(() =>
             TrxProtoBuilder.buildTransferTrxProto({ ...base, from: 'not-an-address' }),
-        ).toThrow('invalid hex');
+        ).toThrow('hex must be hex digits');
     });
 
     it('rejects an unstaking hash that is not hex', () => {
@@ -58,7 +58,7 @@ describe('builders read hex strictly', () => {
                 amount: '0',
                 payload: { txHash: 'zz'.repeat(32) },
             }),
-        ).toThrow('invalid hex');
+        ).toThrow('hex must be hex digits');
     });
 
     it('rejects contract data with an odd number of digits', () => {

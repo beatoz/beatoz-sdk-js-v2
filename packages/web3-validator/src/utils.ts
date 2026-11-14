@@ -109,7 +109,7 @@ const convertBeatozType = (
 
     if (baseType) {
         if (baseType === 'tuple') {
-            throw new Error('"tuple" type is not implemented directly.');
+            throw new InvalidInputError('a tuple type must have components to validate against');
         }
         return { format: `${baseType}${baseTypeSize ?? ''}`, required: true };
     }
@@ -362,7 +362,9 @@ export const codePointToInt = (codePoint: number): number => {
         return codePoint - 87;
     }
 
-    throw new Error(`Invalid code point: ${codePoint}`);
+    throw new InvalidInputError(
+        `a hex digit must be 0-9, a-f or A-F, got ${String.fromCodePoint(codePoint)}`,
+    );
 };
 
 /**
@@ -370,7 +372,9 @@ export const codePointToInt = (codePoint: number): number => {
  */
 export const hexToNumber = (value: string): bigint | number => {
     if (!isHexStrict(value)) {
-        throw new Error('Invalid hex string');
+        throw new InvalidInputError(
+            `value must be a 0x-prefixed hex string, got ${formatValue(value)}`,
+        );
     }
 
     const [negative, hexValue] = value.startsWith('-') ? [true, value.slice(1)] : [false, value];

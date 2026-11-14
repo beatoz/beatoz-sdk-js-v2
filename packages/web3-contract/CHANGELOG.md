@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Wrong arguments, a missing address or `from`, and a `from`
+  not in the wallet throw `InvalidInputError` instead of `Web3ContractError`
+  (#100), with messages like `transfer takes 2 arguments, got 1` and
+  `from must be an account in the wallet, got ...`.
+
 - **BREAKING:** A contract call the EVM fails throws (#101, #100). `call()`
   and `estimateGas()` used to return a failed call like a successful one;
   when the node sets `vmErr` they now throw `ContractFunctionRevertedError`,

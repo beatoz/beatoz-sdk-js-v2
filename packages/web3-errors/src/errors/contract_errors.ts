@@ -14,16 +14,7 @@
     limitations under the License.
 */
 
-import { BaseError, BaseErrorParameters } from '../base_error.js';
-
-/** A contract call or deployment the SDK refused or could not complete. */
-export class Web3ContractError extends BaseError {
-    public override name = 'Web3ContractError';
-
-    public constructor(shortMessage: string, args?: BaseErrorParameters) {
-        super(shortMessage, args);
-    }
-}
+import { BaseError } from '../base_error.js';
 
 /**
  * A contract function failed in the EVM, as the node reported it in
