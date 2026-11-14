@@ -93,23 +93,10 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
     protected connectToClient(listener: Listener<SubscriptionEvent>): void {
         const responseStream = this.socket.events.map(toJsonRpcResponse);
 
-        // this should unsubscribe itself, so doesn't need to be removed explicitly
+        // The node answers the subscribe request, then sends each event, and
+        // an error if it cancels the subscription, all under the request's id
+        // (tendermint v0.34 rpc/core/events.go).
         const idSubscription = responseStream
-            .filter((response) => response.id === this.request.id)
-            .subscribe({
-                next: (response) => {
-                    if (isJsonRpcErrorResponse(response)) {
-                        this.closeSubscriptions();
-                        listener.error(this.rpcError(response));
-                    }
-                    idSubscription.unsubscribe();
-                },
-            });
-
-        // this will fire on a response (success or error)
-        // Tendermint adds an "#event" suffix for events that follow a previous subscription
-        // https://github.com/tendermint/tendermint/blob/v0.23.0/rpc/core/events.go#L107
-        const idEventSubscription = responseStream
             .filter((response) => response.id === this.request.id)
             .subscribe({
                 next: (response) => {
@@ -147,12 +134,7 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
                 },
             });
 
-        this.subscriptions.push(
-            idSubscription,
-            idEventSubscription,
-            nonResponseSubscription,
-            closedSubscription,
-        );
+        this.subscriptions.push(idSubscription, nonResponseSubscription, closedSubscription);
     }
 
     private rpcError(response: JsonRpcResponseWithError): BaseError {
