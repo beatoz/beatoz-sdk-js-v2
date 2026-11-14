@@ -156,11 +156,18 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
     };
     // Kept after type and payload, where callers have always found it.
     const sig = new BytesUint8Array(tx.sig).toHex();
+    const payer =
+        tx.payer.length > 0
+            ? {
+                  payer: new BytesUint8Array(tx.payer).toHex(),
+                  payerSig: new BytesUint8Array(tx.payerSig).toHex(),
+              }
+            : {};
 
     switch (tx.type) {
         case 1: // transfer
         case 2: // staking
-            return { ...fields, type: tx.type, payload: undefined, sig };
+            return { ...fields, type: tx.type, payload: undefined, sig, ...payer };
         case 3: {
             // unstaking
             const unstakingPayload: trxPb.TrxPayloadUnstakingProto =
@@ -172,6 +179,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     txHash: new BytesUint8Array(unstakingPayload.txHash).toHex(),
                 },
                 sig,
+                ...payer,
             };
         }
         case 4: {
@@ -192,6 +200,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     ),
                 },
                 sig,
+                ...payer,
             };
         }
         case 5: {
@@ -207,6 +216,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     choice: votingPayload.choice,
                 },
                 sig,
+                ...payer,
             };
         }
         case 6: {
@@ -220,6 +230,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     data: new BytesUint8Array(contractPayload.Data).toHex(),
                 },
                 sig,
+                ...payer,
             };
         }
         case 7: {
@@ -235,6 +246,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     url: setDocPayload.url,
                 },
                 sig,
+                ...payer,
             };
         }
         case 8: {
@@ -248,6 +260,7 @@ function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
                     reqAmt: new BN(withdrawPayload.ReqAmt).toString(10),
                 },
                 sig,
+                ...payer,
             };
         }
         default:
@@ -272,9 +285,7 @@ function buildTransferTrxProto(transaction: Transaction): TrxProto {
         type: 1, // transfer type
         Payload: new Uint8Array(),
         sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
+        // The sender pays unless a payer signs with signTransactionAsPayer.
         payer: new Uint8Array(),
         payerSig: new Uint8Array(),
     };
@@ -294,9 +305,7 @@ function buildDelegateTrxProto(transaction: Transaction): TrxProto {
         type: 2, // staking type
         Payload: new Uint8Array(),
         sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
+        // The sender pays unless a payer signs with signTransactionAsPayer.
         payer: new Uint8Array(),
         payerSig: new Uint8Array(),
     };
@@ -327,9 +336,7 @@ function buildUnDelegateTrxProto(
         type: 3, // unstaking type
         Payload: payloadBytes,
         sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
+        // The sender pays unless a payer signs with signTransactionAsPayer.
         payer: new Uint8Array(),
         payerSig: new Uint8Array(),
     };
@@ -357,9 +364,7 @@ function buildContractTrxProto(transaction: Transaction<TransactionPayloadContra
         type: 6, // contract type
         Payload: payloadBytes,
         sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
+        // The sender pays unless a payer signs with signTransactionAsPayer.
         payer: new Uint8Array(),
         payerSig: new Uint8Array(),
     };
@@ -402,9 +407,7 @@ function buildWithdrawTrx(transaction: Transaction<TransactionPayloadWithdraw>):
         type: 8, // withdraw type
         Payload: payloadBytes,
         sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
+        // The sender pays unless a payer signs with signTransactionAsPayer.
         payer: new Uint8Array(),
         payerSig: new Uint8Array(),
     };
@@ -434,9 +437,7 @@ function buildSetDocTrx(transaction: TransactionWithoutAmount<TransactionPayload
         type: 7, // voting type
         Payload: payloadBytes,
         sig: new Uint8Array(),
-        // Fee delegation is not built by this SDK yet; the chain treats
-        // empty payer fields as "sender pays", and proto3 omits them from
-        // the wire, so the encoded bytes are unchanged.
+        // The sender pays unless a payer signs with signTransactionAsPayer.
         payer: new Uint8Array(),
         payerSig: new Uint8Array(),
     };
