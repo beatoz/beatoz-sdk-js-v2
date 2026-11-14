@@ -142,7 +142,7 @@ The `RpcEventProducer` is a subclass of WebsocketProvider and plays a specific r
 WebsocketProvider Class:
 A **WebsocketProvider** instance manages `ReconnectingSocket` connections, contains a map of `subscriptionStreams`, and provides an API for controlling the connection status, request handling, and error handling.
 
-- `constructor(baseUrl: string, onError: (err: any) => void)`: It establishes a connection to the provided socket URL.
+- `constructor(baseUrl: string)`: Connects to the socket URL, and reconnects when the connection drops. A request waiting for its answer when the connection drops, or queued and not yet sent, fails with `SocketClosedError`, and a subscription ends with it; queued requests are not sent on the next connection. A request after `disconnect()` fails with it too. A JSON-RPC error answer is an `RpcRequestError`, for requests and subscriptions.
 
 - `request(payload: Web3APIPayload<API, Method>)` & `execute(payload: Web3APIPayload<API, Method>)`: It sends a request to the server, places the request in the queue, and waits for the response.
 
@@ -172,7 +172,3 @@ A **WebsocketProvider** instance manages `ReconnectingSocket` connections, conta
 - `parseJsonRpcSuccessResponse(data: any)`: Parses data into a JsonRpcResponseWithResult.
 
 - `isJsonRpcErrorResponse(response: JsonRpcResponse)`: Checks if the response is a JsonRpcErrorResponse.
-
-- `toListPromise(stream: Stream, count: number)`: A promise that resolves when a given count of events have been collected from the stream.
-
-- `firstEvent(stream: Stream)`: A promise that resolves when the first event occurs in the stream.

@@ -36,7 +36,7 @@ For methods:
 
 For methods: 
 
-- `constructor(baseUrl: string, onError: (err: any) => void)`: Establishes a connection to the provided socket URL.
+- `constructor(baseUrl: string)`: Connects to the socket URL, and reconnects when the connection drops. A request waiting for its answer when the connection drops, or queued and not yet sent, fails with `SocketClosedError`, and a subscription ends with it; queued requests are not sent on the next connection. A request after `disconnect()` fails with it too. A JSON-RPC error answer is an `RpcRequestError`, for requests and subscriptions.
    
 - `request(payload: Web3APIPayload<API, Method>)` & `execute(payload: Web3APIPayload<API, Method>)`: Sends a request to the server, queuing the request, and awaiting the respective response.
 
@@ -67,7 +67,3 @@ Structurally, a **WebsocketProvider** instance manages a `ReconnectingSocket` co
 - `parseJsonRpcSuccessResponse(data: any)`: Parses data into a JsonRpcResponseWithResult.
 
 - `isJsonRpcErrorResponse(response: JsonRpcResponse)`: Checks if a response is a JsonRpcErrorResponse.
-
-- `toListPromise(stream: Stream, count: number)`: Promise that resolves when a given count of events have been collected from the stream.
-
-- `firstEvent(stream: Stream)`: Promise that resolves when the first event is fired from the stream.

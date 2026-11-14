@@ -15,6 +15,19 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-providers-ws`: **BREAKING:** A dropped connection reaches the caller (#100, last part).
+  A request waiting for its answer, or queued and not yet sent, fails with
+  `SocketClosedError` (`url`) when the connection drops, instead of waiting
+  forever; the queued ones are not sent on the next connection, so a
+  broadcast the caller saw fail cannot land later. A subscription ends with
+  `SocketClosedError` when the connection drops, and with `RpcRequestError`
+  (the node's `code` and `data`) when the node answers it with an error, not
+  a JSON string. A request after `disconnect()` fails with
+  `SocketClosedError`. The constructor's `onError` argument, which was never
+  called, is gone, as are `toListPromise` and `firstEvent`, which nothing
+  used. Malformed answers throw `InvalidResponseError`, `listen` with a wrong
+  request `InvalidInputError`, and the socket's internal errors `BaseError`.
+
 - All packages: **BREAKING:** No more plain `Error` (#100, third part; #66).
   Input the SDK refuses throws `InvalidInputError` (builders, signing,
   `getContractAddress`, hex, `waitForTx` options, contract arguments and

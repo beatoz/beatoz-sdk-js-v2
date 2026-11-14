@@ -144,7 +144,7 @@ RpcEventProducer 클래스:
 WebsocketProvider 클래스:
 **WebsocketProvider** 인스턴스는 `ReconnectingSocket` 연결을 관리하고 `subscriptionStreams`의 맵을 포함하며, 연결 상태, 요청 처리, 에러 처리를 제어하는 API를 제공합니다.
 
-- `constructor(baseUrl: string, onError: (err: any) => void)`: 제공된 소켓 URL로 연결을 설정합니다.
+- `constructor(baseUrl: string)`: 소켓 URL 로 연결하고, 연결이 끊기면 다시 연결합니다. 연결이 끊길 때 답을 기다리던 요청과 큐에서 아직 보내지 않은 요청은 `SocketClosedError` 로 실패하고, 구독도 같은 에러로 끝납니다. 큐에 있던 요청은 다음 연결에서 보내지 않습니다. `disconnect()` 뒤의 요청도 같은 에러로 실패합니다. JSON-RPC 에러 답은 요청과 구독 모두 `RpcRequestError` 입니다.
 
 - `request(payload: Web3APIPayload<API, Method>)` & `execute(payload: Web3APIPayload<API, Method>)`: 서버에 요청을 보내고, 요청을 큐에 넣은 후, 해당 응답을 기다립니다.
 
@@ -174,7 +174,3 @@ WebsocketProvider 클래스:
 - `parseJsonRpcSuccessResponse(data: any)`: 데이터를 JsonRpcResponseWithResult로 파싱합니다.
 
 - `isJsonRpcErrorResponse(response: JsonRpcResponse)`: 응답이 JsonRpcErrorResponse인지 확인합니다.
-
-- `toListPromise(stream: Stream, count: number)`: 스트림에서 주어진 카운트의 이벤트를 수집했을 때 해결되는 약속입니다.
-
-- `firstEvent(stream: Stream)`: 스트림에서 첫 번째 이벤트가 발생할 때 해결되는 약속입니다.

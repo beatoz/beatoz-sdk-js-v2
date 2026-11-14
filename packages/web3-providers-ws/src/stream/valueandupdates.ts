@@ -13,6 +13,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
+import { BaseError } from '@beatoz/web3-errors';
 import { MemoryStream } from 'xstream';
 
 import { DefaultValueProducer } from './defaultvalueproducer.js';
@@ -63,7 +65,7 @@ export class ValueAndUpdates<T> {
                 },
                 complete: () => {
                     subscription.unsubscribe();
-                    reject('Update stream completed without expected value');
+                    reject(new BaseError('Update stream completed without expected value'));
                 },
                 error: (error) => {
                     reject(error);

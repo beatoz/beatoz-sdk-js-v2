@@ -13,6 +13,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
+import { BaseError } from '@beatoz/web3-errors';
 import { Listener, Producer, Stream } from 'xstream';
 
 import { SocketWrapperMessageEvent } from './socket_wrapper.js';
@@ -62,7 +64,8 @@ export class QueueingStreamingSocket {
 
         this.socket.events.subscribe({
             next: (event) => {
-                if (!this.eventProducerListener) throw new Error('No event producer listener set');
+                if (!this.eventProducerListener)
+                    throw new BaseError('No event producer listener set');
                 this.eventProducerListener.next(event);
             },
             error: () => this.connectionStatusProducer.update(ConnectionStatus.Disconnected),
@@ -90,7 +93,8 @@ export class QueueingStreamingSocket {
         this.socket = new Streaming_socket(this.url, this.timeout);
         this.socket.events.subscribe({
             next: (event) => {
-                if (!this.eventProducerListener) throw new Error('No event producer listener set');
+                if (!this.eventProducerListener)
+                    throw new BaseError('No event producer listener set');
                 this.eventProducerListener.next(event);
             },
             error: () => this.connectionStatusProducer.update(ConnectionStatus.Disconnected),
@@ -106,6 +110,11 @@ export class QueueingStreamingSocket {
 
     public getQueueLength(): number {
         return this.queue.length;
+    }
+
+    /** Drops the requests not sent yet. */
+    public clearQueue(): void {
+        this.queue.length = 0;
     }
 
     public queueRequest(request: string): void {

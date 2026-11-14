@@ -13,6 +13,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
+import { BaseError } from '@beatoz/web3-errors';
 import { Listener, Producer, Stream } from 'xstream';
 
 import { Socket_wrapper, SocketWrapperMessageEvent } from './socket_wrapper.js';
@@ -49,7 +51,9 @@ export class Streaming_socket {
                     if (closeEvent.wasClean) {
                         this.eventProducerListener.complete();
                     } else {
-                        this.eventProducerListener.error('Socket was closed unclean');
+                        this.eventProducerListener.error(
+                            new BaseError('Socket was closed unclean'),
+                        );
                     }
                 }
             },

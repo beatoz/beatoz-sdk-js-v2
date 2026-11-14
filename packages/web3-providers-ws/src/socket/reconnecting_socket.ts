@@ -15,6 +15,7 @@
 */
 import { Listener, Producer, Stream } from 'xstream';
 
+import { BaseError, SocketClosedError } from '@beatoz/web3-errors';
 import { ConnectionStatus, QueueingStreamingSocket } from './queueing_streaming_socket.js';
 import { SocketWrapperMessageEvent } from './socket_wrapper.js';
 import { ValueAndUpdates } from '../stream/valueandupdates.js';
@@ -31,6 +32,7 @@ export class ReconnectingSocket {
     public readonly connectionStatus: ValueAndUpdates<ConnectionStatus>;
     public readonly events: Stream<SocketWrapperMessageEvent>;
 
+    private readonly url: string;
     private readonly socket: QueueingStreamingSocket;
     private eventProducerListener: Listener<SocketWrapperMessageEvent> | undefined;
     private unconnected = true;
@@ -45,6 +47,7 @@ export class ReconnectingSocket {
         };
         this.events = Stream.create(eventProducer);
 
+        this.url = url;
         this.socket = new QueueingStreamingSocket(url, timeout, reconnectedHandler);
         this.socket.events.subscribe({
             next: (event) => {
@@ -84,7 +87,7 @@ export class ReconnectingSocket {
 
     public connect(): void {
         if (!this.unconnected) {
-            throw new Error('Cannot connect: socket has already connected');
+            throw new BaseError('Cannot connect: socket has already connected');
         }
         this.socket.connect();
         this.unconnected = false;
@@ -92,7 +95,7 @@ export class ReconnectingSocket {
 
     public disconnect(): void {
         if (this.unconnected) {
-            throw new Error('Cannot disconnect: socket has not yet connected');
+            throw new BaseError('Cannot disconnect: socket has not yet connected');
         }
         // Set before the status update below, which reads it synchronously.
         this.disconnected = true;
@@ -108,9 +111,14 @@ export class ReconnectingSocket {
 
     public queueRequest(request: string): void {
         if (this.disconnected) {
-            throw new Error('Cannot queue request: socket has disconnected');
+            throw new SocketClosedError({ url: this.url, reason: 'disconnect() was called' });
         }
 
         this.socket.queueRequest(request);
+    }
+
+    /** Drops the requests not sent yet. */
+    public clearQueue(): void {
+        this.socket.clearQueue();
     }
 }
