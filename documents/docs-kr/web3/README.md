@@ -27,6 +27,11 @@ const blockResponse: BlockResponse = await web3.beatoz.block();
 const contract = new web3.beatoz.Contract(abi, address);
 const contractMethod = contract.methods.methodName();
 
+// 배포: `from` 의 계정이 지갑에 있어야 합니다
+const { address, contract: deployed } = await new web3.beatoz.Contract(abi)
+    .deploy({ bytecode, args: ['MyToken', 'MTK'] })
+    .send({ from });
+
 
 ```
 

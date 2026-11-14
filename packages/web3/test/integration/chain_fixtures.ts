@@ -32,7 +32,6 @@
  */
 
 import { Web3 } from '../../src';
-import erc20Contract from '../fixtures/erc20-contract.json';
 import { privateKeyToAccount, TrxProtoBuilder, Web3Account } from '@beatoz/web3-accounts';
 import {
     getTestAccountAddress,
@@ -119,26 +118,6 @@ export const sendSampleTransfer = async (web3: Web3): Promise<string> => {
     if (result.check_tx?.code !== 0 || result.deliver_tx?.code !== 0) {
         throw new Error(`the node rejected the sample transfer: ${JSON.stringify(result)}`);
     }
-    return result.hash;
-};
-
-/**
- * Deploys the ERC20 fixture and returns the hash of the deploying transaction.
- *
- * `contractAddrFromTx` reads the contract address out of that transaction's
- * events, so it needs one that actually deployed something on the chain under
- * test - a hash recorded from somewhere else resolves to nothing here.
- */
-export const deploySampleContract = async (web3: Web3): Promise<string> => {
-    const account = privateKeyToAccount(getTestProposalAccountPrivateKey()) as Web3Account;
-    web3.beatoz.accounts.wallet.add(account.privateKey);
-
-    const contract = new web3.beatoz.Contract(erc20Contract.abi);
-    const result = await contract
-        .deploy(erc20Contract.bytecode, ['BeatozToken', 'RGT'], account, getTestChainId(), 10000000)
-        .send();
-
-    await web3.beatoz.waitForTx(result.hash);
     return result.hash;
 };
 

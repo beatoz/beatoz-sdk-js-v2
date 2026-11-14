@@ -19,6 +19,7 @@ import {
     AbiErrorFragment,
     AbiFragment,
     AbiFunctionFragment,
+    AbiInput,
     Address,
     BroadcastTxSyncResponse,
     BroadcastTxCommitResponse,
@@ -37,16 +38,18 @@ import {
     BroadcastTxOptions,
     ContractAbiWithSignature,
     ContractOptions,
+    DeployOptions,
     NonPayableMethodObject,
     NonPayableTxOptions,
     PayableMethodObject,
     PayableTxOptions,
 } from './types.js';
-import { ContractMethodsInterface } from './method_types.js';
+import { ContractMethodsInterface, DeployParams } from './method_types.js';
 import { bytesToHex, format, isNullish, toChecksumAddress } from '@beatoz/web3-utils';
 import {
     decodeContractErrorData,
     encodeFunctionSignature,
+    encodeParameters,
     isAbiErrorFragment,
     isAbiFunctionFragment,
     jsonInterfaceMethodToString,
@@ -67,12 +70,25 @@ import {
     call,
     getAccount,
     rule,
-    sendDeploy,
     vmEstimateGas,
 } from '@beatoz/web3-methods';
-import { TrxProtoBuilder, Web3Account } from '@beatoz/web3-accounts';
+import { TrxProtoBuilder, getContractAddress } from '@beatoz/web3-accounts';
 import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+/** What a deploy resolves with. */
+export interface DeployResult<Abi extends ContractAbi> {
+    /** The new contract's address, checksummed. */
+    address: Address;
+    /** A contract at that address, on the same provider and wallet. */
+    contract: Contract<Abi>;
+    /** The deploy transaction's hash. */
+    hash: HexString;
+    /** The height of the block it is in. */
+    height: number;
+}
 
 // A method as the contract builds it at run time; ContractMethodsInterface
 // gives each one its type from the ABI.
@@ -496,39 +512,79 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         return this._methods;
     }
 
-    public deploy(
-        bytecode: string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- contract arguments need ABI-derived inference; to be resolved by the typed API work.
-        args: any[],
-        rWeb3Account: Web3Account,
-        chainId: string,
-        gas: number,
-    ) {
-        let abi = this._jsonInterface.find(
-            (j) => j.type === 'constructor',
-        ) as AbiConstructorFragment;
-
-        if (!abi) {
-            abi = {
-                type: 'constructor',
-                inputs: [],
-                stateMutability: '',
-            } as AbiConstructorFragment;
+    /**
+     * Deploys the contract: `deploy({ bytecode, args }).send({ from })`. The
+     * account of `from` must be in the wallet; the chain id is filled in, the
+     * gas is the node's estimate and the gas price the chain's unless given.
+     * Resolves once the transaction is in a block, with the new contract's
+     * address and a `Contract` at it; throws if the deploy failed.
+     */
+    public deploy(params: DeployParams<Abi>) {
+        const ctor = this._jsonInterface.find((j) => j.type === 'constructor') as
+            AbiConstructorFragment | undefined;
+        const inputs = (ctor?.inputs ?? []) as AbiInput[];
+        const args = (params.args ?? []) as unknown[];
+        if (args.length !== inputs.length) {
+            throw new Web3ContractError(
+                `the constructor takes ${inputs.length} arguments, got ${args.length}`,
+            );
         }
+        const data =
+            inputs.length > 0
+                ? params.bytecode + encodeParameters(inputs, args).slice(2)
+                : params.bytecode;
 
         return {
-            send: (): Promise<BroadcastTxCommitResponse> => {
-                return sendDeploy(
-                    this,
-                    abi as AbiFunctionFragment,
-                    bytecode,
-                    args,
-                    rWeb3Account,
-                    chainId,
-                    gas,
-                );
-            },
+            send: (options: DeployOptions): Promise<DeployResult<Abi>> =>
+                this._deploy(data, options),
         };
+    }
+
+    private async _deploy(data: string, options: DeployOptions): Promise<DeployResult<Abi>> {
+        const account = this.wallet?.get(options.from);
+        if (account === undefined) {
+            throw new Web3ContractError(`not found account of ${options.from}`);
+        }
+
+        const chainId = this.chainId ?? (await this.decideChainId());
+        const nonce = Number((await getAccount(this, account.address)).value.nonce);
+        const gasPrice = options.gasPrice ?? (await rule(this)).value.gasPrice;
+        let gas = options.gas;
+        if (gas === undefined) {
+            const estimate = await vmEstimateGas(this, account.address, ZERO_ADDRESS, data);
+            if (estimate.value.vmErr !== undefined) {
+                throw new Web3ContractError(`deploy would fail: ${estimate.value.vmErr}`);
+            }
+            gas = Number(estimate.value.usedGas);
+        }
+
+        const tx = TrxProtoBuilder.buildContractTrxProto({
+            from: account.address,
+            to: ZERO_ADDRESS,
+            nonce,
+            gas,
+            gasPrice,
+            amount: '0',
+            payload: { data },
+        });
+        account.signTransaction(tx, chainId);
+        const res = await broadcastTxCommit(this, tx);
+        if (res.check_tx.code !== 0) {
+            throw new Web3ContractError(`deploy rejected: ${res.check_tx.log}`);
+        }
+        if (res.deliver_tx?.code !== 0) {
+            throw new Web3ContractError(`deploy failed: ${res.deliver_tx?.log}`);
+        }
+
+        // The node derives the address from the sender and the nonce, so it
+        // needs no lookup, which would wait for the transaction to be indexed.
+        const address = getContractAddress(account.address, nonce);
+        const contract = new Contract<Abi>(this._jsonInterface as unknown as Abi, address);
+        contract._requestManager = this._requestManager;
+        contract._wallet = this._wallet;
+        contract._accountProvider = this._accountProvider;
+        contract._chainId = chainId;
+        return { address, contract, hash: res.hash, height: res.height };
     }
 
     public settingsProvider(providers: HttpProvider | WebsocketProvider): void {

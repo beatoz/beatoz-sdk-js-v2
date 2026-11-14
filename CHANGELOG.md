@@ -15,6 +15,23 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-contract`, `@beatoz/web3-methods`: **BREAKING:** Deploying
+  takes one call and resolves with the contract's address (#42):
+  `contract.deploy({ bytecode, args }).send({ from })` returns `{ address,
+  contract, hash, height }`, where `contract` is a `Contract` at the new
+  address on the same provider and wallet. The account of `from` comes from
+  the wallet and the chain id is filled in; the gas is the node's
+  `vm_estimate_gas` for the deploy and the gas price the chain's unless given.
+  `args` is typed from the ABI's constructor, as methods' arguments are. A
+  deploy the node rejects or that fails throws `Web3ContractError` with the
+  node's log, as does one the estimate says would fail. The address is
+  computed from the sender and the nonce, as the node does, so it needs no
+  lookup of the transaction and no wait for it to be indexed.
+  `deploy(bytecode, args, account, chainId, gas)`, which returned the commit
+  response, is gone, as are `sendDeploy` and `web3.beatoz.contractAddrFromTx`:
+  the latter took the last `contractAddress` in the transaction's events,
+  which is another contract's when the constructor calls one that logs.
+
 - `@beatoz/web3-contract`: **BREAKING:** Contract methods are typed from the ABI
   with abitype, the library viem uses. The inherited types turned an `address`
   argument into `never` and an `uint256` result into an unresolved type, so
@@ -264,6 +281,9 @@ entries below name the packages they apply to.
   eight types beatoz-go accepts, and the integration suites pass.
 
 ### Added
+
+- `@beatoz/web3-accounts`: `getContractAddress(from, nonce)`, the address of
+  the contract a deploy transaction from `from` with `nonce` creates (#42).
 
 - `@beatoz/web3-methods`, `@beatoz/web3`:
   `web3.beatoz.waitForTx(hash, { timeoutMs, intervalMs })` waits until the

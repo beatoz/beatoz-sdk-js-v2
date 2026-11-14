@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Deploying takes one call and resolves with the contract's
+  address (#42): `contract.deploy({ bytecode, args }).send({ from })` returns
+  `{ address, contract, hash, height }`, where `contract` is a `Contract` at
+  the new address on the same provider and wallet. The account of `from` comes
+  from the wallet and the chain id is filled in; the gas is the node's
+  `vm_estimate_gas` for the deploy and the gas price the chain's unless given.
+  `args` is typed from the ABI's constructor (`ConstructorArgs`,
+  `DeployParams`). A deploy the node rejects or that fails throws
+  `Web3ContractError` with the node's log, as does one the estimate says would
+  fail. The address is computed from the sender and the nonce, as the node
+  does, so it needs no lookup and no wait for indexing.
+  `deploy(bytecode, args, account, chainId, gas)`, which returned the commit
+  response, is gone.
+
 - **BREAKING:** Contract methods are typed from the ABI with abitype, the
   library viem uses. The inherited types turned an `address` argument into
   `never` and an `uint256` result into an unresolved type, so correct calls did

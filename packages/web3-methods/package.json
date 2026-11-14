@@ -48,8 +48,6 @@
     "devDependencies": {
     },
     "dependencies": {
-        "@beatoz/web3-abi": "^1.6.5",
-        "@beatoz/web3-accounts": "^1.6.5",
         "@beatoz/web3-core": "^1.6.5",
         "@beatoz/web3-errors": "^1.6.5",
         "@beatoz/web3-rpc": "^1.6.5",

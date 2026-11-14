@@ -139,19 +139,9 @@ export const deployTestToken = async (
         throw new Error('deployTestToken: the first test account is not in the wallet');
     }
 
-    const res = await new web3.beatoz.Contract(tokenJson.abi)
-        .deploy(tokenJson.bytecode, ['BeatozToken', 'RGT'], deployer, getTestChainId(), 10000000)
-        .send();
-    if (res.check_tx.code !== 0 || res.deliver_tx?.code !== 0) {
-        throw new Error(
-            `deployTestToken: deploy failed: ${res.check_tx.log || res.deliver_tx?.log}`,
-        );
-    }
-
-    // The commit reply comes before the node has indexed the transaction, so
-    // looking it up straight away can answer `tx (...) not found`.
-    await web3.beatoz.waitForTx(res.hash);
-    const address = await web3.beatoz.contractAddrFromTx(res.hash);
+    const { address } = await new web3.beatoz.Contract(tokenJson.abi)
+        .deploy({ bytecode: tokenJson.bytecode, args: ['BeatozToken', 'RGT'] })
+        .send({ from: deployer.address });
     return { address, deployer: deployer.address };
 };
 

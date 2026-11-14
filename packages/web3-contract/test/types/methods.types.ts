@@ -99,3 +99,40 @@ export async function methodTypes() {
     const loose = await j.methods.balanceOf('0x00').call();
     return [bal, bal2, dec, ok, pr, inf, nothing, wrong, loose];
 }
+
+const tokenAbi = [
+    {
+        type: 'constructor',
+        stateMutability: 'nonpayable',
+        inputs: [
+            { name: 'name', type: 'string' },
+            { name: 'owner', type: 'address' },
+        ],
+    },
+    ...abi,
+] as const;
+
+export async function deployTypes() {
+    const from = '0x15633e505d01691a71f40049e15ba1340c0eea29';
+    const t = new Contract(tokenAbi);
+    const { address, contract } = await t
+        .deploy({ bytecode: '0x00', args: ['Token', from.slice(2)] })
+        .send({ from });
+    const bal: bigint = await contract.methods.balanceOf(address).call();
+    // @ts-expect-error the constructor takes arguments
+    t.deploy({ bytecode: '0x00' });
+    // @ts-expect-error wrong argument type
+    t.deploy({ bytecode: '0x00', args: ['Token', 5] });
+    // @ts-expect-error too few arguments
+    t.deploy({ bytecode: '0x00', args: ['Token'] });
+    // @ts-expect-error from is required
+    await t.deploy({ bytecode: '0x00', args: ['Token', from] }).send({});
+    // No constructor: no arguments.
+    c.deploy({ bytecode: '0x00' });
+    // @ts-expect-error no constructor, so no arguments
+    c.deploy({ bytecode: '0x00', args: ['x'] });
+    // An ABI read from JSON takes any arguments, or none.
+    new Contract(erc20Json).deploy({ bytecode: '0x00', args: ['a', 1] });
+    new Contract(erc20Json).deploy({ bytecode: '0x00' });
+    return bal;
+}

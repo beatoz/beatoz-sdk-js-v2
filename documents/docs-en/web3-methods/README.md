@@ -42,7 +42,6 @@ Below is a list of methods provided by the Web3Method class:
 
 - **tx**: Fetches detailed information of a transaction using its unique hash.
 
-- **contractAddrFromTx**: Determines and fetches the contract address associated with a specific transaction hash.
 
 - **abciInfo**: Provides information about the Application BlockChain Interface (ABCI) in use.
 
