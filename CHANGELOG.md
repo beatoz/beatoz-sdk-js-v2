@@ -15,6 +15,23 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-contract`: **BREAKING:** A contract call the EVM fails throws (#101, #100). `call()`
+  and `estimateGas()` used to return a failed call like a successful one;
+  when the node sets `vmErr` they now throw `ContractFunctionRevertedError`,
+  with what the contract reverted with decoded: `Error(string)` as `reason`,
+  `Panic(uint256)` as `reason` from the panic code, an error in the
+  contract's ABI as `errorName` and `args` (shaped as `call()` returns
+  values), and one the ABI does not have as its 4-byte `signature`. Without
+  revert data, the EVM's own error (`out of gas`, ...) is the reason. A
+  function with outputs that returns no data, as a call to an address
+  without code does, throws `ContractFunctionZeroDataError` instead of an ABI
+  decoding error. `decodeRevert(errors, data)` is exported.
+- `@beatoz/web3-contract`: **BREAKING:** `deploy().send()` throws `ContractFunctionRevertedError` when
+  the gas estimate shows the constructor reverting, and
+  `TransactionFailedError` (`stage`, the node's `code` and `log`, `hash`) when
+  the node refuses or fails the transaction. Both were `Web3ContractError`
+  with the reason in the message.
+
 - All packages: **BREAKING:** One error design (#100, first part). Every
   error class the SDK throws extends `BaseError` from `@beatoz/web3-errors`,
   shaped like viem's: `shortMessage` says what failed, `details` why (the

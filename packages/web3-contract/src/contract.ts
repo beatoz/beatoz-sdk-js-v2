@@ -30,6 +30,7 @@ import {
     Mutable,
     NonPayableCallOptions,
     PayableCallOptions,
+    VmCallResponse,
     Web3ValidationErrorObject,
     BroadcastTxAsyncResponse,
 } from '@beatoz/web3-types';
@@ -59,8 +60,13 @@ import {
     ValidationSchemaInput,
     validator,
 } from '@beatoz/web3-validator';
-import { decodeMethodReturn, encodeMethodABI } from './encoding.js';
-import { Web3ContractError } from '@beatoz/web3-errors';
+import { decodeMethodReturn, decodeRevert, DecodedRevert, encodeMethodABI } from './encoding.js';
+import {
+    ContractFunctionRevertedError,
+    ContractFunctionZeroDataError,
+    TransactionFailedError,
+    Web3ContractError,
+} from '@beatoz/web3-errors';
 import { getEthTxCallParams, getSendTxParams } from './utils.js';
 import {
     broadcastTxAsync,
@@ -88,6 +94,39 @@ export interface DeployResult<Abi extends ContractAbi> {
     /** The height of the block it is in. */
     height: number;
 }
+
+/**
+ * The error for a call the EVM failed (`vmErr` set), with what the contract
+ * reverted with decoded by its ABI's errors. Revert data that does not
+ * decode is kept raw, with the decoding error as the cause.
+ */
+const revertedError = (
+    functionName: string,
+    errorsAbi: readonly AbiErrorFragment[],
+    value: VmCallResponse['value'],
+    metaMessages: string[],
+): ContractFunctionRevertedError => {
+    let decoded: DecodedRevert = {};
+    let cause: unknown;
+    try {
+        decoded = decodeRevert(errorsAbi, value.returnData);
+    } catch (err) {
+        cause = err;
+    }
+    const vmErr = value.vmErr ?? '';
+    // With no revert data, the EVM's own error is the only reason there is:
+    // "out of gas", "invalid opcode: ...". A bare revert says nothing more.
+    const noData = value.returnData.replace(/^0x/i, '') === '';
+    return new ContractFunctionRevertedError({
+        functionName,
+        data: value.returnData,
+        vmErr,
+        ...decoded,
+        reason: decoded.reason ?? (noData && vmErr !== 'execution reverted' ? vmErr : undefined),
+        metaMessages,
+        cause,
+    });
+};
 
 // A method as the contract builds it at run time; ContractMethodsInterface
 // gives each one its type from the ABI.
@@ -326,6 +365,16 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             tx.from = tx.to;
         }
         const res = await call(this, tx.to, tx.input ? tx.input.toString() : '0x', tx.from, height);
+        const context = [`Contract: ${tx.to}`, `Function: ${jsonInterfaceMethodToString(abi)}`];
+        if (res.value.vmErr !== undefined) {
+            throw revertedError(abi.name, errorsAbi, res.value, context);
+        }
+        if ((abi.outputs ?? []).length > 0 && res.value.returnData.replace(/^0x/i, '') === '') {
+            throw new ContractFunctionZeroDataError({
+                functionName: abi.name,
+                metaMessages: context,
+            });
+        }
         // The node returns the call's bytes; the ABI says what they are.
         return decodeMethodReturn(abi, res.value.returnData);
     }
@@ -350,7 +399,19 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         if (!tx.from) {
             tx.from = tx.to;
         }
-        return vmEstimateGas(this, tx.from, tx.to, tx.input ? tx.input.toString() : '0x');
+        const res = await vmEstimateGas(
+            this,
+            tx.from,
+            tx.to,
+            tx.input ? tx.input.toString() : '0x',
+        );
+        if (res.value.vmErr !== undefined) {
+            throw revertedError(abi.name, errorsAbi, res.value, [
+                `Contract: ${tx.to}`,
+                `Function: ${jsonInterfaceMethodToString(abi)}`,
+            ]);
+        }
+        return res;
     }
 
     private async _contractMethodBroadcast<
@@ -487,7 +548,9 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         if (gas === undefined) {
             const estimate = await vmEstimateGas(this, account.address, ZERO_ADDRESS, data);
             if (estimate.value.vmErr !== undefined) {
-                throw new Web3ContractError(`deploy would fail: ${estimate.value.vmErr}`);
+                throw revertedError('constructor', this._errorsInterface, estimate.value, [
+                    `Deployer: ${account.address}`,
+                ]);
             }
             gas = Number(estimate.value.usedGas);
         }
@@ -504,10 +567,20 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         account.signTransaction(tx, chainId);
         const res = await broadcastTxCommit(this, tx);
         if (res.check_tx.code !== 0) {
-            throw new Web3ContractError(`deploy rejected: ${res.check_tx.log}`);
+            throw new TransactionFailedError({
+                stage: 'check_tx',
+                code: res.check_tx.code,
+                log: res.check_tx.log,
+                hash: res.hash,
+            });
         }
-        if (res.deliver_tx?.code !== 0) {
-            throw new Web3ContractError(`deploy failed: ${res.deliver_tx?.log}`);
+        if (res.deliver_tx === undefined || res.deliver_tx.code !== 0) {
+            throw new TransactionFailedError({
+                stage: 'deliver_tx',
+                code: res.deliver_tx?.code ?? -1,
+                log: res.deliver_tx?.log,
+                hash: res.hash,
+            });
         }
 
         // The node derives the address from the sender and the nonce, so it

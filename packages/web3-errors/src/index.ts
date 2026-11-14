@@ -16,4 +16,5 @@
 
 export * from './base_error.js';
 export * from './errors/errors.js';
+export * from './errors/contract_errors.js';
 export * from './errors/request_errors.js';
