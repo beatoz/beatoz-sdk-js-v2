@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Method options take the types the transaction builder does
+  (#6). `broadcast()` and `send()` take `gas` and `nonce` as numbers and
+  `gasPrice` as a decimal string, passed to the builder unchanged; they went
+  through `Number()` before, so a gas price of 10^21 became `1e+21` and was
+  refused, and one past 2^53 was rounded. A payable method's `broadcast()`
+  sends `value` (wei, decimal string) with the call; it always sent zero
+  before. `call()` and `estimateGas()` take only `from` (`CallOptions`),
+  since the node runs both with the caller and the call data alone, and a
+  value of zero. `maxFeePerGas`, `maxPriorityFeePerGas` and `type`, which
+  the node has no use for and were dropped without a word, are gone, as are
+  `ContractOptions.gas`, `gasPrice`, `maxFeePerGas` and `maxPriorityFeePerGas`,
+  which nothing could set, and the unused `getCreateAccessListParams` and
+  `isContractInitOptions`.
+
 - **BREAKING:** Wrong arguments, a missing address or `from`, and a `from`
   not in the wallet throw `InvalidInputError` instead of `Web3ContractError`
   (#100), with messages like `transfer takes 2 arguments, got 1` and

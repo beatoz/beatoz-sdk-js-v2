@@ -28,8 +28,6 @@ import {
     DEFAULT_RETURN_FORMAT,
     HexString,
     Mutable,
-    NonPayableCallOptions,
-    PayableCallOptions,
     VmCallResponse,
     Web3ValidationErrorObject,
     BroadcastTxAsyncResponse,
@@ -37,11 +35,11 @@ import {
 import { Web3Context } from '@beatoz/web3-core';
 import {
     BroadcastTxOptions,
+    CallOptions,
     ContractAbiWithSignature,
     ContractOptions,
     DeployOptions,
     NonPayableMethodObject,
-    NonPayableTxOptions,
     PayableMethodObject,
     PayableTxOptions,
 } from './types.js';
@@ -287,10 +285,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             const methods = {
                 arguments: abiParams,
 
-                call: async (
-                    options?: PayableCallOptions | NonPayableCallOptions,
-                    height?: number,
-                ) =>
+                call: async (options?: CallOptions, height?: number) =>
                     this._contractMethodCall(
                         methodAbi,
                         abiParams,
@@ -299,7 +294,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
                         height,
                     ),
 
-                estimateGas: async (options?: PayableCallOptions | NonPayableTxOptions) =>
+                estimateGas: async (options?: CallOptions) =>
                     this._contractMethodEstimateGas(
                         methodAbi,
                         abiParams,
@@ -310,11 +305,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
                 // original:
                 // send: (options?: PayableTxOptions | NonPayableTxOptions): Web3PromiEvent< FormatType<TransactionReceipt, typeof DEFAULT_RETURN_FORMAT>, SendTransactionEvents<typeof DEFAULT_RETURN_FORMAT>>
                 send: (
-                    options?:
-                        | PayableTxOptions
-                        | NonPayableTxOptions
-                        | BroadcastTxOptions
-                        | BroadcastTxOptions,
+                    options?: PayableTxOptions & BroadcastTxOptions,
                 ): Promise<
                     BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse
                 > =>
@@ -326,7 +317,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
                     ),
 
                 broadcast: (
-                    options?: PayableTxOptions | NonPayableTxOptions | BroadcastTxOptions,
+                    options?: PayableTxOptions & BroadcastTxOptions,
                 ): Promise<
                     BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse
                 > =>
@@ -344,7 +335,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         };
     }
 
-    private async _contractMethodCall<Options extends PayableCallOptions | NonPayableCallOptions>(
+    private async _contractMethodCall<Options extends CallOptions>(
         abi: AbiFunctionFragment,
         params: unknown[],
         errorsAbi: AbiErrorFragment[],
@@ -380,7 +371,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         return decodeMethodReturn(abi, res.value.returnData);
     }
 
-    private async _contractMethodEstimateGas<Options extends NonPayableCallOptions>(
+    private async _contractMethodEstimateGas<Options extends CallOptions>(
         abi: AbiFunctionFragment,
         params: unknown[],
         errorsAbi: AbiErrorFragment[],
@@ -415,9 +406,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         return res;
     }
 
-    private async _contractMethodBroadcast<
-        Options extends PayableCallOptions | NonPayableCallOptions | BroadcastTxOptions,
-    >(
+    private async _contractMethodBroadcast<Options extends PayableTxOptions & BroadcastTxOptions>(
         abi: AbiFunctionFragment,
         params: unknown[],
         errorsAbi: AbiErrorFragment[],
@@ -434,7 +423,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         const _tx = getSendTxParams({
             abi,
             params,
-            options: options && 'from' in options ? options : undefined,
+            options,
             contractOptions: modifiedContractOptions,
         });
 
@@ -448,22 +437,24 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         }
 
         const chainId = this.chainId ?? (await this.decideChainId());
-        const nonce = Number(_tx.nonce ?? (await getAccount(this, fromAcct.address)).value.nonce);
-        if (isNullish(_tx.gas) || isNullish(_tx.gasPrice)) {
+        const nonce =
+            options?.nonce ?? Number((await getAccount(this, fromAcct.address)).value.nonce);
+        // The caller's values go to the builder as given, which checks them.
+        let gas = options?.gas;
+        let gasPrice = options?.gasPrice;
+        if (gas === undefined || gasPrice === undefined) {
             const govParams = (await rule(this)).value;
-            if (isNullish(_tx.gas)) _tx.gas = govParams.minTrxGas;
-            if (isNullish(_tx.gasPrice)) _tx.gasPrice = govParams.gasPrice;
+            gas = gas ?? Number(govParams.minTrxGas);
+            gasPrice = gasPrice ?? govParams.gasPrice;
         }
-        const gas = Number(_tx.gas);
-        const gasPrice = Number(_tx.gasPrice);
 
         const txProto = TrxProtoBuilder.buildContractTrxProto({
             from: fromAcct.address,
             to: _tx.to,
-            nonce: nonce,
-            gas: gas,
-            gasPrice: gasPrice.toString(),
-            amount: '0',
+            nonce,
+            gas,
+            gasPrice,
+            amount: options?.value ?? '0',
             // TransactionCall types input as Bytes and the builder takes hex.
             // A string goes through as it always has; bytesToHex would also
             // reject hex without 0x, which the builder accepts.

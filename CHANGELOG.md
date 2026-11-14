@@ -15,6 +15,16 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-contract`, `@beatoz/web3-types`: **BREAKING:** Contract method
+  options take the builder's types (#6). `broadcast()` takes `gas` and
+  `nonce` as numbers and `gasPrice` as a decimal string, passed through
+  unchanged instead of through `Number()` (10^21 became `1e+21`, values past
+  2^53 were rounded). A payable method's `broadcast()` sends `value`; it
+  always sent zero. `call()` and `estimateGas()` take only `from`.
+  `maxFeePerGas`, `maxPriorityFeePerGas` and `type` are gone, and so are
+  `NonPayableCallOptions`, `PayableCallOptions` and `ContractInitOptions`
+  from `@beatoz/web3-types`.
+
 - `@beatoz/web3-providers-ws`: **BREAKING:** A dropped connection reaches the caller (#100, last part).
   A request waiting for its answer, or queued and not yet sent, fails with
   `SocketClosedError` (`url`) when the connection drops, instead of waiting

@@ -23,7 +23,6 @@ import {
 } from './e2e_utils';
 import { BroadcastTxSyncResponse, SubscriptionEvent } from '@beatoz/web3-types';
 import { Web3 } from '@beatoz/web3';
-import { numberToHex } from '@beatoz/web3-utils';
 
 const RECIPIENT = '0x0000000000000000000000000000000000000001';
 
@@ -52,7 +51,7 @@ describe('transfer test', () => {
 
         const res = await erc20Contract.methods
             .transfer(RECIPIENT, '1')
-            .broadcast({ from: fromAddress(), gas: '250000' });
+            .broadcast({ from: fromAddress(), gas: 250000 });
 
         assertCommitted(res);
         expect(await tokenBalance(erc20Contract, RECIPIENT)).toEqual(before + 1n);
@@ -68,7 +67,7 @@ describe('transfer loop test', () => {
             for (let i = 0; i < iterations; i++) {
                 const res = await erc20Contract.methods
                     .transfer(RECIPIENT, '1000')
-                    .broadcast({ from: fromAddress(), gas: '300000', sendMode: 'commit' });
+                    .broadcast({ from: fromAddress(), gas: 300000, sendMode: 'commit' });
                 assertCommitted(res);
             }
 
@@ -107,8 +106,8 @@ describe('transfer sync test', () => {
                         .transfer(RECIPIENT, '1000')
                         .broadcast({
                             from: fromAddress(),
-                            gas: '300000',
-                            nonce: numberToHex(nonce++),
+                            gas: 300000,
+                            nonce: nonce++,
                             sendMode: 'sync',
                         });
                     expect(resp.code).toEqual(0);
