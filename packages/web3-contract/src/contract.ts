@@ -305,7 +305,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
                 // original:
                 // send: (options?: PayableTxOptions | NonPayableTxOptions): Web3PromiEvent< FormatType<TransactionReceipt, typeof DEFAULT_RETURN_FORMAT>, SendTransactionEvents<typeof DEFAULT_RETURN_FORMAT>>
                 send: (
-                    options?: PayableTxOptions & BroadcastTxOptions,
+                    options: PayableTxOptions & BroadcastTxOptions,
                 ): Promise<
                     BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse
                 > =>
@@ -317,7 +317,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
                     ),
 
                 broadcast: (
-                    options?: PayableTxOptions & BroadcastTxOptions,
+                    options: PayableTxOptions & BroadcastTxOptions,
                 ): Promise<
                     BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse
                 > =>
@@ -410,7 +410,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         abi: AbiFunctionFragment,
         params: unknown[],
         errorsAbi: AbiErrorFragment[],
-        options?: Options,
+        options: Options,
         contractOptions?: ContractOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse> {
         let modifiedContractOptions = contractOptions ?? this.options;
@@ -438,15 +438,10 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
         const chainId = this.chainId ?? (await this.decideChainId());
         const nonce =
-            options?.nonce ?? Number((await getAccount(this, fromAcct.address)).value.nonce);
+            options.nonce ?? Number((await getAccount(this, fromAcct.address)).value.nonce);
         // The caller's values go to the builder as given, which checks them.
-        let gas = options?.gas;
-        let gasPrice = options?.gasPrice;
-        if (gas === undefined || gasPrice === undefined) {
-            const govParams = (await rule(this)).value;
-            gas = gas ?? Number(govParams.minTrxGas);
-            gasPrice = gasPrice ?? govParams.gasPrice;
-        }
+        const gas = options.gas;
+        const gasPrice = options.gasPrice ?? (await rule(this)).value.gasPrice;
 
         const txProto = TrxProtoBuilder.buildContractTrxProto({
             from: fromAcct.address,
@@ -454,7 +449,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             nonce,
             gas,
             gasPrice,
-            amount: options?.value ?? '0',
+            amount: options.value ?? '0',
             // TransactionCall types input as Bytes and the builder takes hex.
             // A string goes through as it always has; bytesToHex would also
             // reject hex without 0x, which the builder accepts.
@@ -465,7 +460,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
         fromAcct.signTransaction(txProto, chainId);
 
-        if (!isNullish(options) && 'sendMode' in options) {
+        if (options.sendMode !== undefined) {
             if (options.sendMode === 'sync') {
                 return broadcastTxSync(this, txProto);
             } else if (options.sendMode === 'async') {
@@ -501,8 +496,10 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
     /**
      * Deploys the contract: `deploy({ bytecode, args }).send({ from })`. The
-     * account of `from` must be in the wallet; the chain id is filled in, the
-     * gas is the node's estimate and the gas price the chain's unless given.
+     * account of `from` must be in the wallet and `gas` is required; the chain
+     * id is filled in, and the gas price is the chain's unless given. A dry
+     * run first throws, without sending, if the constructor reverts or `gas`
+     * is below what the deploy uses.
      * Resolves once the transaction is in a block, with the new contract's
      * address and a `Contract` at it; throws if the deploy failed.
      */
@@ -538,22 +535,28 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         const chainId = this.chainId ?? (await this.decideChainId());
         const nonce = Number((await getAccount(this, account.address)).value.nonce);
         const gasPrice = options.gasPrice ?? (await rule(this)).value.gasPrice;
-        let gas = options.gas;
-        if (gas === undefined) {
-            const estimate = await vmEstimateGas(this, account.address, ZERO_ADDRESS, data);
-            if (estimate.value.vmErr !== undefined) {
-                throw revertedError('constructor', this._errorsInterface, estimate.value, [
-                    `Deployer: ${account.address}`,
-                ]);
-            }
-            gas = Number(estimate.value.usedGas);
+
+        // A dry run before paying for the deploy. It does not set the gas: the
+        // node runs it once and reports the gas used, which can be less than
+        // the limit the deploy needs. It does catch a deploy that cannot work.
+        const dryRun = await vmEstimateGas(this, account.address, ZERO_ADDRESS, data);
+        if (dryRun.value.vmErr !== undefined) {
+            throw revertedError('constructor', this._errorsInterface, dryRun.value, [
+                `Deployer: ${account.address}`,
+            ]);
+        }
+        const usedGas = Number(dryRun.value.usedGas);
+        if (options.gas < usedGas) {
+            throw new InvalidInputError(
+                `gas must be at least ${usedGas} for this deploy, got ${options.gas}`,
+            );
         }
 
         const tx = TrxProtoBuilder.buildContractTrxProto({
             from: account.address,
             to: ZERO_ADDRESS,
             nonce,
-            gas,
+            gas: options.gas,
             gasPrice,
             amount: '0',
             payload: { data },

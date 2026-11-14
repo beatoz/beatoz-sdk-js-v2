@@ -15,9 +15,13 @@
 */
 import erc20Json from '../fixtures/erc20-abi.json';
 import rep20Json from '../fixtures/REP20.json';
-import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
+import { closeProvider, DEPLOY_GAS, deployTestToken, netInfo } from './e2e_utils';
 import { Web3 } from '@beatoz/web3';
-import { ContractFunctionRevertedError, ContractFunctionZeroDataError } from '@beatoz/web3-errors';
+import {
+    ContractFunctionRevertedError,
+    ContractFunctionZeroDataError,
+    InvalidInputError,
+} from '@beatoz/web3-errors';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 // An address with no balance and no code.
@@ -39,7 +43,7 @@ describe('contract errors', () => {
         ({ address: token } = await deployTestToken(web3));
         ({ address: rep20 } = await new web3.beatoz.Contract(rep20Json.abi)
             .deploy({ bytecode: rep20Json.bytecode, args: ['Rep', 'REP'] })
-            .send({ from: netInfo.ACCTS[0].ADDR }));
+            .send({ from: netInfo.ACCTS[0].ADDR, gas: DEPLOY_GAS }));
     });
 
     afterAll(() => closeProvider(web3));
@@ -83,5 +87,35 @@ describe('contract errors', () => {
         const err = await errorFrom(contract.methods.decimals().call());
 
         expect(err).toBeInstanceOf(ContractFunctionZeroDataError);
+    });
+
+    const nonceOf = async (address: string) => (await web3.beatoz.getAccount(address)).value.nonce;
+
+    // Creation code that reverts: PUSH1 0, PUSH1 0, REVERT.
+    it('throws a reverting constructor without sending the deploy', async () => {
+        const before = await nonceOf(netInfo.ACCTS[0].ADDR);
+        const err = await errorFrom(
+            new web3.beatoz.Contract([])
+                .deploy({ bytecode: '0x60006000fd' })
+                .send({ from: netInfo.ACCTS[0].ADDR, gas: DEPLOY_GAS }),
+        );
+
+        expect(err).toBeInstanceOf(ContractFunctionRevertedError);
+        expect(await nonceOf(netInfo.ACCTS[0].ADDR)).toEqual(before);
+    });
+
+    it('throws a deploy gas below what the deploy uses without sending it', async () => {
+        const before = await nonceOf(netInfo.ACCTS[0].ADDR);
+        const err = await errorFrom(
+            new web3.beatoz.Contract(rep20Json.abi)
+                .deploy({ bytecode: rep20Json.bytecode, args: ['Rep', 'REP'] })
+                .send({ from: netInfo.ACCTS[0].ADDR, gas: 30000 }),
+        );
+
+        expect(err).toBeInstanceOf(InvalidInputError);
+        expect((err as InvalidInputError).message).toMatch(
+            /gas must be at least \d+ for this deploy, got 30000/,
+        );
+        expect(await nonceOf(netInfo.ACCTS[0].ADDR)).toEqual(before);
     });
 });

@@ -20,7 +20,9 @@ entries below name the packages they apply to.
   `nonce` as numbers and `gasPrice` as a decimal string, passed through
   unchanged instead of through `Number()` (10^21 became `1e+21`, values past
   2^53 were rounded). A payable method's `broadcast()` sends `value`; it
-  always sent zero. `call()` and `estimateGas()` take only `from`.
+  always sent zero. `call()` and `estimateGas()` take only `from`. `gas` is
+  required by `broadcast()` and `deploy().send()` (#127): the default was
+  below the EVM's intrinsic gas, and the node's estimate is not a limit.
   `maxFeePerGas`, `maxPriorityFeePerGas` and `type` are gone, and so are
   `NonPayableCallOptions`, `PayableCallOptions` and `ContractInitOptions`
   from `@beatoz/web3-types`.

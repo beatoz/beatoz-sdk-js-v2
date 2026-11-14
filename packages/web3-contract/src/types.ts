@@ -43,8 +43,12 @@ export interface NonPayableTxOptions {
     from?: Address;
     /** Left out, the sender's nonce on the chain. */
     nonce?: number;
-    /** The gas limit. Left out, the chain's minimum transaction gas. */
-    gas?: number;
+    /**
+     * The gas limit. Required: the fee is the gas the call uses, so a
+     * generous limit costs nothing more. `estimateGas()` gives a starting
+     * point, without the value and with no margin.
+     */
+    gas: number;
     /** The gas price in wei, as a decimal string. Left out, the chain's. */
     gasPrice?: string;
 }
@@ -63,8 +67,8 @@ export type BroadcastTxOptions = {
 export interface DeployOptions {
     /** The deployer; its account must be in the wallet. */
     from: Address;
-    /** The gas limit. Left out, the node's estimate for this deploy. */
-    gas?: number;
+    /** The gas limit. Required, as for a method's `broadcast()`. */
+    gas: number;
     /** The gas price in wei, as a decimal string. Left out, the chain's. */
     gasPrice?: string;
 }
@@ -130,11 +134,11 @@ export interface NonPayableMethodObject<Inputs = unknown[], Outputs = unknown[]>
     //     SendTransactionEvents<typeof DEFAULT_RETURN_FORMAT>
     // >;
     send(
-        tx?: NonPayableTxOptions & BroadcastTxOptions,
+        tx: NonPayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
     broadcast(
-        tx?: NonPayableTxOptions & BroadcastTxOptions,
+        tx: NonPayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
     /** The node's gas estimate for the call (`value.usedGas`). */
@@ -165,11 +169,11 @@ export interface PayableMethodObject<Inputs = unknown[], Outputs = unknown[]> {
     //     SendTransactionEvents<typeof DEFAULT_RETURN_FORMAT>
     // >;
     send(
-        tx?: PayableTxOptions & BroadcastTxOptions,
+        tx: PayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
     broadcast(
-        tx?: PayableTxOptions & BroadcastTxOptions,
+        tx: PayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
     /** The node's gas estimate for the call (`value.usedGas`). */
