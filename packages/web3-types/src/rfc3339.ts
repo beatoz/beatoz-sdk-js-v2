@@ -15,6 +15,7 @@
 */
 
 import { ReadonlyDate } from 'readonly-date';
+import { formatValue, InvalidResponseError } from '@beatoz/web3-errors';
 
 const rfc3339Matcher =
     /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(\.\d{1,9})?((?:[+-]\d{2}:\d{2})|Z)$/;
@@ -26,7 +27,9 @@ function padded(integer: number, length = 2): string {
 export function fromRfc3339(str: string): Date {
     const matches = rfc3339Matcher.exec(str);
     if (!matches) {
-        throw new Error('Date string is not in RFC3339 format');
+        throw new InvalidResponseError(
+            `a time in the response must be RFC 3339, got ${formatValue(str)}`,
+        );
     }
 
     const year = +matches[1];

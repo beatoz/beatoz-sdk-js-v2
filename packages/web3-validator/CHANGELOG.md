@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Invalid hex and tuple types without components throw
+  `InvalidInputError` (#100). `isHexPrefixed` and `validateNoLeadingZeroes`,
+  which nothing used, are gone.
+
 - **BREAKING:** `Web3ValidatorError` extends `InvalidInputError` from
   `@beatoz/web3-errors` (#100); it has no `code`, and its error lines are in
   `metaMessages` (the message has a blank line after its first line). Other

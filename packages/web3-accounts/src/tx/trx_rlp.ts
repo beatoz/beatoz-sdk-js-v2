@@ -14,6 +14,7 @@
     limitations under the License.
 */
 
+import { InvalidInputError } from '@beatoz/web3-errors';
 import { TrxProto } from '@beatoz/web3-types';
 import { rlp } from 'ethereumjs-util';
 import BN from 'bn.js';
@@ -89,7 +90,9 @@ export const RlpUtils = {
             default:
                 // beatoz-go defines types 1 to 8 and rejects any other as
                 // ErrInvalidTrxPayloadType, so there is nothing valid to sign.
-                throw Error(`unknown transaction type ${trx.type}; the chain accepts types 1 to 8`);
+                throw new InvalidInputError(
+                    `transaction type must be 1 to 8, the types the chain accepts, got ${trx.type}`,
+                );
         }
         return rlp.encode([
             trx.version,

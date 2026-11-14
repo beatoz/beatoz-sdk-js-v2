@@ -92,14 +92,19 @@ export class HttpRequestError extends BaseError {
     }
 }
 
-/** The node's answer is not a JSON-RPC response the SDK can read. */
+/**
+ * The node's answer is not what the SDK can read: not a JSON-RPC response,
+ * or a result whose values have the wrong shape.
+ */
 export class InvalidResponseError extends BaseError {
     public override name = 'InvalidResponseError';
-    /** What the node sent. */
-    public readonly response: unknown;
+    /** What the node sent, when the whole answer is at fault. */
+    public readonly response?: unknown;
 
-    public constructor(shortMessage: string, { response }: { response: unknown }) {
-        super(shortMessage, { details: JSON.stringify(response) });
+    public constructor(shortMessage: string, { response }: { response?: unknown } = {}) {
+        super(shortMessage, {
+            details: response === undefined ? undefined : JSON.stringify(response),
+        });
         this.response = response;
     }
 }

@@ -14,6 +14,7 @@
     limitations under the License.
 */
 
+import { InvalidInputError } from '@beatoz/web3-errors';
 import { Web3Account, SignTransactionResult } from './types.js';
 import { PrvKey, PubKey } from './tx/tx_types.js';
 import { HexString, TrxProto, BytesUint8Array } from '@beatoz/web3-types';
@@ -91,11 +92,15 @@ export const signTransactionAsPayer = (
     chainId: string,
 ): SignTransactionResult => {
     if (trxProto.sig.length !== 65) {
-        throw new Error('sign the transaction as its sender before signing it as the payer');
+        throw new InvalidInputError(
+            'the transaction must be signed by its sender before its payer signs it',
+        );
     }
     const payer = new PubKey(privateKeyToPrvKey(privateKey)).toAddress();
     if (Buffer.compare(payer, trxProto.from) === 0) {
-        throw new Error('the payer is the sender; a sender pays its own fee without a payer');
+        throw new InvalidInputError(
+            'the payer must not be the sender; a sender pays its own fee without a payer',
+        );
     }
     trxProto.payer = new Uint8Array(payer);
     trxProto.payerSig = sign(preimage(trxProto, chainId), privateKey);

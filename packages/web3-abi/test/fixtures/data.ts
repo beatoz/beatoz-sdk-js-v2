@@ -184,7 +184,7 @@ export const jsonInterfaceInvalidData: [any, string][] = [
             ],
             outputs: [],
         },
-        'Invalid value given "notTuple". Error: components found but type is not tuple.',
+        'a parameter with components must be a tuple, got type "notTuple"',
     ],
 ];
 

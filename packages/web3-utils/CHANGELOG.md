@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `soliditySha3` and friends refuse an array value without its
+  type with `InvalidInputError` (#100). `hexStringToUint8Array` and the
+  unused `storage.ts`, with the `node-localstorage` dependency, are gone.
+
 - **BREAKING:** Invalid input throws `InvalidInputError` from
   `@beatoz/web3-errors` (#100) instead of `InvalidBytesError`,
   `InvalidNumberError`, `InvalidAddressError`, `InvalidUnitError`,

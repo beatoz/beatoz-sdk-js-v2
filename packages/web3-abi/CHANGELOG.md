@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** A parameter with components whose type is not a tuple
+  throws `AbiError` with `a parameter with components must be a tuple, got
+  type ...` (#100).
+
 - **BREAKING:** `AbiError` extends `BaseError` (#100); parameter encoding and
   decoding errors keep the underlying error in `cause` and its message in
   `details`. `decodeContractErrorData`, which only read the never-thrown

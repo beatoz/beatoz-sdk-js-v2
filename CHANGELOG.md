@@ -15,6 +15,24 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- All packages: **BREAKING:** No more plain `Error` (#100, third part; #66).
+  Input the SDK refuses throws `InvalidInputError` (builders, signing,
+  `getContractAddress`, hex, `waitForTx` options, contract arguments and
+  options, `subscribe` without a WebSocket provider), and a node answer whose
+  values have the wrong shape throws `InvalidResponseError`, both with
+  messages that name what was expected and what was given. The builders'
+  four `mandatory argument is missed` errors name the field
+  (`payload.txHash must be set, got undefined`), and a few messages are
+  reworded to the same rule (`gasPrice must fit in 256 bits, got ...`,
+  `transaction type must be 1 to 8, ...`, `hex must be hex digits, got ...`).
+  `Web3ContractError` is gone; what it reported is an `InvalidInputError`.
+  Removed as unused: `web3-types`' internal `Uint32`, `Uint53`, `Uint64`,
+  `encodeString`, `encodeUvarint`, `encodeTime`, `encodeBytes`,
+  `apiToBigInt`, `smallIntToApi`, `assert.ts` and `base64.ts` (with the
+  `bn.js` and `base64-js` dependencies), `web3-utils`' `storage.ts` (with
+  `node-localstorage`) and `hexStringToUint8Array`, and `web3-validator`'s
+  `isHexPrefixed` and `validateNoLeadingZeroes`.
+
 - `@beatoz/web3-contract`: **BREAKING:** A contract call the EVM fails throws (#101, #100). `call()`
   and `estimateGas()` used to return a failed call like a successful one;
   when the node sets `vmErr` they now throw `ContractFunctionRevertedError`,

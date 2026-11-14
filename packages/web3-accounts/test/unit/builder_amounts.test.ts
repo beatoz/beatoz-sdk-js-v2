@@ -74,7 +74,7 @@ const invalid: [unknown, string][] = [
     ['1.5', 'must be a decimal string'],
     [1, 'must be a decimal string'],
     [undefined, 'must be a decimal string'],
-    [(2n ** 256n).toString(), 'does not fit in 256 bits'],
+    [(2n ** 256n).toString(), 'must fit in 256 bits'],
 ];
 
 describe.each(withAmount)('%s amount', (name) => {

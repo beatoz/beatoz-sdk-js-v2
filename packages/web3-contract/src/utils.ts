@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { Web3ContractError } from '@beatoz/web3-errors';
+import { InvalidInputError } from '@beatoz/web3-errors';
 import {
     TransactionForAccessList,
     AbiFunctionFragment,
@@ -47,11 +47,13 @@ export const getSendTxParams = ({
     const deploymentCall = options?.input ?? options?.data ?? contractOptions.input;
 
     if (!deploymentCall && !options?.to && !contractOptions.address) {
-        throw new Web3ContractError('Contract address not specified');
+        throw new InvalidInputError(
+            'the contract address must be set, in the contract or the options',
+        );
     }
 
     if (!options?.from && !contractOptions.from) {
-        throw new Web3ContractError('Contract "from" address not specified');
+        throw new InvalidInputError('from must be set, in the contract or the options');
     }
 
     let txParams = mergeDeep(
@@ -89,7 +91,9 @@ export const getEthTxCallParams = ({
     contractOptions: ContractOptions;
 }): TransactionCall => {
     if (!options?.to && !contractOptions.address) {
-        throw new Web3ContractError('Contract address not specified');
+        throw new InvalidInputError(
+            'the contract address must be set, in the contract or the options',
+        );
     }
 
     let txParams = mergeDeep(
@@ -125,11 +129,13 @@ export const getCreateAccessListParams = ({
     contractOptions: ContractOptions;
 }): TransactionForAccessList => {
     if (!options?.to && !contractOptions.address) {
-        throw new Web3ContractError('Contract address not specified');
+        throw new InvalidInputError(
+            'the contract address must be set, in the contract or the options',
+        );
     }
 
     if (!options?.from && !contractOptions.from) {
-        throw new Web3ContractError('Contract "from" address not specified');
+        throw new InvalidInputError('from must be set, in the contract or the options');
     }
 
     let txParams = mergeDeep(

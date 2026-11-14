@@ -42,7 +42,7 @@ describe('decodeTransaction', () => {
     // beatoz-go rejects every type outside 1-8 as ErrInvalidTrxPayloadType.
     it.each([0, 9, 255, -1])('rejects type %i, which the chain does not define', (type) => {
         expect(() => TrxProtoBuilder.decodeTransaction(encodeWithType(type))).toThrow(
-            `unknown transaction type ${type}; the chain accepts types 1 to 8`,
+            `transaction type must be 1 to 8, the types the chain accepts, got ${type}`,
         );
     });
 });

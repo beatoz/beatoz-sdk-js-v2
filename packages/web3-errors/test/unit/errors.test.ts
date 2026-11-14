@@ -26,7 +26,6 @@ import {
     isRpcErrorObject,
     RpcRequestError,
     TimeoutError,
-    Web3ContractError,
 } from '../../src';
 
 describe('BaseError', () => {
@@ -69,7 +68,6 @@ describe('BaseError', () => {
         [new InvalidInputError('x'), 'InvalidInputError'],
         [new AbiError('x'), 'AbiError'],
         [new TimeoutError('x'), 'TimeoutError'],
-        [new Web3ContractError('x'), 'Web3ContractError'],
         [new RpcRequestError({ error: { code: 1, message: 'x' } }), 'RpcRequestError'],
         [new HttpRequestError({ url: 'http://n' }), 'HttpRequestError'],
         [new InvalidResponseError('x', { response: {} }), 'InvalidResponseError'],

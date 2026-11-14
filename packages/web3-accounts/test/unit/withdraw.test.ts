@@ -109,13 +109,15 @@ describe('buildWithdrawTrx', () => {
         ['0x10', 'payload.reqAmt'],
         ['1e18', 'payload.reqAmt'],
         ['1.5', 'payload.reqAmt'],
-        [(2n ** 256n).toString(), 'does not fit in 256 bits'],
+        [(2n ** 256n).toString(), 'must fit in 256 bits'],
     ])('rejects reqAmt %j', (reqAmt, message) => {
         expect(() => build(reqAmt)).toThrow(message);
     });
 
     it('rejects a missing payload', () => {
-        expect(() => build('1', { payload: undefined })).toThrow('mandatory argument is missed');
+        expect(() => build('1', { payload: undefined })).toThrow(
+            'payload must be set, got undefined',
+        );
     });
 
     it('rejects a non-zero amount, which the chain refuses', () => {

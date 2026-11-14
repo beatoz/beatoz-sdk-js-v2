@@ -102,7 +102,7 @@ describe('signTrxProto', () => {
     it.each([0, 9, 100, -1])('refuses type %i', (type) => {
         const tx = { ...built[0][1](), type };
         expect(() => TrxProtoBuilder.signTrxProto(tx, account, chainId)).toThrow(
-            `unknown transaction type ${type}; the chain accepts types 1 to 8`,
+            `transaction type must be 1 to 8, the types the chain accepts, got ${type}`,
         );
         expect(tx.sig).toHaveLength(0);
     });
@@ -112,7 +112,7 @@ describe('signTrxProto', () => {
         TrxProtoBuilder.signTrxProto(tx, account, chainId);
         tx.type = 9;
         expect(() => TrxProtoBuilder.verifyTrxProto(tx, account, chainId)).toThrow(
-            'unknown transaction type 9',
+            'transaction type must be 1 to 8, the types the chain accepts, got 9',
         );
     });
 });

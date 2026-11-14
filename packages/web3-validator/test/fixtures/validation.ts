@@ -271,10 +271,6 @@ export const isHexString32BytesData: any[] = [
     { in: [{}, true], out: false },
     { in: [{}, false], out: false },
 ];
-export const isHexPrefixedData: any[] = [
-    { in: '0x0000000000000000000000000000000000000000000000000000000000000001', out: true },
-    { in: '0000000000000000000000000000000000000000000000000000000000000001', out: false },
-];
 export const validStringNumbersWithHex: [string, string][] = [
     ['72', '0x48'],
     ['4668', '0x123c'],
