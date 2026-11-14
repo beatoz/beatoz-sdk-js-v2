@@ -38,7 +38,7 @@ export const bytesToHexInvalidData: [any, string][] = [
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
     [null, 'value at "/0" must pass "bytes" validation'],
-    [undefined, 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [undefined, 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [{}, 'value "[object Object]" at "/0" must pass "bytes" validation'],
     ['1', 'value "1" at "/0" must pass "bytes" validation'],
     ['0', 'value "0" at "/0" must pass "bytes" validation'],
@@ -66,8 +66,8 @@ export const hexToBytesInvalidData: [any, string][] = [
     [['string'], 'value "string" at "/0" must pass "bytes" validation'],
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
-    [null, 'Web3 validator found 1 error[s]:\nvalue at "/0" must pass "bytes" validation'],
-    [undefined, 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [null, 'Web3 validator found 1 error[s]:\n\nvalue at "/0" must pass "bytes" validation'],
+    [undefined, 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [{}, 'value "[object Object]" at "/0" must pass "bytes" validation'],
 ];
 
@@ -108,7 +108,7 @@ export const numberToHexInvalidData: [any, string][] = [
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
     [null, 'value at "/0" must pass "int" validation'],
-    [undefined, 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [undefined, 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [{}, 'value "[object Object]" at "/0" must pass "int" validation'],
 ];
 
@@ -153,7 +153,7 @@ export const utf8ToHexInvalidData: [any, string][] = [
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
     [null, 'value at "/0" must pass "string" validation'],
-    [undefined, 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [undefined, 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [{}, 'value "[object Object]" at "/0" must pass "string" validation'],
     [true, 'value "true" at "/0" must pass "string" validation'],
     [false, 'value "false" at "/0" must pass "string" validation'],
@@ -184,7 +184,7 @@ export const hexToUtf8InvalidData: [any, string][] = [
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
     [null, 'value at "/0" must pass "bytes" validation'],
-    [undefined, 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [undefined, 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [{}, 'value "[object Object]" at "/0" must pass "bytes" validation'],
     [true, 'value "true" at "/0" must pass "bytes" validation'],
 ];
@@ -236,7 +236,7 @@ export const toHexValidData: [Numbers | Bytes | Address | boolean, [HexString, V
 ];
 
 export const toHexInvalidData: [any, string][] = [
-    [undefined, 'Invalid value given "undefined". Error: can not be converted to hex.'],
+    [undefined, 'value cannot be converted to hex, got undefined'],
 ];
 
 const conversionBaseData: [[Numbers, BeatozUnits], string][] = [
@@ -281,24 +281,30 @@ export const toWeiValidData: [[Numbers, BeatozUnits], string][] = [
 
 export const fromWeiInvalidData: [[any, any], string][] = [
     // eslint-disable-next-line no-useless-escape
-    [['123.34', 'kwei'], 'Invalid value given "123.34". Error: can not parse as number data.'],
+    [['123.34', 'kwei'], 'value must be a number, a bigint or a numeric string, got "123.34"'],
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
-    [[null, 'kwei'], 'Invalid value given "undefined". Error: can not parse as number data.'],
-    [[undefined, 'kwei'], 'Invalid value given "undefined". Error: can not parse as number data.'],
-    [[{}, 'kwei'], 'Invalid value given "{}". Error: can not parse as number data'],
-    [['data', 'kwei'], 'Invalid value given "data". Error: can not parse as number data.'],
-    [['1234', 'uwei'], 'Invalid value given "uwei". Error: invalid unit.'],
+    [[null, 'kwei'], 'value must be a number, a bigint or a numeric string, got null'],
+    [[undefined, 'kwei'], 'value must be a number, a bigint or a numeric string, got undefined'],
+    [[{}, 'kwei'], 'value must be a number, a bigint or a numeric string, got {}'],
+    [['data', 'kwei'], 'value must be a number, a bigint or a numeric string, got "data"'],
+    [
+        ['1234', 'uwei'],
+        'unit must be one of nobeatoz, wei, kwei, mwei, gwei, szabo, finney, beatoz, kbeatoz, grand, mbeatoz, gbeatoz, tbeatoz, got "uwei"',
+    ],
 ];
 
 export const toWeiInvalidData: [[any, any], string][] = [
     // Using "null" value intentionally for validation
     // eslint-disable-next-line unicorn/no-null
     [[null, 'kwei'], 'value at "/0" must pass "number" validation'],
-    [[undefined, 'kwei'], 'Web3 validator found 1 error[s]:\nvalue at "/0" is required'],
+    [[undefined, 'kwei'], 'Web3 validator found 1 error[s]:\n\nvalue at "/0" is required'],
     [[{}, 'kwei'], 'value "[object Object]" at "/0" must pass "number" validation'],
     [['data', 'kwei'], 'value "data" at "/0" must pass "number" validation'],
-    [['1234', 'uwei'], 'Invalid value given "uwei". Error: invalid unit.'],
+    [
+        ['1234', 'uwei'],
+        'unit must be one of nobeatoz, wei, kwei, mwei, gwei, szabo, finney, beatoz, kbeatoz, grand, mbeatoz, gbeatoz, tbeatoz, got "uwei"',
+    ],
 ];
 
 // Every unit name, in the order the map defines them. Nothing else is a unit.
@@ -323,7 +329,7 @@ export const toCheckSumValidData: [string, string][] = [
     ['0xa54D3c09E34aC96807c1CC397404bF2B98DC4eFb', '0xa54d3c09E34aC96807c1CC397404bF2B98DC4eFb'],
 ];
 export const toCheckSumInvalidData: [string, string][] = [
-    ['not an address', 'Invalid value given "not an address". Error: invalid beatoz chain address.'],
+    ['not an address', 'address must be 20 bytes of hex, got "not an address"'],
 ];
 
 export const bytesToUint8ArrayInvalidData: [any, string][] = bytesToHexInvalidData;
@@ -347,7 +353,7 @@ export const toBigIntValidData: [any, bigint][] = [
 ];
 
 export const toBigIntInvalidData: [any, string][] = [
-    [new Uint8Array([]), 'can not parse as number data'],
-    ['wwwww', ' Error: can not parse as number data'],
-    ['zzzzee0xiiuu', ' Error: can not parse as number data'],
+    [new Uint8Array([]), 'value must be a number, a bigint or a numeric string, got Uint8Array(0)'],
+    ['wwwww', 'value must be a number, a bigint or a numeric string, got "wwwww"'],
+    ['zzzzee0xiiuu', 'value must be a number, a bigint or a numeric string, got "zzzzee0xiiuu"'],
 ];

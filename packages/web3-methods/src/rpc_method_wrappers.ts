@@ -25,7 +25,7 @@ import { Web3Context } from '@beatoz/web3-core';
 import { rpcMethods } from '@beatoz/web3-rpc';
 import { TrxProto } from '@beatoz/web3-types';
 import { Stream } from 'xstream';
-import { OperationTimeoutError } from '@beatoz/web3-errors';
+import { TimeoutError } from '@beatoz/web3-errors';
 import { WaitForTxOptions } from './types.js';
 
 export async function call(
@@ -127,9 +127,10 @@ export async function tx(web3Context: Web3Context, hash: string | Uint8Array) {
 // rpc/core Tx returns fmt.Errorf("tx (%X) not found", hash).
 const TX_NOT_FOUND = /^tx \([0-9A-F]*\) not found$/;
 
-// Matched on the shape of the error, not instanceof ResponseError: a project
-// that ends up with two copies of @beatoz/web3-errors has two ResponseError
-// classes, and the check would then fail for the very error it is for.
+// Matched on the shape of the error, not instanceof RpcRequestError: a
+// project that ends up with two copies of @beatoz/web3-errors has two
+// RpcRequestError classes, and the check would then fail for the very error
+// it is for.
 const isTxNotFound = (err: unknown): err is Error & { data: string } =>
     err instanceof Error &&
     'data' in err &&
@@ -158,7 +159,7 @@ const beforeDeadline = <T>(promise: Promise<T>, deadline: number): Promise<T | u
  * it up until it is found, retrying only on that answer: any other error,
  * such as a node with indexing disabled, is thrown at once. A transaction the
  * node never accepted is never found. After `timeoutMs` it throws an
- * OperationTimeoutError, also when a lookup is still unanswered then.
+ * TimeoutError, also when a lookup is still unanswered then.
  *
  * Being indexed is not success: the returned `tx_result.code` is 0 only when
  * the transaction succeeded.
@@ -209,11 +210,11 @@ export async function waitForTx(
     }
 
     const hex = typeof hash === 'string' ? hash : new BytesUint8Array(hash).toHex();
-    throw new OperationTimeoutError(
+    throw new TimeoutError(
         notFound
             ? `transaction ${hex} was not indexed within ${timeoutMs}ms; the node may never have accepted it`
             : `transaction ${hex} was not looked up within ${timeoutMs}ms; the node did not answer`,
-        notFound,
+        { cause: notFound },
     );
 }
 

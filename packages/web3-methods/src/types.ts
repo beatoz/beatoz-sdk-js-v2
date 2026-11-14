@@ -14,37 +14,6 @@
     limitations under the License.
 */
 
-import { ContractExecutionError, InvalidResponseError } from '@beatoz/web3-errors';
-
-import {
-    FormatType,
-    DataFormat,
-    Bytes,
-    Numbers,
-    Transaction,
-    TransactionReceipt,
-    FMT_NUMBER,
-    FMT_BYTES,
-} from '@beatoz/web3-types';
-
-export declare const ETH_DATA_FORMAT: {
-    readonly number: FMT_NUMBER.HEX;
-    readonly bytes: FMT_BYTES.HEX;
-};
-
-export type SendTransactionEvents<ReturnFormat extends DataFormat> = {
-    sending: FormatType<Transaction, typeof ETH_DATA_FORMAT>;
-    sent: FormatType<Transaction, typeof ETH_DATA_FORMAT>;
-    transactionHash: FormatType<Bytes, ReturnFormat>;
-    receipt: FormatType<TransactionReceipt, ReturnFormat>;
-    confirmation: {
-        confirmations: FormatType<Numbers, ReturnFormat>;
-        receipt: FormatType<TransactionReceipt, ReturnFormat>;
-        latestBlockHash: FormatType<Bytes, ReturnFormat>;
-    };
-    error: InvalidResponseError | ContractExecutionError;
-};
-
 export interface WaitForTxOptions {
     /** How long to wait for the node to index the transaction. Default 30000. */
     timeoutMs?: number;

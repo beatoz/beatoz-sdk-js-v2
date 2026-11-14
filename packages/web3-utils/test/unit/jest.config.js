@@ -18,7 +18,6 @@ const base = require('../config/jest.config');
 module.exports = {
     ...base,
     testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
-    // testMatch: ['<rootDir>/test/unit/**/chunk_response_parser.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/converters.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/formatter.(spec|test).(js|ts)'],
     // testMatch: ['<rootDir>/test/unit/**/hash.(spec|test).(js|ts)'],

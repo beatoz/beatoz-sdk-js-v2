@@ -14,7 +14,7 @@
     limitations under the License.
 */
 import { Web3Context } from '@beatoz/web3-core';
-import { OperationTimeoutError, ResponseError } from '@beatoz/web3-errors';
+import { RpcRequestError, TimeoutError } from '@beatoz/web3-errors';
 import { waitForTx } from '../../src/rpc_method_wrappers';
 
 const HASH = 'ab'.repeat(32);
@@ -22,14 +22,13 @@ const HASH = 'ab'.repeat(32);
 // What the node answers, through the request manager, for a hash it has not
 // indexed: Tendermint's rpc/core Tx returns `tx (%X) not found`.
 const notFound = () =>
-    new ResponseError({
-        jsonrpc: '2.0',
-        id: 1,
+    new RpcRequestError({
         error: {
             code: -32603,
             message: 'Internal error',
             data: `tx (${HASH.toUpperCase()}) not found`,
         },
+        method: 'tx',
     });
 
 const indexed = {
@@ -54,14 +53,13 @@ describe('waitForTx', () => {
     });
 
     it('throws any other node error at once', async () => {
-        const disabled = new ResponseError({
-            jsonrpc: '2.0',
-            id: 1,
+        const disabled = new RpcRequestError({
             error: {
                 code: -32603,
                 message: 'Internal error',
                 data: 'transaction indexing is disabled',
             },
+            method: 'tx',
         });
         const send = jest.fn().mockRejectedValue(disabled);
 
@@ -86,11 +84,11 @@ describe('waitForTx', () => {
             intervalMs: 10,
         }).catch((e: unknown) => e);
 
-        expect(err).toBeInstanceOf(OperationTimeoutError);
-        expect((err as OperationTimeoutError).message).toContain(
+        expect(err).toBeInstanceOf(TimeoutError);
+        expect((err as TimeoutError).message).toContain(
             `transaction ${HASH} was not indexed within 100ms`,
         );
-        expect((err as OperationTimeoutError).innerError).toBeInstanceOf(ResponseError);
+        expect((err as TimeoutError).cause).toBeInstanceOf(RpcRequestError);
         expect(Date.now() - started).toBeGreaterThanOrEqual(100);
         expect(send.mock.calls.length).toBeGreaterThan(1);
     });
@@ -142,9 +140,9 @@ describe('waitForTx', () => {
             (e: unknown) => e,
         );
 
-        expect(err).toBeInstanceOf(OperationTimeoutError);
-        expect((err as OperationTimeoutError).message).toContain('the node did not answer');
-        expect((err as OperationTimeoutError).innerError).toBeUndefined();
+        expect(err).toBeInstanceOf(TimeoutError);
+        expect((err as TimeoutError).message).toContain('the node did not answer');
+        expect((err as TimeoutError).cause).toBeUndefined();
         expect(Date.now() - started).toBeGreaterThanOrEqual(100);
         expect(Date.now() - started).toBeLessThan(1000);
     });
@@ -160,7 +158,7 @@ describe('waitForTx', () => {
             intervalMs: 10,
         }).catch((e: unknown) => e);
 
-        expect(err).toBeInstanceOf(OperationTimeoutError);
-        expect((err as OperationTimeoutError).innerError).toBeInstanceOf(ResponseError);
+        expect(err).toBeInstanceOf(TimeoutError);
+        expect((err as TimeoutError).cause).toBeInstanceOf(RpcRequestError);
     });
 });

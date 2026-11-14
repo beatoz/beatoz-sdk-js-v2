@@ -41,11 +41,11 @@ let httpProviderInstance = new HttpProvider(clientUrl, httpProviderOptions);
 
 ### Member Functions
 
-1. `request(payload: Web3APIPayload<API, Method>, requestOptions?: RequestInit)`
+1. `request(payload: Web3APIPayload, requestOptions?: RequestInit)`
 
    Sends an HTTP Request based on the provided Web3 API payload and optional request options. 
 
-   If the response is not successful, it throws a `ResponseError`.
+   If the node answers with a JSON-RPC error, it throws an `RpcRequestError` carrying the node's `code` and `data`. If the request fails without a JSON-RPC answer (no connection, or a non-2xx status with another body), it throws an `HttpRequestError` with the `status` and `url`. Both extend `BaseError` from `@beatoz/web3-errors`.
 
    Example Usage:
 

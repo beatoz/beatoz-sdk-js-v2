@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `Web3ContractError` extends `BaseError` from
+  `@beatoz/web3-errors` (#100). The handlers for `ContractExecutionError`,
+  which nothing threw, are gone; a call that reverts becomes an error in the
+  next part of #100 (#101).
+
 - **BREAKING:** Deploying takes one call and resolves with the contract's
   address (#42): `contract.deploy({ bytecode, args }).send({ from })` returns
   `{ address, contract, hash, height }`, where `contract` is a `Contract` at

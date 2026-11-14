@@ -16,15 +16,7 @@
 
 import { keccak256 } from 'ethereum-cryptography/keccak.js';
 import { utf8ToBytes } from 'ethereum-cryptography/utils.js';
-import {
-    InvalidAddressError,
-    InvalidBooleanError,
-    InvalidBytesError,
-    InvalidLargeValueError,
-    InvalidSizeError,
-    InvalidStringError,
-    InvalidUnsignedIntegerError,
-} from '@beatoz/web3-errors';
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import {
     Bytes,
     EncodingTypes,
@@ -227,16 +219,18 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
     const value = val.toString();
     if (type === 'string') {
         if (typeof val === 'string') return utf8ToHex(val);
-        throw new InvalidStringError(val);
+        throw new InvalidInputError(`string value must be a string, got ${formatValue(val)}`);
     }
     if (type === 'bool' || type === 'boolean') {
         if (typeof val === 'boolean') return val ? '01' : '00';
-        throw new InvalidBooleanError(val);
+        throw new InvalidInputError(`bool value must be a boolean, got ${formatValue(val)}`);
     }
 
     if (type === 'address') {
         if (!isAddress(value)) {
-            throw new InvalidAddressError(value);
+            throw new InvalidInputError(
+                `address value must be 20 bytes of hex, got ${formatValue(value)}`,
+            );
         }
         return value;
     }
@@ -245,14 +239,20 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
         const size = parseTypeN(name, 'uint'.length);
 
         if (size % 8 || size < 8 || size > 256) {
-            throw new InvalidSizeError(value);
+            throw new InvalidInputError(
+                `uint size must be a multiple of 8 from 8 to 256, got ${formatValue(type)}`,
+            );
         }
         const num = toNumber(value);
         if (bitLength(num) > size) {
-            throw new InvalidLargeValueError(value);
+            throw new InvalidInputError(
+                `${type} value must fit in ${size} bits, got ${formatValue(value)}`,
+            );
         }
         if (num < BigInt(0)) {
-            throw new InvalidUnsignedIntegerError(value);
+            throw new InvalidInputError(
+                `${type} value must not be negative, got ${formatValue(value)}`,
+            );
         }
 
         return size ? leftPad(num.toString(16), (size / 8) * 2) : num.toString(16);
@@ -261,12 +261,16 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
     if (type.startsWith('int')) {
         const size = parseTypeN(name, 'int'.length);
         if (size % 8 || size < 8 || size > 256) {
-            throw new InvalidSizeError(type);
+            throw new InvalidInputError(
+                `int size must be a multiple of 8 from 8 to 256, got ${formatValue(type)}`,
+            );
         }
 
         const num = toNumber(value);
         if (bitLength(num) > size) {
-            throw new InvalidLargeValueError(value);
+            throw new InvalidInputError(
+                `${type} value must fit in ${size} bits, got ${formatValue(value)}`,
+            );
         }
         if (num < BigInt(0)) {
             return toTwosComplement(num.toString(), (size / 8) * 2);
@@ -276,20 +280,26 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
 
     if (name === 'bytes') {
         if (value.replace(/^0x/i, '').length % 2 !== 0) {
-            throw new InvalidBytesError(value);
+            throw new InvalidInputError(
+                `bytes value must be whole bytes of hex, got ${formatValue(value)}`,
+            );
         }
         return value;
     }
 
     if (type.startsWith('bytes')) {
         if (value.replace(/^0x/i, '').length % 2 !== 0) {
-            throw new InvalidBytesError(value);
+            throw new InvalidInputError(
+                `${type} value must be whole bytes of hex, got ${formatValue(value)}`,
+            );
         }
 
         const size = parseTypeN(type, 'bytes'.length);
 
         if (!size || size < 1 || size > 64 || size < value.replace(/^0x/i, '').length / 2) {
-            throw new InvalidBytesError(value);
+            throw new InvalidInputError(
+                `${type} value must be at most ${size} bytes, got ${formatValue(value)}`,
+            );
         }
 
         return rightPad(value, size * 2);

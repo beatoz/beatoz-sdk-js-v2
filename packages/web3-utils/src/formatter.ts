@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { FormatterError } from '@beatoz/web3-errors';
+import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import { Bytes, DataFormat, FMT_BYTES, FMT_NUMBER, FormatType } from '@beatoz/web3-types';
 import {
     isNullish,
@@ -110,7 +110,9 @@ export const convertScalarValue = (value: unknown, ethType: string, format: Data
                 case FMT_NUMBER.BIGINT:
                     return toBigInt(value);
                 default:
-                    throw new FormatterError(`Invalid format: ${String(format.number)}`);
+                    throw new InvalidInputError(
+                        `format.number must be a FMT_NUMBER, got ${formatValue(format.number)}`,
+                    );
             }
         }
         if (baseType === 'bytes') {
@@ -132,7 +134,9 @@ export const convertScalarValue = (value: unknown, ethType: string, format: Data
                 case FMT_BYTES.UINT8ARRAY:
                     return bytesToUint8Array(paddedValue as Bytes);
                 default:
-                    throw new FormatterError(`Invalid format: ${String(format.bytes)}`);
+                    throw new InvalidInputError(
+                        `format.bytes must be a FMT_BYTES, got ${formatValue(format.bytes)}`,
+                    );
             }
         }
     } catch (_error) {
@@ -297,7 +301,7 @@ export const format = <
     const jsonSchema: JsonSchema = isObject(schema) ? schema : utils.beatozAbiToJsonSchema(schema);
 
     if (!jsonSchema.properties && !jsonSchema.items && !jsonSchema.format) {
-        throw new FormatterError('Invalid json schema for formatting');
+        throw new InvalidInputError('schema must have properties, items or a format to format by');
     }
 
     return convert(dataToParse, jsonSchema, [], returnFormat) as FormatType<

@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { OperationTimeoutError } from '@beatoz/web3-errors';
+import { TimeoutError } from '@beatoz/web3-errors';
 import { Web3DeferredPromiseInterface } from '@beatoz/web3-types';
 
 /**
@@ -138,7 +138,7 @@ export class Web3DeferredPromise<T> implements Promise<T>, Web3DeferredPromiseIn
 
     private _checkTimeout() {
         if (this._state === 'pending' && this._timeoutId) {
-            this.reject(new OperationTimeoutError(this._timeoutMessage));
+            this.reject(new TimeoutError(this._timeoutMessage));
         }
     }
 

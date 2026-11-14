@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import { ResponseError } from '@beatoz/web3-errors';
+import { RpcRequestError } from '@beatoz/web3-errors';
 import WebsocketProvider from '../../../src';
 import { getTestServer, getTestWsServer } from '../e2e_utils';
 import { uuidV4 } from '@beatoz/web3-utils';
@@ -38,15 +38,17 @@ describe('WebsocketProvider errors', () => {
 
     afterAll(() => provider.disconnect());
 
-    it('throws a node error as a ResponseError that keeps its data', async () => {
+    it('throws a node error as an RpcRequestError that keeps its code and data', async () => {
         const err = await errorFrom(provider.request(request()));
 
-        expect(err).toBeInstanceOf(ResponseError);
-        expect((err as ResponseError).data).toEqual(`tx (${'AB'.repeat(32)}) not found`);
+        expect(err).toBeInstanceOf(RpcRequestError);
+        expect((err as RpcRequestError).code).toEqual(-32603);
+        expect((err as RpcRequestError).data).toEqual(`tx (${'AB'.repeat(32)}) not found`);
     });
 
-    // The HTTP provider and the request manager build their ResponseError from
-    // the same JSON-RPC error, so matching the node's raw answer matches them.
+    // The HTTP provider and the request manager build their RpcRequestError
+    // from the same JSON-RPC error, so matching the node's raw answer matches
+    // them.
     it("carries the node's own answer", async () => {
         const raw = await (
             await fetch(getTestServer(), { method: 'POST', body: JSON.stringify(request()) })
@@ -54,7 +56,8 @@ describe('WebsocketProvider errors', () => {
 
         const err = await errorFrom(provider.request(request()));
 
-        expect((err as ResponseError).message).toEqual(`Returned error: ${raw.error.message}`);
-        expect((err as ResponseError).data).toEqual(raw.error.data);
+        expect((err as RpcRequestError).code).toEqual(raw.error.code);
+        expect((err as RpcRequestError).details).toEqual(`${raw.error.message}: ${raw.error.data}`);
+        expect((err as RpcRequestError).data).toEqual(raw.error.data);
     });
 });

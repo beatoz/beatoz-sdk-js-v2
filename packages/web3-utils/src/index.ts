@@ -25,7 +25,6 @@ export * from './promise_helpers.js';
 export * from './json_rpc.js';
 export * as jsonRpc from './json_rpc.js';
 export * from './web3_deferred_promise.js';
-export * from './chunk_response_parser.js';
 export * from './uuid.js';
 export * from './uint8array.js';
 

@@ -14,12 +14,6 @@
     limitations under the License.
 */
 
-export interface Web3Error extends Error {
-    readonly name: string;
-    readonly code: number;
-    readonly stack?: string;
-}
-
 export type Web3ValidationErrorObject<
     K extends string = string,
     P = Record<string, unknown>,

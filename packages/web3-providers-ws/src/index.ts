@@ -29,7 +29,7 @@ import {
 import { ConnectionStatus } from './socket/queueing_streaming_socket.js';
 import { SocketWrapperMessageEvent } from './socket/socket_wrapper.js';
 import { isNullish } from '@beatoz/web3-utils';
-import { ResponseError } from '@beatoz/web3-errors';
+import { isRpcErrorObject, RpcRequestError } from '@beatoz/web3-errors';
 
 class RpcEventProducer implements Producer<SubscriptionEvent> {
     private readonly request: JsonRpcRequest;
@@ -179,10 +179,10 @@ export default class WebsocketProvider {
         this.socket.queueRequest(JSON.stringify(payload));
 
         const response = await pendingResponse;
-        if (isJsonRpcErrorResponse(response)) {
+        if (isJsonRpcErrorResponse(response) && isRpcErrorObject(response.error)) {
             // What the HTTP provider and the request manager throw, so a node
             // error keeps its code and data whichever provider carried it.
-            throw new ResponseError(response);
+            throw new RpcRequestError({ error: response.error, method: payload.method });
         }
         return response as JsonRpcResponseWithResult<unknown>;
     }

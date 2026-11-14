@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `AbiError` extends `BaseError` (#100); parameter encoding and
+  decoding errors keep the underlying error in `cause` and its message in
+  `details`. `decodeContractErrorData`, which only read the never-thrown
+  `ContractExecutionError`, is gone.
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error

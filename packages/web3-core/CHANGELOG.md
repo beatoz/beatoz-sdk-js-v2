@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `Web3RequestManager.send()` throws a node's JSON-RPC error as
+  `RpcRequestError` with the node's `code` and `data` (#71, #100), and an
+  answer with neither a result nor an error as `InvalidResponseError`. It
+  threw `ResponseError`, whose `code` was always 100.
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error

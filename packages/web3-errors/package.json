@@ -47,9 +47,7 @@
     },
     "devDependencies": {
     },
-    "dependencies": {
-        "@beatoz/web3-types": "^1.6.5"
-    },
+    "dependencies": {},
     "peerDependencies": {
         "typescript": ">=5.8"
     },

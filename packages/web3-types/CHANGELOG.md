@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The `Web3Error` interface is gone; SDK errors extend
+  `BaseError` from `@beatoz/web3-errors` (#100).
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error

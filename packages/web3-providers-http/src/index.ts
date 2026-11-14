@@ -21,7 +21,7 @@ import { HttpProviderOptions } from './types.js';
 export { HttpProviderOptions } from './types.js';
 
 import { JsonRpcResponseWithResult, Web3APIPayload } from '@beatoz/web3-types';
-import { ResponseError } from '@beatoz/web3-errors';
+import { HttpRequestError, isRpcErrorObject, RpcRequestError } from '@beatoz/web3-errors';
 
 export default class HttpProvider {
     private readonly clientUrl: string;
@@ -40,19 +40,42 @@ export default class HttpProvider {
             ...requestOptions,
         };
 
-        const response = await fetch(this.clientUrl, {
-            ...providerOptionsCombined,
-            method: 'POST',
-            headers: {
-                ...providerOptionsCombined.headers,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
+        let response: Response;
+        try {
+            response = await fetch(this.clientUrl, {
+                ...providerOptionsCombined,
+                method: 'POST',
+                headers: {
+                    ...providerOptionsCombined.headers,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+        } catch (cause) {
+            throw new HttpRequestError({ url: this.clientUrl, cause });
+        }
 
-        if (!response.ok) throw new ResponseError(await response.json());
-
-        return (await response.json()) as JsonRpcResponseWithResult<unknown>;
+        const text = await response.text();
+        let body: unknown;
+        try {
+            body = JSON.parse(text);
+        } catch {
+            body = undefined;
+        }
+        // The node can answer a JSON-RPC error with a non-2xx status; the
+        // JSON-RPC error says more than the status does.
+        const error = (body as { error?: unknown } | undefined)?.error;
+        if (isRpcErrorObject(error)) {
+            throw new RpcRequestError({ error, method: payload.method });
+        }
+        if (!response.ok || body === undefined) {
+            throw new HttpRequestError({
+                status: response.status,
+                url: this.clientUrl,
+                body: text,
+            });
+        }
+        return body as JsonRpcResponseWithResult<unknown>;
     }
 
     public getClientUrl(): string {

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `request()` throws a JSON-RPC error answer, whatever its HTTP
+  status, as `RpcRequestError` with the node's `code` and `data`, and a
+  request that fails without one (no connection, a non-2xx status with
+  another body, a body that is not JSON) as `HttpRequestError` with `status`
+  and `url` (#100). It threw `ResponseError`, and on a failed status with a
+  body that was not JSON (a proxy's 502 page) a JSON parse error.
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error

@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Rewritten around `BaseError`, shaped like viem's (#100):
+  `shortMessage`, `details`, `cause`, `metaMessages`, `walk()`, and a `name`
+  per kind. The classes are `InvalidInputError`, `AbiError`, `TimeoutError`,
+  `Web3ContractError`, `RpcRequestError` (the node's JSON-RPC `code` and
+  `data`, #71), `HttpRequestError` (`status`, `url`) and
+  `InvalidResponseError` (`response`), plus `isRpcErrorObject` and
+  `formatValue`. Removed: `BaseWeb3Error`, `InvalidValueError`, the `ERR_*`
+  codes, `ResponseError`, `OperationTimeoutError`, `FormatterError`, the
+  `Invalid*Error` classes, `HexProcessingError`, `NibbleWidthError`,
+  `ContractExecutionError` and `Eip838ExecutionError`. No longer depends on
+  `@beatoz/web3-types`.
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error
