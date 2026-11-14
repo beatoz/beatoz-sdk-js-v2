@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   which nothing could set, and the unused `getCreateAccessListParams` and
   `isContractInitOptions`.
 
+- **BREAKING:** `gas` is required by a method's `broadcast()` and by
+  `deploy().send()` (#127). Left out, `broadcast()` used the chain's
+  `minTrxGas`, below the EVM's intrinsic 21000, so every such call was
+  refused; `deploy().send()` used the node's estimate, which runs once with
+  a value of zero and returns the gas used, not the limit the transaction
+  needs. The fee is the gas used, so a generous limit costs nothing more.
+  `deploy().send()` still runs the deploy once before sending: a reverting
+  constructor throws `ContractFunctionRevertedError` as before, and a `gas`
+  below the gas that run used throws `InvalidInputError`, both without
+  sending.
+
 - **BREAKING:** Wrong arguments, a missing address or `from`, and a `from`
   not in the wallet throw `InvalidInputError` instead of `Web3ContractError`
   (#100), with messages like `transfer takes 2 arguments, got 1` and

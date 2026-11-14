@@ -14,7 +14,7 @@
     limitations under the License.
 */
 import vaultJson from '../fixtures/Vault.json';
-import { assertCommitted, closeProvider, netInfo } from './e2e_utils';
+import { assertCommitted, closeProvider, DEPLOY_GAS, netInfo } from './e2e_utils';
 import { Web3 } from '@beatoz/web3';
 import { BroadcastTxCommitResponse } from '@beatoz/web3-types';
 
@@ -22,12 +22,13 @@ describe('broadcast options', () => {
     const web3 = new Web3(netInfo.WS);
     web3.beatoz.accounts.wallet.add(netInfo.ACCTS[0].KEY);
     const from = netInfo.ACCTS[0].ADDR;
+    const gas = 100000;
     let vault: string;
 
     beforeAll(async () => {
         ({ address: vault } = await new web3.beatoz.Contract(vaultJson.abi)
             .deploy({ bytecode: vaultJson.bytecode })
-            .send({ from }));
+            .send({ from, gas: DEPLOY_GAS }));
     });
 
     afterAll(() => closeProvider(web3));
@@ -37,7 +38,7 @@ describe('broadcast options', () => {
         const contract = new web3.beatoz.Contract(vaultJson.abi, vault);
         const before = BigInt((await web3.beatoz.getAccount(vault)).value.balance);
 
-        const res = await contract.methods.deposit().broadcast({ from, value: '1000' });
+        const res = await contract.methods.deposit().broadcast({ from, gas, value: '1000' });
 
         assertCommitted(res as BroadcastTxCommitResponse);
         expect(await contract.methods.deposits(from).call()).toEqual(1000n);
@@ -46,14 +47,16 @@ describe('broadcast options', () => {
     });
 
     // A gas price went through Number() before: 10^21 became '1e+21' and the
-    // builder refused it. Now it reaches the node as given, which refuses it
-    // for the fee the sender cannot pay.
+    // builder refused it. Now it reaches the node as given, and the node is
+    // the one to refuse it.
     it('passes a large gas price through unchanged', async () => {
         const contract = new web3.beatoz.Contract(vaultJson.abi, vault);
 
-        const res = (await contract.methods
-            .deposit()
-            .broadcast({ from, gasPrice: '1000000000000000000000' })) as BroadcastTxCommitResponse;
+        const res = (await contract.methods.deposit().broadcast({
+            from,
+            gas,
+            gasPrice: '1000000000000000000000',
+        })) as BroadcastTxCommitResponse;
 
         expect(res.check_tx.code).not.toEqual(0);
     });

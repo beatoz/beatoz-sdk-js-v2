@@ -33,7 +33,7 @@ describe('contract test', () => {
 
         const { address, contract, hash } = await new web3.beatoz.Contract(tokenJson.abi)
             .deploy({ bytecode: tokenJson.bytecode, args: ['TEST', 'TST'] })
-            .send({ from: account.address });
+            .send({ from: account.address, gas: 10_000_000 });
 
         // The token's constructor mints, so the node's evm event names the
         // contract that logged it: the new one.

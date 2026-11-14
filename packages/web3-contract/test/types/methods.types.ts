@@ -104,18 +104,22 @@ export async function methodTypes() {
 export async function optionTypes() {
     const from = '0x15633e505d01691a71f40049e15ba1340c0eea29';
     await c.methods.noop().broadcast({ from, nonce: 3, gas: 300000, gasPrice: '250000000000' });
-    await c.methods.noop().broadcast({ from, sendMode: 'sync' });
-    await c.methods.deposit().broadcast({ from, value: '1000000000000000000000' });
+    await c.methods.noop().broadcast({ from, gas: 300000, sendMode: 'sync' });
+    await c.methods.deposit().broadcast({ from, gas: 300000, value: '1000000000000000000000' });
+    // @ts-expect-error gas is required
+    await c.methods.noop().broadcast({ from });
+    // @ts-expect-error options are required, for the gas
+    await c.methods.noop().broadcast();
     // @ts-expect-error gas is a number
     await c.methods.noop().broadcast({ from, gas: '300000' });
     // @ts-expect-error gasPrice is a decimal string
     await c.methods.noop().broadcast({ from, gasPrice: 250000000000 });
     // @ts-expect-error nonce is a number
-    await c.methods.noop().broadcast({ from, nonce: '0x3' });
+    await c.methods.noop().broadcast({ from, gas: 300000, nonce: '0x3' });
     // @ts-expect-error a nonpayable function takes no value
-    await c.methods.noop().broadcast({ from, value: '1' });
+    await c.methods.noop().broadcast({ from, gas: 300000, value: '1' });
     // @ts-expect-error the node has no fee market
-    await c.methods.noop().broadcast({ from, maxFeePerGas: '1' });
+    await c.methods.noop().broadcast({ from, gas: 300000, maxFeePerGas: '1' });
     // @ts-expect-error a call runs with only the caller
     await c.methods.noop().call({ from, gas: 300000 });
     // @ts-expect-error an estimate runs with a value of zero
@@ -139,7 +143,7 @@ export async function deployTypes() {
     const t = new Contract(tokenAbi);
     const { address, contract } = await t
         .deploy({ bytecode: '0x00', args: ['Token', from.slice(2)] })
-        .send({ from });
+        .send({ from, gas: 3000000 });
     const bal: bigint = await contract.methods.balanceOf(address).call();
     // @ts-expect-error the constructor takes arguments
     t.deploy({ bytecode: '0x00' });
@@ -148,7 +152,9 @@ export async function deployTypes() {
     // @ts-expect-error too few arguments
     t.deploy({ bytecode: '0x00', args: ['Token'] });
     // @ts-expect-error from is required
-    await t.deploy({ bytecode: '0x00', args: ['Token', from] }).send({});
+    await t.deploy({ bytecode: '0x00', args: ['Token', from] }).send({ gas: 3000000 });
+    // @ts-expect-error gas is required
+    await t.deploy({ bytecode: '0x00', args: ['Token', from] }).send({ from });
     // No constructor: no arguments.
     c.deploy({ bytecode: '0x00' });
     // @ts-expect-error no constructor, so no arguments

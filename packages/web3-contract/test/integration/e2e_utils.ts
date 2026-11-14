@@ -120,6 +120,12 @@ export const netInfo = {
 };
 
 /**
+ * Gas limit for the test deploys. The fee is the gas a deploy uses, so the
+ * limit only needs to be large enough.
+ */
+export const DEPLOY_GAS = 10_000_000;
+
+/**
  * Deploys a fresh ERC20 test token from the first test account and returns
  * where it lives.
  *
@@ -141,7 +147,7 @@ export const deployTestToken = async (
 
     const { address } = await new web3.beatoz.Contract(tokenJson.abi)
         .deploy({ bytecode: tokenJson.bytecode, args: ['BeatozToken', 'RGT'] })
-        .send({ from: deployer.address });
+        .send({ from: deployer.address, gas: DEPLOY_GAS });
     return { address, deployer: deployer.address };
 };
 

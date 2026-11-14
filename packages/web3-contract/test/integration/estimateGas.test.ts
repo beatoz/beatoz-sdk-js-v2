@@ -37,7 +37,6 @@ describe('estimateGas test', () => {
                 const contract = new web3.beatoz.Contract(rep1155Json.abi);
                 contract.setProvider(provider);
 
-                // Gives the gas, so a deploy without the estimate is covered too.
                 const { address: contAddr } = await contract
                     .deploy({
                         bytecode: rep1155Json.bytecode,
