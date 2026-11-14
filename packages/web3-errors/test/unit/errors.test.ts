@@ -25,6 +25,7 @@ import {
     InvalidResponseError,
     isRpcErrorObject,
     RpcRequestError,
+    SocketClosedError,
     TimeoutError,
 } from '../../src';
 
@@ -71,6 +72,7 @@ describe('BaseError', () => {
         [new RpcRequestError({ error: { code: 1, message: 'x' } }), 'RpcRequestError'],
         [new HttpRequestError({ url: 'http://n' }), 'HttpRequestError'],
         [new InvalidResponseError('x', { response: {} }), 'InvalidResponseError'],
+        [new SocketClosedError({ url: 'ws://n' }), 'SocketClosedError'],
     ])('%p is a BaseError named %s', (err, name) => {
         expect(err).toBeInstanceOf(BaseError);
         expect(err).toBeInstanceOf(Error);

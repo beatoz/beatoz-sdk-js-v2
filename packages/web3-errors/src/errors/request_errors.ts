@@ -108,3 +108,21 @@ export class InvalidResponseError extends BaseError {
         this.response = response;
     }
 }
+
+/**
+ * The WebSocket connection closed before a request was answered, or a
+ * subscription ended because it closed. Nothing more will arrive for them;
+ * the provider reconnects for new requests unless it was disconnected.
+ */
+export class SocketClosedError extends BaseError {
+    public override name = 'SocketClosedError';
+    public readonly url?: string;
+
+    public constructor({ url, reason }: { url?: string; reason?: string } = {}) {
+        super('The WebSocket connection closed.', {
+            details: reason,
+            metaMessages: url ? [`URL: ${url}`] : [],
+        });
+        this.url = url;
+    }
+}

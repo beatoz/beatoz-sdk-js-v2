@@ -74,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `SocketClosedError` (`url`), for requests and subscriptions the
+  WebSocket connection closed under (#100).
+
 - `ContractFunctionRevertedError` (`reason`, `errorName`, `args`,
   `signature`, `data`), `ContractFunctionZeroDataError` and
   `TransactionFailedError` (`stage`, `code`, `log`, `hash`), for contract

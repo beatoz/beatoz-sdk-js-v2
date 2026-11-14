@@ -29,18 +29,27 @@ import {
 import { ConnectionStatus } from './socket/queueing_streaming_socket.js';
 import { SocketWrapperMessageEvent } from './socket/socket_wrapper.js';
 import { isNullish } from '@beatoz/web3-utils';
-import { isRpcErrorObject, RpcRequestError } from '@beatoz/web3-errors';
+import {
+    BaseError,
+    InvalidInputError,
+    InvalidResponseError,
+    isRpcErrorObject,
+    RpcRequestError,
+    SocketClosedError,
+} from '@beatoz/web3-errors';
 
 class RpcEventProducer implements Producer<SubscriptionEvent> {
     private readonly request: JsonRpcRequest;
     private readonly socket: ReconnectingSocket;
+    private readonly url: string;
 
     private running = false;
     private subscriptions: Subscription[] = [];
 
-    public constructor(request: JsonRpcRequest, socket: ReconnectingSocket) {
+    public constructor(request: JsonRpcRequest, socket: ReconnectingSocket, url: string) {
         this.request = request;
         this.socket = socket;
+        this.url = url;
     }
 
     /**
@@ -48,7 +57,7 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
      */
     public start(listener: Listener<SubscriptionEvent>): void {
         if (this.running) {
-            throw Error('Already started. Please stop first before restarting.');
+            throw new BaseError('Already started. Please stop first before restarting.');
         }
         this.running = true;
 
@@ -65,15 +74,17 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
      */
     public stop(): void {
         this.running = false;
+        // A stopped producer listens to nothing more; otherwise a later drop
+        // would still end the stream nobody listens to.
+        this.closeSubscriptions();
         // Tell the server we are done in order to save resources. We cannot wait for the result.
         // This may fail when socket connection is not open, thus ignore errors in queueRequest
         const endRequest: JsonRpcRequest = { ...this.request, method: 'unsubscribe' };
         try {
             this.socket.queueRequest(JSON.stringify(endRequest));
         } catch (error) {
-            if (error instanceof Error && error.message.match(/socket has disconnected/i)) {
-                // ignore
-            } else {
+            // After disconnect() there is no server to tell.
+            if (!(error instanceof SocketClosedError)) {
                 throw error;
             }
         }
@@ -89,7 +100,7 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
                 next: (response) => {
                     if (isJsonRpcErrorResponse(response)) {
                         this.closeSubscriptions();
-                        listener.error(JSON.stringify(response.error));
+                        listener.error(this.rpcError(response));
                     }
                     idSubscription.unsubscribe();
                 },
@@ -104,7 +115,7 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
                 next: (response) => {
                     if (isJsonRpcErrorResponse(response)) {
                         this.closeSubscriptions();
-                        listener.error(JSON.stringify(response.error));
+                        listener.error(this.rpcError(response));
                     } else {
                         listener.next(response.result as unknown as SubscriptionEvent);
                     }
@@ -123,7 +134,33 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
             },
         });
 
-        this.subscriptions.push(idSubscription, idEventSubscription, nonResponseSubscription);
+        // The connection dropping ends the subscription: the node forgets it,
+        // and nothing more arrives for it. The current status, which the
+        // stream repeats to a new subscriber, is skipped.
+        const closedSubscription = this.socket.connectionStatus.updates
+            .drop(1)
+            .filter((status) => status === ConnectionStatus.Disconnected)
+            .subscribe({
+                next: () => {
+                    this.closeSubscriptions();
+                    listener.error(new SocketClosedError({ url: this.url }));
+                },
+            });
+
+        this.subscriptions.push(
+            idSubscription,
+            idEventSubscription,
+            nonResponseSubscription,
+            closedSubscription,
+        );
+    }
+
+    private rpcError(response: JsonRpcResponseWithError): BaseError {
+        return isRpcErrorObject(response.error)
+            ? new RpcRequestError({ error: response.error, method: this.request.method })
+            : new InvalidResponseError('The node answered with an error the SDK cannot read.', {
+                  response,
+              });
     }
 
     protected closeSubscriptions(): void {
@@ -148,7 +185,10 @@ export default class WebsocketProvider {
     // map is never cleared and there is no need to do so. But unsubscribe all the subscriptions!
     private readonly subscriptionStreams = new Map<string, Stream<SubscriptionEvent>>();
 
-    public constructor(baseUrl: string, onError: (err: any) => void = defaultErrorHandler) {
+    // Rejecters of the requests waiting for an answer.
+    private readonly pending = new Set<(error: Error) => void>();
+
+    public constructor(baseUrl: string) {
         // accept host.name:port and assume ws protocol
         // make sure we don't end up with ...//websocket
         let cleanUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
@@ -157,12 +197,12 @@ export default class WebsocketProvider {
 
         this.socket = new ReconnectingSocket(this.url);
 
-        const errorSubscription = this.socket.events.subscribe({
-            error: (error) => {
-                onError(error);
-                errorSubscription.unsubscribe();
-            },
-        });
+        // A request sent before the connection dropped is never answered, and
+        // one still queued would go out on the next connection, after its
+        // caller gave up: a broadcast could then land twice. Both fail here.
+        this.socket.connectionStatus.updates
+            .filter((status) => status === ConnectionStatus.Disconnected)
+            .subscribe({ next: () => this.failPending() });
 
         this.jsonRpcResponseStream = this.socket.events.map(toJsonRpcResponse);
 
@@ -174,11 +214,20 @@ export default class WebsocketProvider {
     }
 
     public async execute(payload: Web3APIPayload): Promise<JsonRpcResponseWithResult<unknown>> {
-        const pendingResponse = this.responseForRequestId(payload.id);
-
-        this.socket.queueRequest(JSON.stringify(payload));
-
-        const response = await pendingResponse;
+        const answer = this.answerTo(payload.id);
+        let reject: (error: Error) => void = () => {};
+        const closed = new Promise<never>((_, r) => {
+            reject = r;
+        });
+        this.pending.add(reject);
+        let response: JsonRpcResponse;
+        try {
+            this.socket.queueRequest(JSON.stringify(payload));
+            response = await Promise.race([answer.response, closed]);
+        } finally {
+            this.pending.delete(reject);
+            answer.cancel();
+        }
         if (isJsonRpcErrorResponse(response) && isRpcErrorObject(response.error)) {
             // What the HTTP provider and the request manager throw, so a node
             // error keeps its code and data whichever provider carried it.
@@ -189,15 +238,19 @@ export default class WebsocketProvider {
 
     public listen(request: JsonRpcRequest): Stream<SubscriptionEvent> {
         if (request.method !== 'subscribe') {
-            throw new Error(`Request method must be "subscribe" to start event listening`);
+            throw new InvalidInputError(
+                `request.method must be "subscribe" to listen, got ${JSON.stringify(request.method)}`,
+            );
         }
 
         const query = (request.params as any).query;
         if (typeof query !== 'string') {
-            throw new Error('request.params.query must be a string');
+            throw new InvalidInputError(
+                `request.params.query must be a string, got ${JSON.stringify(query)}`,
+            );
         }
         if (!this.subscriptionStreams.has(query)) {
-            const producer = new RpcEventProducer(request, this.socket);
+            const producer = new RpcEventProducer(request, this.socket, this.url);
             const stream = Stream.create(producer);
             this.subscriptionStreams.set(query, stream);
         }
@@ -219,8 +272,24 @@ export default class WebsocketProvider {
         this.socket.disconnect();
     }
 
-    protected async responseForRequestId(id: JsonRpcId): Promise<JsonRpcResponse> {
-        return firstEvent(this.jsonRpcResponseStream.filter((r) => r.id === id));
+    // The answer to request `id`, and a way to stop waiting for it.
+    private answerTo(id: JsonRpcId): { response: Promise<JsonRpcResponse>; cancel: () => void } {
+        let subscription: Subscription | undefined;
+        const response = new Promise<JsonRpcResponse>((resolve, reject) => {
+            subscription = this.jsonRpcResponseStream
+                .filter((r) => r.id === id)
+                .subscribe({ next: resolve, error: reject });
+        });
+        return { response, cancel: () => subscription?.unsubscribe() };
+    }
+
+    private failPending(): void {
+        this.socket.clearQueue();
+        const error = new SocketClosedError({ url: this.url });
+        for (const reject of this.pending) {
+            reject(error);
+        }
+        this.pending.clear();
     }
 
     public getClientUrl(): string {
@@ -232,14 +301,12 @@ export function hasProtocol(url: string): boolean {
     return url.search('://') !== -1;
 }
 
-function defaultErrorHandler(error: any): never {
-    throw error;
-}
-
 function toJsonRpcResponse(message: SocketWrapperMessageEvent): JsonRpcResponse {
     // this should never happen, but I want an alert if it does
     if (message.type !== 'message') {
-        throw new Error(`Unexcepted message type on websocket: ${message.type}`);
+        throw new InvalidResponseError(
+            `a WebSocket message must be of type "message", got ${JSON.stringify(message.type)}`,
+        );
     }
 
     return parseJsonRpcResponse(JSON.parse(message.data));
@@ -263,11 +330,13 @@ export function parseJsonRpcResponse(data: any): JsonRpcResponse {
 export function parseJsonRpcErrorResponse(data: any): JsonRpcResponseWithError {
     const id = data.id;
     if (typeof id !== 'number' && typeof id !== 'string' && id !== null) {
-        throw new Error('Invalid id field');
+        throw new InvalidResponseError('a JSON-RPC response must have an id', { response: data });
     }
 
     if (typeof data.error === 'undefined' || isNullish(data.error)) {
-        throw new Error('Invalid error field');
+        throw new InvalidResponseError('a JSON-RPC error response must have an error', {
+            response: data,
+        });
     }
 
     return {
@@ -280,11 +349,13 @@ export function parseJsonRpcErrorResponse(data: any): JsonRpcResponseWithError {
 export function parseJsonRpcSuccessResponse(data: any): JsonRpcResponseWithResult {
     const id = data.id;
     if (typeof id !== 'number' && typeof id !== 'string') {
-        throw new Error('Invalid id field');
+        throw new InvalidResponseError('a JSON-RPC response must have an id', { response: data });
     }
 
     if (typeof data.result === 'undefined') {
-        throw new Error('Invalid result field');
+        throw new InvalidResponseError('a JSON-RPC response must have a result or an error', {
+            response: data,
+        });
     }
 
     const result = data.result;
@@ -300,49 +371,6 @@ export function isJsonRpcErrorResponse(
     response: JsonRpcResponse,
 ): response is JsonRpcResponseWithError {
     return typeof (response as JsonRpcResponseWithError).error === 'object';
-}
-
-/**
- * Listens to stream and collects events. When `count` events are collected,
- * the promise resolves with an array of events.
- *
- * Rejects if stream completes before `count` events are collected.
- */
-export async function toListPromise<T>(stream: Stream<T>, count: number): Promise<readonly T[]> {
-    return new Promise<readonly T[]>((resolve, reject) => {
-        if (count === 0) {
-            resolve([]);
-            return;
-        }
-
-        const events = new Array<T>();
-        // take() unsubscribes from source stream automatically
-        stream.take(count).subscribe({
-            next: (event) => {
-                events.push(event);
-
-                if (events.length === count) {
-                    resolve(events);
-                }
-            },
-            complete: () => {
-                reject(
-                    `Stream completed before all events could be collected. ` +
-                        `Collected ${events.length}, expected ${count}`,
-                );
-            },
-            error: (error) => reject(error),
-        });
-    });
-}
-
-/**
- * Listens to stream, collects one event and revolves.
- *
- * Rejects if stream completes before one event was fired.
- */
-export async function firstEvent<T>(stream: Stream<T>): Promise<T> {
-    return (await toListPromise(stream, 1))[0];
 }
 
 export { WebsocketProvider };

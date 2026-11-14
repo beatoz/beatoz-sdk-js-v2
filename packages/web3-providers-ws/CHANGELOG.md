@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** A dropped connection reaches the caller (#100, last part).
+  A request waiting for its answer, or queued and not yet sent, fails with
+  `SocketClosedError` (`url`) when the connection drops, instead of waiting
+  forever; the queued ones are not sent on the next connection, so a
+  broadcast the caller saw fail cannot land later. A subscription ends with
+  `SocketClosedError` when the connection drops, and with `RpcRequestError`
+  (the node's `code` and `data`) when the node answers it with an error, not
+  a JSON string. A request after `disconnect()` fails with
+  `SocketClosedError`. The constructor's `onError` argument, which was never
+  called, is gone, as are `toListPromise` and `firstEvent`, which nothing
+  used. Malformed answers throw `InvalidResponseError`, `listen` with a wrong
+  request `InvalidInputError`, and the socket's internal errors `BaseError`.
+
 - **BREAKING:** `request()` and `execute()` throw a node's JSON-RPC error as
   `RpcRequestError` with its `code` and `data` (#71, #100), not
   `ResponseError`.

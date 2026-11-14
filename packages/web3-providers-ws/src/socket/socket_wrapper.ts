@@ -13,6 +13,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
+import { BaseError } from '@beatoz/web3-errors';
 import WebSocket from 'isomorphic-ws';
 
 function environmentIsNodeJs(): boolean {
@@ -130,7 +132,9 @@ export class Socket_wrapper {
 
             const elapsed = Math.floor(Date.now() - started);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.connectedRejecter!(`Connection attempt timed out after ${elapsed} ms`);
+            this.connectedRejecter!(
+                new BaseError(`Connection attempt timed out after ${elapsed} ms`),
+            );
         }, this.timeout);
 
         this.socket = socket;
@@ -141,7 +145,7 @@ export class Socket_wrapper {
      */
     public disconnect(): void {
         if (!this.socket) {
-            throw new Error('Socket undefined. This must be called after connecting.');
+            throw new BaseError('Socket undefined. This must be called after connecting.');
         }
 
         this.clearTimeout();
@@ -168,24 +172,24 @@ export class Socket_wrapper {
                 // already closing. Let it proceed
                 break;
             default:
-                throw new Error(`Unknown readyState: ${this.socket.readyState}`);
+                throw new BaseError(`Unknown readyState: ${this.socket.readyState}`);
         }
     }
 
     public async send(data: string): Promise<void> {
         return new Promise((resolve, reject) => {
             if (!this.socket) {
-                throw new Error('Socket undefined. This must be called after connecting.');
+                throw new BaseError('Socket undefined. This must be called after connecting.');
             }
 
             if (this.closed) {
-                throw new Error('Socket was closed, so no data can be sent anymore.');
+                throw new BaseError('Socket was closed, so no data can be sent anymore.');
             }
 
             // this exception should be thrown by send() automatically according to
             // https://developer.mozilla.org/de/docs/Web/API/WebSocket#send() but it does not work in browsers
             if (this.socket.readyState !== WebSocket.OPEN) {
-                throw new Error('Websocket is not open');
+                throw new BaseError('Websocket is not open');
             }
 
             if (environmentIsNodeJs()) {
@@ -207,7 +211,7 @@ export class Socket_wrapper {
      */
     private clearTimeout(): void {
         if (!this.timeoutId) {
-            throw new Error(
+            throw new BaseError(
                 'Timeout ID not set. This should not happen and usually means connect() was not called.',
             );
         }
