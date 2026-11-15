@@ -15,70 +15,25 @@
 */
 
 /**
- * Network configuration for integration tests.
- *
- * These tests need a reachable node and funded accounts. This file makes no
- * assumption about where either comes from: everything is read from the
- * environment. See .env.example at the repository root.
- *
- * Values that cannot have a safe default are required rather than guessed.
- * A missing one fails with the name of the variable, instead of surfacing
- * later as a signature or balance error that says nothing about the cause.
- *
- * Nothing is read at import time. An earlier version did
- * `import secrets from '../../../../.secrets.json'` at the top level, so a
- * gitignored file that does not exist after a clone took down every test file
- * that imported it - including tests that never contacted a node.
+ * Helpers for the contract suites in ./contract/. They moved here from
+ * web3-contract, whose tests used Web3 - a package that depends on
+ * web3-contract, not the other way round.
  */
 
-import type { Web3 } from '@beatoz/web3';
-import WebsocketProvider from '@beatoz/web3-providers-ws';
+import type { Web3 } from '../../src';
 import type { BroadcastTxCommitResponse } from '@beatoz/web3-types';
 import tokenJson from '../fixtures/erc20-contract.json';
+import {
+    getTestAccountAddress,
+    getTestAccountPrivateKey,
+    getTestChainId,
+    getTestProposalAccountAddress,
+    getTestProposalAccountPrivateKey,
+    getTestServer,
+    getTestWsServer,
+} from './e2e_utils';
 
-const env = (key: string, fallback: string): string => process.env[key] ?? fallback;
-
-/** Reads a variable that has no safe default. */
-const requireEnv = (key: string): string => {
-    const value = process.env[key];
-    if (value === undefined || value === '') {
-        throw new Error(
-            `${key} is not set. Integration tests need a node and funded accounts; ` +
-                `see .env.example at the repository root.`,
-        );
-    }
-    return value;
-};
-
-const getTestServer = (): string => env('BEATOZ_RPC_URL', 'http://localhost:26657');
-
-const getTestWsServer = (): string => env('BEATOZ_WS_URL', 'ws://localhost:26657/websocket');
-
-/**
- * The chain id that goes into the signing preimage.
- *
- * It must match what the node reports as `node_info.network`. If it does not,
- * the node recomputes the preimage with its own value, gets a different hash,
- * and rejects the transaction as `invalid signature` - which reads as a broken
- * signer rather than a configuration mismatch.
- */
-const getTestChainId = (): string => requireEnv('BEATOZ_CHAIN_ID');
-
-const getTestAccountAddress = (): string => requireEnv('BEATOZ_TEST_ADDRESS');
-
-const getTestAccountPrivateKey = (): string => requireEnv('BEATOZ_TEST_PRIVATE_KEY');
-
-/** A second funded account, for tests that need two distinct signers. */
-const getTestProposalAccountPrivateKey = (): string =>
-    requireEnv('BEATOZ_TEST_PROPOSAL_PRIVATE_KEY');
-
-const getTestAccounts = (): ReadonlyArray<{ address: string; privateKey: string }> => [
-    { address: getTestAccountAddress(), privateKey: getTestAccountPrivateKey() },
-    {
-        address: requireEnv('BEATOZ_TEST_PROPOSAL_ADDRESS'),
-        privateKey: getTestProposalAccountPrivateKey(),
-    },
-];
+export { closeProvider } from './e2e_utils';
 
 /**
  * Compatibility shape for tests that previously destructured a network out of
@@ -99,7 +54,10 @@ export const netInfo = {
         return getTestWsServer();
     },
     get ACCTS(): ReadonlyArray<{ ADDR: string; KEY: string }> {
-        return getTestAccounts().map((a) => ({ ADDR: a.address, KEY: a.privateKey }));
+        return [
+            { ADDR: getTestAccountAddress(), KEY: getTestAccountPrivateKey() },
+            { ADDR: getTestProposalAccountAddress(), KEY: getTestProposalAccountPrivateKey() },
+        ];
     },
 };
 
@@ -133,20 +91,6 @@ export const deployTestToken = async (
         .deploy({ bytecode: tokenJson.bytecode, args: ['BeatozToken', 'RGT'] })
         .send({ from: deployer.address, gas: DEPLOY_GAS });
     return { address, deployer: deployer.address };
-};
-
-/**
- * Closes the WebSocket behind a Web3 instance or contract.
- *
- * An open socket keeps Node's event loop alive, so Jest never exits after the
- * last test and the run hangs instead of finishing. Suites that open one close
- * it in `afterAll`.
- */
-export const closeProvider = (context: { getProvider(): unknown }): void => {
-    const provider = context.getProvider();
-    if (provider instanceof WebsocketProvider) {
-        provider.disconnect();
-    }
 };
 
 /** Initial supply the test token mints to its deployer: 10^9 tokens of 18 decimals. */

@@ -13,33 +13,29 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import { Contract } from '../../src';
-import erc20Json from '../fixtures/erc20-abi.json';
-import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
+import erc20Json from '../../fixtures/erc20-abi.json';
+import { closeProvider, deployTestToken, netInfo } from '../contract_fixtures';
+import { Contract } from '@beatoz/web3-contract';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { Web3 } from '@beatoz/web3';
+import { Web3 } from '../../../src';
 
-describe('abi test', () => {
-    let address: string;
+describe('decimals test', () => {
+    let deployedContract: { address: string; deployer: string };
     beforeAll(async () => {
         const web3 = new Web3(netInfo.WS);
         web3.beatoz.accounts.wallet.add(netInfo.ACCTS[0].KEY);
-        ({ address } = await deployTestToken(web3));
+        deployedContract = await deployTestToken(web3);
         closeProvider(web3);
     });
 
     const provider = new WebsocketProvider(netInfo.WS);
     afterAll(() => provider.disconnect());
 
-    it('calls a deployed contract through an ABI imported from JSON', async () => {
-        const erc20Contract = new Contract(erc20Json, address) as any;
+    it('decimals function', async () => {
+        const erc20Contract = new Contract(erc20Json, deployedContract.address) as any;
         erc20Contract.setProvider(provider);
 
-        const name = await erc20Contract.methods.name().call();
-        const symbol = await erc20Contract.methods.symbol().call();
-
-        // The values deployTestToken passes to the constructor.
-        expect(name).toEqual('BeatozToken');
-        expect(symbol).toEqual('RGT');
+        // uint8 fits a number, so it comes back as one, as in viem.
+        expect(await erc20Contract.methods.decimals().call()).toBe(18);
     });
 });

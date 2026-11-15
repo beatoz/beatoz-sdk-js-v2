@@ -13,13 +13,19 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import erc20Json from '../fixtures/erc20-abi.json';
-import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
-import { Contract } from '../../src';
+import erc20Json from '../../fixtures/erc20-abi.json';
+import {
+    closeProvider,
+    deployTestToken,
+    netInfo,
+    TEST_TOKEN_SUPPLY,
+    tokenBalance,
+} from '../contract_fixtures';
+import { Contract } from '@beatoz/web3-contract';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { Web3 } from '@beatoz/web3';
+import { Web3 } from '../../../src';
 
-describe('decimals test', () => {
+describe('balanceOf test', () => {
     let deployedContract: { address: string; deployer: string };
     beforeAll(async () => {
         const web3 = new Web3(netInfo.WS);
@@ -31,11 +37,16 @@ describe('decimals test', () => {
     const provider = new WebsocketProvider(netInfo.WS);
     afterAll(() => provider.disconnect());
 
-    it('decimals function', async () => {
+    it('balanceOf function', async () => {
         const erc20Contract = new Contract(erc20Json, deployedContract.address) as any;
         erc20Contract.setProvider(provider);
 
-        // uint8 fits a number, so it comes back as one, as in viem.
-        expect(await erc20Contract.methods.decimals().call()).toBe(18);
+        // A fresh token: the deployer holds the whole supply, nobody else holds any.
+        expect(await tokenBalance(erc20Contract, deployedContract.deployer)).toEqual(
+            TEST_TOKEN_SUPPLY,
+        );
+        expect(
+            await tokenBalance(erc20Contract, '0x0000000000000000000000000000000000000001'),
+        ).toEqual(0n);
     });
 });

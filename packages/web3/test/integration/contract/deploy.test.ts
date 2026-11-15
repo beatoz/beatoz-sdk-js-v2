@@ -14,8 +14,8 @@
     limitations under the License.
 */
 
-import { closeProvider, deployTestToken, netInfo } from './e2e_utils';
-import { Web3 } from '@beatoz/web3';
+import { closeProvider, deployTestToken, netInfo } from '../contract_fixtures';
+import { Web3 } from '../../../src';
 import { toChecksumAddress } from '@beatoz/web3-utils';
 
 describe('deploy test', () => {

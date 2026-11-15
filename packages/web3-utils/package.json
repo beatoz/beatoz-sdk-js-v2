@@ -47,7 +47,8 @@
         "test:types": "tsc -p test/tsconfig.json"
     },
     "devDependencies": {
-        "@humeris/espresso-shot": "^4.0.0"
+        "@humeris/espresso-shot": "^4.0.0",
+        "js-sha3": "^0.8.0"
     },
     "dependencies": {
         "@beatoz/web3-errors": "^1.6.5",

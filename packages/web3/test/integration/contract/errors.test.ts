@@ -13,10 +13,10 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import erc20Json from '../fixtures/erc20-abi.json';
-import rep20Json from '../fixtures/REP20.json';
-import { closeProvider, DEPLOY_GAS, deployTestToken, netInfo } from './e2e_utils';
-import { Web3 } from '@beatoz/web3';
+import erc20Json from '../../fixtures/erc20-abi.json';
+import rep20Json from '../../fixtures/REP20.json';
+import { closeProvider, DEPLOY_GAS, deployTestToken, netInfo } from '../contract_fixtures';
+import { Web3 } from '../../../src';
 import {
     ContractFunctionRevertedError,
     ContractFunctionZeroDataError,

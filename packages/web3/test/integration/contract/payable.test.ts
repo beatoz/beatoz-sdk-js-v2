@@ -13,9 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import vaultJson from '../fixtures/Vault.json';
-import { assertCommitted, closeProvider, DEPLOY_GAS, netInfo } from './e2e_utils';
-import { Web3 } from '@beatoz/web3';
+import vaultJson from '../../fixtures/Vault.json';
+import { assertCommitted, closeProvider, DEPLOY_GAS, netInfo } from '../contract_fixtures';
+import { Web3 } from '../../../src';
 import { BroadcastTxCommitResponse } from '@beatoz/web3-types';
 
 describe('broadcast options', () => {

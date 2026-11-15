@@ -44,8 +44,7 @@
         "format": "prettier --write '**/*'",
         "test": "yarn test:types && jest --config=./test/unit/jest.config.js",
         "test:types": "tsc -p test/tsconfig.json",
-        "test:silent": "yarn test:types && jest --silent --config=./test/unit/jest.config.js",
-        "test:integration": "jest --config=./test/integration/jest.config.js"
+        "test:silent": "yarn test:types && jest --silent --config=./test/unit/jest.config.js"
     },
     "devDependencies": {
     },
