@@ -92,6 +92,7 @@ export class Web3DeferredPromise<T> implements Promise<T>, Web3DeferredPromiseIn
      * @returns
      */
     public async catch<TResult>(
+        // As Promise<T>.catch, which this class implements, declares it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onrejected?: (reason: any) => TResult | PromiseLike<TResult>,
     ): Promise<T | TResult> {
