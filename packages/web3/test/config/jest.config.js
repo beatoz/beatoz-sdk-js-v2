@@ -1,7 +1,6 @@
 module.exports = {
 	rootDir: '../..',
 	testMatch: ['<rootDir>/test/**/?(*.)+(spec|test).+(ts|tsx|js)'],
-	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
 	transform: {
 		'^.+\\.(ts|tsx)$': '<rootDir>/../../scripts/jest/babel-transformer.js',
 	},
