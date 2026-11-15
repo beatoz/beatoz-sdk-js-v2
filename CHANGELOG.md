@@ -450,6 +450,17 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-types`: **BREAKING:** The ABI type computation inherited from web3.js is gone (#134):
+  `MatchPrimitiveType`, `PrimitiveStringType`, `PrimitiveBooleanType`,
+  `PrimitiveIntegerType`, `PrimitiveBytesType`, `PrimitiveTupleType`,
+  `ContractMethodInputParameters`, `ContractMethodOutputParameters`,
+  `ContractConstructor`, `ContractConstructorArgs`, `ContractMethod`,
+  `ContractMethods`, `ContractEvent`, `ContractEvents`, `FilterAbis`,
+  `ConvertToNumber`, `JsonFunctionInterface`, `JsonEventInterface`, and
+  `FixedSizeArray` and `GrowToSize`, which only they used. Contract method
+  types have come from abitype since #36 and nothing used these. To type an
+  ABI's arguments or results, use abitype (`AbiParametersToPrimitiveTypes`).
+
 - `@beatoz/web3-types`, `@beatoz/web3-core`, `@beatoz/web3-providers-http`,
   `@beatoz/web3-providers-ws`, `@beatoz/web3-methods`, `@beatoz/web3-contract`:
   **BREAKING:** The API spec types are gone (#37): `BeatozExecutionAPI`,
