@@ -13,6 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
 import { Listener, Producer, Stream } from 'xstream';
 
 import { BaseError, SocketClosedError } from '@beatoz/web3-errors';
@@ -38,10 +39,10 @@ export class ReconnectingSocket {
     private unconnected = true;
     private disconnected = false;
     private timeoutIndex = 0;
-    private reconnectTimeout: NodeJS.Timeout | null = null;
+    private reconnectTimeout: NodeJS.Timeout | undefined;
 
     public constructor(url: string, timeout = 10_000, reconnectedHandler?: () => void) {
-        const eventProducer: Producer<any> = {
+        const eventProducer: Producer<SocketWrapperMessageEvent> = {
             start: (listener) => (this.eventProducerListener = listener),
             stop: () => (this.eventProducerListener = undefined),
         };
@@ -74,7 +75,7 @@ export class ReconnectingSocket {
                 if (status === ConnectionStatus.Disconnected && !this.disconnected) {
                     if (this.reconnectTimeout) {
                         clearTimeout(this.reconnectTimeout);
-                        this.reconnectTimeout = null;
+                        this.reconnectTimeout = undefined;
                     }
                     this.reconnectTimeout = setTimeout(
                         () => this.socket.reconnect(),
@@ -101,7 +102,7 @@ export class ReconnectingSocket {
         this.disconnected = true;
         if (this.reconnectTimeout) {
             clearTimeout(this.reconnectTimeout);
-            this.reconnectTimeout = null;
+            this.reconnectTimeout = undefined;
         }
         this.socket.disconnect();
         if (this.eventProducerListener) {

@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `parseJsonRpcResponse`, `parseJsonRpcErrorResponse` and
+  `parseJsonRpcSuccessResponse` take `unknown` instead of `any`, and the
+  result they return is `unknown` instead of `JsonRpcResult`: they check that
+  a result is there, not what it is, and the node may send `null` (#33). A
+  response that is not an object, `null` included, is refused with
+  `InvalidResponseError`; `null` used to escape as a `TypeError`. An error
+  response whose `id` is `null` is refused too; the node leaves the id out
+  instead.
+
 - **BREAKING:** A dropped connection reaches the caller (#100, last part).
   A request waiting for its answer, or queued and not yet sent, fails with
   `SocketClosedError` (`url`) when the connection drops, instead of waiting

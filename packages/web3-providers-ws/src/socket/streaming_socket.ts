@@ -61,7 +61,7 @@ export class Streaming_socket {
         );
         this.connected = this.socket.connected;
 
-        const eventProducer: Producer<any> = {
+        const eventProducer: Producer<SocketWrapperMessageEvent> = {
             start: (listener) => (this.eventProducerListener = listener),
             stop: () => (this.eventProducerListener = undefined),
         };

@@ -18,6 +18,7 @@ import { ReconnectingSocket } from './socket/reconnecting_socket.js';
 
 import { Listener, Producer, Stream, Subscription } from 'xstream';
 import {
+    JsonRpcError,
     JsonRpcId,
     JsonRpcRequest,
     JsonRpcResponse,
@@ -159,7 +160,7 @@ export default class WebsocketProvider {
     private readonly socket: ReconnectingSocket;
 
     /** Same events as in socket.events but in the format we need */
-    private readonly jsonRpcResponseStream: Stream<JsonRpcResponse>;
+    private readonly jsonRpcResponseStream: Stream<JsonRpcResponse<unknown>>;
 
     // Lazily create streams and use the same stream when listening to the same query twice.
     //
@@ -202,7 +203,7 @@ export default class WebsocketProvider {
             reject = r;
         });
         this.pending.add(reject);
-        let response: JsonRpcResponse;
+        let response: JsonRpcResponse<unknown>;
         try {
             this.socket.queueRequest(JSON.stringify(payload));
             response = await Promise.race([answer.response, closed]);
@@ -225,7 +226,8 @@ export default class WebsocketProvider {
             );
         }
 
-        const query = (request.params as any).query;
+        // listen() types params as an array; the node takes `{ query }` (#146).
+        const query = (request.params as { query?: unknown } | undefined)?.query;
         if (typeof query !== 'string') {
             throw new InvalidInputError(
                 `request.params.query must be a string, got ${JSON.stringify(query)}`,
@@ -236,7 +238,6 @@ export default class WebsocketProvider {
             const stream = Stream.create(producer);
             this.subscriptionStreams.set(query, stream);
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.subscriptionStreams
             .get(query)!
             .filter((response) => response.query !== undefined);
@@ -255,9 +256,12 @@ export default class WebsocketProvider {
     }
 
     // The answer to request `id`, and a way to stop waiting for it.
-    private answerTo(id: JsonRpcId): { response: Promise<JsonRpcResponse>; cancel: () => void } {
+    private answerTo(id: JsonRpcId): {
+        response: Promise<JsonRpcResponse<unknown>>;
+        cancel: () => void;
+    } {
         let subscription: Subscription | undefined;
-        const response = new Promise<JsonRpcResponse>((resolve, reject) => {
+        const response = new Promise<JsonRpcResponse<unknown>>((resolve, reject) => {
             subscription = this.jsonRpcResponseStream
                 .filter((r) => r.id === id)
                 .subscribe({ next: resolve, error: reject });
@@ -283,7 +287,7 @@ export function hasProtocol(url: string): boolean {
     return url.search('://') !== -1;
 }
 
-function toJsonRpcResponse(message: SocketWrapperMessageEvent): JsonRpcResponse {
+function toJsonRpcResponse(message: SocketWrapperMessageEvent): JsonRpcResponse<unknown> {
     // this should never happen, but I want an alert if it does
     if (message.type !== 'message') {
         throw new InvalidResponseError(
@@ -298,8 +302,8 @@ function toJsonRpcResponse(message: SocketWrapperMessageEvent): JsonRpcResponse 
  * Returns a JsonRpcErrorResponse if input can be parsed as a JSON-RPC error. Otherwise parses
  * input as JsonRpcResponseWithResult. Throws if input is neither a valid error nor success response.
  */
-export function parseJsonRpcResponse(data: any): JsonRpcResponse {
-    let response: JsonRpcResponse;
+export function parseJsonRpcResponse(data: unknown): JsonRpcResponse<unknown> {
+    let response: JsonRpcResponse<unknown>;
     try {
         response = parseJsonRpcErrorResponse(data);
     } catch (_) {
@@ -308,10 +312,21 @@ export function parseJsonRpcResponse(data: any): JsonRpcResponse {
     return response;
 }
 
+// The fields a JSON-RPC response is read from, none of them checked yet.
+type UncheckedResponse = { id?: unknown; error?: unknown; result?: unknown };
+
+function asResponseObject(data: unknown): UncheckedResponse {
+    if (typeof data !== 'object' || data === null) {
+        throw new InvalidResponseError('a JSON-RPC response must be an object', { response: data });
+    }
+    return data;
+}
+
 /** Throws if data is not a JsonRpcErrorResponse */
-export function parseJsonRpcErrorResponse(data: any): JsonRpcResponseWithError {
+export function parseJsonRpcErrorResponse(input: unknown): JsonRpcResponseWithError {
+    const data = asResponseObject(input);
     const id = data.id;
-    if (typeof id !== 'number' && typeof id !== 'string' && id !== null) {
+    if (typeof id !== 'number' && typeof id !== 'string') {
         throw new InvalidResponseError('a JSON-RPC response must have an id', { response: data });
     }
 
@@ -324,11 +339,13 @@ export function parseJsonRpcErrorResponse(data: any): JsonRpcResponseWithError {
     return {
         jsonrpc: '2.0',
         id: id,
-        error: data.error,
+        // Only checked to be present, as before.
+        error: data.error as JsonRpcError,
     };
 }
 
-export function parseJsonRpcSuccessResponse(data: any): JsonRpcResponseWithResult {
+export function parseJsonRpcSuccessResponse(input: unknown): JsonRpcResponseWithResult<unknown> {
+    const data = asResponseObject(input);
     const id = data.id;
     if (typeof id !== 'number' && typeof id !== 'string') {
         throw new InvalidResponseError('a JSON-RPC response must have an id', { response: data });
@@ -350,7 +367,7 @@ export function parseJsonRpcSuccessResponse(data: any): JsonRpcResponseWithResul
 }
 
 export function isJsonRpcErrorResponse(
-    response: JsonRpcResponse,
+    response: JsonRpcResponse<unknown>,
 ): response is JsonRpcResponseWithError {
     return typeof (response as JsonRpcResponseWithError).error === 'object';
 }

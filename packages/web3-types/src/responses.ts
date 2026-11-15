@@ -13,6 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
 import { ReadonlyDate } from 'readonly-date';
 import { HexString } from './primitives_types.js';
 
@@ -809,8 +810,8 @@ export interface LastCommitInfo {
     readonly votes: string[];
     /** Bitmap representing which validators voted in the last commit */
     readonly votes_bit_array: string;
-    /** Majorities detected by each peer */
-    readonly peer_maj_23s?: {};
+    /** The block each peer claims +2/3 for, keyed by peer id */
+    readonly peer_maj_23s?: Record<string, BlockId>;
 }
 
 export interface DumpConsensusValidators {
@@ -1076,9 +1077,10 @@ export interface RewardResponse {
 /**
  * Represents a governance proposal response.
  */
-export interface ProposalResponse {
-    // Add fields as needed.
-}
+// proposals() never gets a proposal from the node, so there is nothing to
+// type yet; #148 fixes the method and types the answer.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ProposalResponse {}
 
 /**
  * The result of the node's `vm_call` query (beatoz-go `ctrlers/types/vm.go`),

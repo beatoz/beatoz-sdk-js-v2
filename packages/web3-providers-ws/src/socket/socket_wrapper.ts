@@ -55,7 +55,7 @@ export class Socket_wrapper {
     public readonly connected: Promise<void>;
 
     private connectedResolver: (() => void) | undefined;
-    private connectedRejecter: ((reason: any) => void) | undefined;
+    private connectedRejecter: ((reason: Error) => void) | undefined;
     private socket: WebSocket | undefined;
     private timeoutId: NodeJS.Timeout | undefined;
     private closed = false;
@@ -107,7 +107,6 @@ export class Socket_wrapper {
         };
         socket.onopen = (_) => {
             this.clearTimeout();
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.connectedResolver!();
 
             if (this.openHandler) {
@@ -131,7 +130,6 @@ export class Socket_wrapper {
             this.socket = undefined;
 
             const elapsed = Math.floor(Date.now() - started);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.connectedRejecter!(
                 new BaseError(`Connection attempt timed out after ${elapsed} ms`),
             );
