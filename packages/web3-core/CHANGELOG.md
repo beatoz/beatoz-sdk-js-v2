@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `setProvider` and the constructor refuse a string that is not
+  an `http(s)://` or `ws(s)://` URL with `InvalidInputError` (#168). One
+  without a scheme, such as `localhost:26657`, used to leave the previous
+  provider in place with no error, and an empty string was stored as the
+  provider. `undefined` still means no provider.
+
 - **BREAKING:** `subscribe` without a WebSocket provider throws
   `InvalidInputError` (#100).
 

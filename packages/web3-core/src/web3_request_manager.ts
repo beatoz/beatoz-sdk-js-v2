@@ -55,19 +55,20 @@ export class Web3RequestManager extends Web3EventEmitter<{
     }
 
     public setProvider(provider?: HttpProvider | WebsocketProvider | string): void {
-        // autodetect provider
-        if (provider && typeof provider === 'string' && this.providers) {
-            // HTTP
-            if (/^http(s)?:\/\//i.test(provider)) {
-                this._provider = new this.providers.HttpProvider(provider);
-            }
-
-            // WS
-            if (/^ws(s)?:\/\//i.test(provider)) {
-                this._provider = new this.providers.WebsocketProvider(provider);
-            }
+        if (typeof provider !== 'string') {
+            this._provider = provider;
+            return;
+        }
+        // A URL picks the provider by its scheme. Anything else used to leave
+        // the previous provider in place, or store the string itself.
+        if (/^https?:\/\//i.test(provider)) {
+            this._provider = new this.providers.HttpProvider(provider);
+        } else if (/^wss?:\/\//i.test(provider)) {
+            this._provider = new this.providers.WebsocketProvider(provider);
         } else {
-            this._provider = provider as HttpProvider | WebsocketProvider;
+            throw new InvalidInputError(
+                `provider must be an http(s):// or ws(s):// URL, got ${JSON.stringify(provider)}`,
+            );
         }
     }
 
