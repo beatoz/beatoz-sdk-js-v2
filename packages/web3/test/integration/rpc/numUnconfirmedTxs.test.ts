@@ -14,24 +14,30 @@
     limitations under the License.
 */
 import { Web3 } from '../../../src';
-import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { NumUnconfirmedTxsResponse } from '@beatoz/web3-types';
+import { getTestServer, getTestWsServer, closeProvider } from '../e2e_utils';
 
 describe('numUnconfirmedTxs check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.numUnconfirmedTxs() method success return', async () => {
-        const testNumUnconfirmedTxsResponse: NumUnconfirmedTxsResponse =
-            await testWebsocketWeb3Instance.beatoz.numUnconfirmedTxs();
-        expect(testNumUnconfirmedTxsResponse.n_txs).toBeDefined();
-        expect(testNumUnconfirmedTxsResponse.total).toBeDefined();
-        expect(testNumUnconfirmedTxsResponse.total_bytes).toBeDefined();
-        expect(testNumUnconfirmedTxsResponse.txs).toBeDefined();
+    it('reads the mempool size as numbers', async () => {
+        const response = await web3.beatoz.numUnconfirmedTxs();
+
+        // The tests broadcast with commit and run one at a time, so the
+        // mempool does not change between the two calls.
+        const raw = await fetch(`${getTestServer()}/num_unconfirmed_txs`);
+        const { result } = await raw.json();
+
+        expect(response.n_txs).toBe(Number(result.n_txs));
+        expect(response.total).toBe(Number(result.total));
+        expect(response.total_bytes).toBe(Number(result.total_bytes));
+        // Both come from the mempool size (tendermint rpc/core/mempool.go).
+        expect(response.n_txs).toBe(response.total);
+        expect(response.txs).toEqual([]);
     });
 });

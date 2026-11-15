@@ -15,21 +15,31 @@
 */
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { DumpConsensusStateResponse } from '@beatoz/web3-types';
+import { getLatestHeight } from '../chain_fixtures';
 
 describe('dumpConsensusState check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.dumpConsensusState method success return', async () => {
-        const testdumpConsensusStateResponse: DumpConsensusStateResponse =
-            await testWebsocketWeb3Instance.beatoz.dumpConsensusState();
-        expect(testdumpConsensusStateResponse.round_state.height).toBeDefined();
-        expect(testdumpConsensusStateResponse.round_state.round).toBeDefined();
+    it('reports the height being decided and the validator set', async () => {
+        const before = await getLatestHeight(web3);
+        const { round_state } = await web3.beatoz.dumpConsensusState();
+        const after = await getLatestHeight(web3);
+        const { validators } = await web3.beatoz.validators();
+
+        // The node sends the height as a string though it is typed a number
+        // (#38); Number() reads either. It is the block after the last
+        // committed one, or that block itself while it is still being committed.
+        const height = Number(round_state.height);
+        expect(height).toBeGreaterThanOrEqual(before);
+        expect(height).toBeLessThanOrEqual(after + 1);
+        expect(round_state.validators.validators.map((v) => v.address)).toEqual(
+            validators.map((v) => v.address),
+        );
     });
 });

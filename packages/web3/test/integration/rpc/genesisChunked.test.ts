@@ -14,23 +14,26 @@
     limitations under the License.
 */
 import { Web3 } from '../../../src';
-import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { GenesisChunkedResponse } from '@beatoz/web3-types';
+import { getTestServer, getTestWsServer, closeProvider } from '../e2e_utils';
 
 describe('genesisChunked check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.genesisChunked method success return', async () => {
-        const testWebsocketGenesisChunkedResponse: GenesisChunkedResponse =
-            await testWebsocketWeb3Instance.beatoz.genesisChunked(0);
-        expect(testWebsocketGenesisChunkedResponse.chunk).toBeDefined();
-        expect(testWebsocketGenesisChunkedResponse.total).toBeDefined();
-        expect(testWebsocketGenesisChunkedResponse.data).toBeDefined();
+    it('returns the genesis document in base64 chunks', async () => {
+        const response = await web3.beatoz.genesisChunked(0);
+
+        const raw = await fetch(`${getTestServer()}/genesis`);
+        const { result } = await raw.json();
+
+        expect(response.chunk).toBe('0');
+        // The test node's genesis fits one chunk (16 MB each), so chunk 0 is all of it.
+        expect(response.total).toBe('1');
+        expect(JSON.parse(Buffer.from(response.data, 'base64').toString())).toEqual(result.genesis);
     });
 });
