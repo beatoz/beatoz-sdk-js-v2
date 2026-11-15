@@ -97,6 +97,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `web3.beatoz.broadcastEvidence(evidence)` is removed (#179):
+  submitting evidence of validator misbehaviour is a validator and node
+  operator task.
+
 - **BREAKING:** `web3.beatoz.proposals(txHash)` is removed (#148). It never
   returned a proposal: the node answered every call with `invalid query
   path`. Proposals are validators' business, done with their wallet (#95).
