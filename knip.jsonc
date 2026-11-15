@@ -5,9 +5,11 @@
     "workspaces": {
         ".": {
             "entry": ["scripts/**/*.{js,mjs}", "webpack.base.config.js"],
-            // webpack.base.config.js resolves these for the browser bundles
-            // (build:web); knip does not credit require.resolve() there.
-            "ignoreDependencies": ["constants-browserify", "crypto-browserify"],
+            // Browser bundle (build:web) polyfills. webpack.base.config.js
+            // resolves the first two, which knip does not credit; webpack
+            // picks up assert and buffer for dependencies that require them.
+            // Removing any of them changes the bundle (#163).
+            "ignoreDependencies": ["constants-browserify", "crypto-browserify", "assert", "buffer"],
         },
         "packages/*": {
             // Type tests (test/types/*.types.ts) are compiled by test:types,
