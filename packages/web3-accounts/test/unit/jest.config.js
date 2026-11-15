@@ -26,7 +26,7 @@ module.exports = {
         [
             'json',
             {
-                file: 'web3-account-coverage.json',
+                file: 'web3-accounts-coverage.json',
             },
         ],
     ],

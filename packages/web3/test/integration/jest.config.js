@@ -20,7 +20,8 @@ module.exports = {
     // Load .env before the test framework starts, so e2e_utils sees it.
     setupFiles: ['<rootDir>/../../scripts/jest/load-env.js'],
     // These tests talk to a running node and mutate chain state, so they must
-    // not run concurrently: they share nonces and deployed-contract fixtures.
+    // not run concurrently: they send from the same funded accounts and share
+    // their nonces (#22).
     maxWorkers: 1,
     testTimeout: 30000,
     testMatch: ['<rootDir>/test/integration/**/*.(spec|test).(js|ts)'],

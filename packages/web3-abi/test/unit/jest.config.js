@@ -19,7 +19,7 @@ module.exports = {
         [
             'json',
             {
-                file: 'web3-eth-abi-unit-coverage.json',
+                file: 'web3-abi-coverage.json',
             },
         ],
     ],
