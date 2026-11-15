@@ -190,6 +190,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- `wallet.add()` with an address already in the wallet no longer prints
+  `Account <address> already exists.` to the console (#129). It puts the
+  account back in its place, as before.
+
 - `signTransaction` on a transaction that already has a signature signed
   over that signature, which the node leaves out, so the node rejected the
   result as `invalid signature`. It now clears `sig` first, as

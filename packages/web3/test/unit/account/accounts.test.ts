@@ -68,4 +68,19 @@ describe('check accounts methods', () => {
         account.signTransaction(trxProto, chainId);
         expect(TrxProtoBuilder.verifyTrxProto(trxProto, account, chainId)).toBeTruthy();
     });
+
+    it('adds the same private key twice as one account, without a warning', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        try {
+            web3.wallet.clear();
+            web3.wallet.add(VECTOR.privateKey);
+            web3.wallet.add(VECTOR.privateKey);
+
+            expect(web3.wallet.length).toBe(1);
+            expect(web3.wallet.get(VECTOR.address)?.address.toLowerCase()).toEqual(VECTOR.address);
+            expect(warn).not.toHaveBeenCalled();
+        } finally {
+            warn.mockRestore();
+        }
+    });
 });

@@ -28,6 +28,16 @@ import { Web3 } from '../../../src';
  * Nothing here contacts a node, so it belongs in the unit layer.
  */
 describe('Web3 without a provider', () => {
+    it('is built without a warning', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        try {
+            new Web3();
+            expect(warn).not.toHaveBeenCalled();
+        } finally {
+            warn.mockRestore();
+        }
+    });
+
     it('rejects instead of sending a request', async () => {
         const noProvider = new Web3();
 
