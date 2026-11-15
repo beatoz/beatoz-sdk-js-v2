@@ -46,23 +46,23 @@ npm install
 npm run build 
 ```
 
-<!--
-### Browserify
+### In a browser
 
-```bash
-git clone https://github.com/beatoz/beatoz-sdk-js-v2.git
-cd beatoz-sdk-js-v2
-npm install
-
-# web build uses ems. So, pre-build is required.
-npm run build 
-npm run build:web
-```
+`@beatoz/web3` ships a bundle that sets one global, `BeatozWeb3`, holding the
+same names an `import` from the package gives:
 
 ```html
-<script type="text/javascript" src="./dist/beatoz.min.js"></script>
+<script src="https://unpkg.com/@beatoz/web3/dist/web3.min.js"></script>
+<script>
+    // As `import { Web3, TrxProtoBuilder } from '@beatoz/web3'`
+    const { Web3, TrxProtoBuilder } = BeatozWeb3;
+    const web3 = new Web3('https://rpc1.testnet.beatoz.io');
+</script>
 ```
--->
+
+Pin a version in production (`@beatoz/web3@2.0.0`). `@beatoz/web3-validator`
+ships `dist/web3-validator.min.js` the same way, as `BeatozWeb3Validator`. A
+build of the repository writes both to each package's `dist/`.
 
 ---
 

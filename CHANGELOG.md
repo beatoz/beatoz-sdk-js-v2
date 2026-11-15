@@ -408,6 +408,16 @@ entries below name the packages they apply to.
 
 ### Added
 
+- `@beatoz/web3`, `@beatoz/web3-validator`: the packages carry their browser
+  bundles, `dist/web3.min.js` and `dist/web3-validator.min.js`, built with
+  the package (#154). Each sets one global holding the package's exports:
+  `BeatozWeb3` (`BeatozWeb3.Web3`, `BeatozWeb3.TrxProtoBuilder`, ...) and
+  `BeatozWeb3Validator`. `unpkg` and `jsdelivr` point at them. Before, the
+  bundles were not published, and they failed as they loaded in a browser
+  (`process is not defined`, then `Buffer is not defined`); `BeatozWeb3`
+  was `rWeb3` and held only the `Web3` class, and the validator's global was
+  `undefined`.
+
 - `@beatoz/web3-accounts`: `signTransactionAsPayer(trxProto, privateKey, chainId)` and
   `Web3Account.signTransactionAsPayer(trxProto, chainId)`: fee delegation
   (#3). After the sender signs, another account signs as the payer, which sets

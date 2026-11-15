@@ -28,8 +28,9 @@ function getWebPackConfig(packagePath, filename, library, entry, tsconf) {
         output: {
             path: path.resolve(packagePath, 'dist'),
             filename: filename,
+            // The global is the package's module namespace, as an import of it
+            // would give: BeatozWeb3.Web3, BeatozWeb3.TrxProtoBuilder, ...
             library: library,
-            libraryExport: 'default',
             libraryTarget: 'umd',
             globalObject: 'this',
         },
@@ -62,6 +63,12 @@ function getWebPackConfig(packagePath, filename, library, entry, tsconf) {
         },
         devtool: 'source-map',
         plugins: [
+            // webpack 5 no longer provides Node's globals: polyfills such as
+            // util read process at load time, and the SDK uses Buffer.
+            new webpack.ProvidePlugin({
+                process: 'process/browser.js',
+                Buffer: ['buffer', 'Buffer'],
+            }),
             new webpack.IgnorePlugin({
                 checkResource(resource) {
                     // "@ethereumjs/common/genesisStates" consists ~800KB static files which are no more needed

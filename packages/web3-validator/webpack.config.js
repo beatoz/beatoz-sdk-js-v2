@@ -3,7 +3,7 @@ const { getWebPackConfig } = require('../../webpack.base.config');
 module.exports = getWebPackConfig(
     __dirname,
     'web3-validator.min.js',
-    'web3-validator',
+    'BeatozWeb3Validator',
     'src/index.ts',
     'tsconfig.json',
 );
