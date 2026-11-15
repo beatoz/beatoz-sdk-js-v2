@@ -15,6 +15,11 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-core`: **BREAKING:** `setProvider` and the constructor refuse
+  a string that is not an `http(s)://` or `ws(s)://` URL with
+  `InvalidInputError` (#168). One without a scheme used to leave the previous
+  provider in place silently, and an empty string was stored as the provider.
+
 - `@beatoz/web3-accounts`, `@beatoz/web3-types`, `@beatoz/web3-utils`:
   `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
   ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
