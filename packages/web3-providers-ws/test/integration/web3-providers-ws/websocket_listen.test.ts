@@ -20,8 +20,17 @@ import { createJsonRpcRequest } from './websocket_provider.test';
 import { NewBlockHeaderSubscriptionEvent, SubscriptionEvent } from '@beatoz/web3-types';
 
 describe('WebsocketClient', () => {
+    let client: WebsocketProvider;
+
+    beforeAll(() => {
+        client = new WebsocketProvider(getTestWsServer());
+    });
+
+    // In afterAll, not at the end of the test: a failed assertion would skip it,
+    // and the open socket would keep Jest from exiting (#88).
+    afterAll(() => client.disconnect());
+
     it('delivers every block header until the subscription is cancelled', async () => {
-        const client = new WebsocketProvider(getTestWsServer());
         const query = "tm.event='NewBlockHeader'";
         const heights: number[] = [];
         let failure: Error | undefined;
@@ -62,7 +71,5 @@ describe('WebsocketClient', () => {
 
         expect(heights.length).toEqual(seenBeforeCancel);
         expect(failure).toBeUndefined();
-
-        client.disconnect();
     });
 });
