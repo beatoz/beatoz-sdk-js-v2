@@ -72,12 +72,15 @@ describe('check accounts methods', () => {
     it('adds the same private key twice as one account, without a warning', () => {
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
         try {
-            web3.wallet.clear();
-            web3.wallet.add(VECTOR.privateKey);
-            web3.wallet.add(VECTOR.privateKey);
+            const { wallet } = web3;
+            if (!wallet) throw new Error('Web3 is built with a wallet');
 
-            expect(web3.wallet.length).toBe(1);
-            expect(web3.wallet.get(VECTOR.address)?.address.toLowerCase()).toEqual(VECTOR.address);
+            wallet.clear();
+            wallet.add(VECTOR.privateKey);
+            wallet.add(VECTOR.privateKey);
+
+            expect(wallet.length).toBe(1);
+            expect(wallet.get(VECTOR.address)?.address.toLowerCase()).toEqual(VECTOR.address);
             expect(warn).not.toHaveBeenCalled();
         } finally {
             warn.mockRestore();

@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { Filter } from 'web3-types';
+import { Filter } from '@beatoz/web3-types';
 import { hexToBytes } from 'ethereum-cryptography/utils';
 import { ValidInputTypes } from '../../src/types';
 
