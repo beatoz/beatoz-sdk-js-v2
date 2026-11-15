@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** One name per function (#167). The web3.js aliases are gone;
+  use the name that says what it converts:
+
+  | Removed | Use |
+  | --- | --- |
+  | `fromUtf8`, `stringToHex` | `utf8ToHex` |
+  | `hexToString` | `hexToUtf8` |
+  | `fromAscii` | `asciiToHex` |
+  | `toAscii` | `hexToAscii` |
+  | `toDecimal` | `hexToNumber` |
+  | `fromDecimal` | `numberToHex` |
+  | `leftPad`, `rightPad` | `padLeft`, `padRight` |
+
+  `toUtf8` stays: it also takes bytes.
+
 - `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
   ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
   encoded transactions are byte for byte the same.

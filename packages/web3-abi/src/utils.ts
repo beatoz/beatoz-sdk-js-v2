@@ -16,7 +16,7 @@
 
 import { AbiError, formatValue } from '@beatoz/web3-errors';
 import { AbiCoder, ParamType } from '@ethersproject/abi';
-import { isNullish, leftPad, rightPad, toHex } from '@beatoz/web3-utils';
+import { isNullish, padLeft, padRight, toHex } from '@beatoz/web3-utils';
 import {
     AbiInput,
     AbiCoderStruct,
@@ -185,7 +185,7 @@ export const formatParam = (type: string, _param: unknown): unknown => {
         const size = parseInt(match[2] ?? '256', 10);
         if (size / 8 < (param as { length: number }).length) {
             // pad to correct bit width
-            return leftPad(param as string, size);
+            return padLeft(param as string, size);
         }
     }
 
@@ -205,7 +205,7 @@ export const formatParam = (type: string, _param: unknown): unknown => {
             // pad to correct length
             const paddedParam =
                 (hexParam as string).length < maxSize
-                    ? rightPad(param as string, size * 2)
+                    ? padRight(param as string, size * 2)
                     : hexParam;
             return formatOddHexstrings(paddedParam as string);
         }

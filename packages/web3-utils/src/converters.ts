@@ -112,11 +112,6 @@ export const hexToNumber = (value: HexString): bigint | number => {
 };
 
 /**
- * Converts value to it's number representation @alias `hexToNumber`
- */
-export const toDecimal = hexToNumber;
-
-/**
  * Converts value to it's hex representation
  * @param value - Value to be converted
  * @param hexstrict - Add padding to converted value if odd, to make it hexstrict
@@ -142,11 +137,6 @@ export const numberToHex = (value: Numbers, hexstrict?: boolean): HexString => {
     }
     return updatedValue;
 };
-/**
- * Converts value to it's hex representation @alias `numberToHex`
- *
- */
-export const fromDecimal = numberToHex;
 
 export const hexToNumberString = (data: HexString): string => hexToNumber(data).toString();
 
@@ -162,10 +152,6 @@ export const utf8ToHex = (str: string): HexString => {
     return bytesToHex(new TextEncoder().encode(strWithoutNullCharacter));
 };
 
-export const fromUtf8 = utf8ToHex;
-
-export const stringToHex = utf8ToHex;
-
 export const hexToUtf8 = (str: HexString): string => bytesToUtf8(hexToBytes(str));
 
 /**
@@ -178,11 +164,6 @@ export const toUtf8 = (input: HexString | Uint8Array) => {
     validator.validate(['bytes'], [input]);
     return bytesToUtf8(input);
 };
-
-/**
- * @alias hexToUtf8
- */
-export const hexToString = hexToUtf8;
 
 /**
  * Should be called to get hex representation (prefixed by 0x) of ascii string
@@ -207,11 +188,6 @@ export const asciiToHex = (str: string): HexString => {
 };
 
 /**
- * @alias asciiToHex
- */
-export const fromAscii = asciiToHex;
-
-/**
  * Should be called to get ascii from it's hex representation
  * @param str - Hex string to be converted to ascii
  * @returns - Ascii string
@@ -226,11 +202,6 @@ export const hexToAscii = (str: HexString): string => {
     const decoder = new TextDecoder('ascii');
     return decoder.decode(hexToBytes(str));
 };
-
-/**
- * @alias hexToAscii
- */
-export const toAscii = hexToAscii;
 
 /**
  * Auto converts any given value into it's hex representation.

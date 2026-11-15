@@ -35,7 +35,7 @@ import {
     toNumber,
     utf8ToHex,
 } from './converters.js';
-import { leftPad, rightPad, toTwosComplement } from './string_manipulation.js';
+import { padLeft, padRight, toTwosComplement } from './string_manipulation.js';
 
 const SHA3_EMPTY_BYTES = '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470';
 
@@ -257,7 +257,7 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
             );
         }
 
-        return size ? leftPad(num.toString(16), (size / 8) * 2) : num.toString(16);
+        return size ? padLeft(num.toString(16), (size / 8) * 2) : num.toString(16);
     }
 
     if (type.startsWith('int')) {
@@ -277,7 +277,7 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
         if (num < BigInt(0)) {
             return toTwosComplement(num.toString(), (size / 8) * 2);
         }
-        return size ? leftPad(num.toString(16), size / 4) : num.toString(16);
+        return size ? padLeft(num.toString(16), size / 4) : num.toString(16);
     }
 
     if (name === 'bytes') {
@@ -304,7 +304,7 @@ const solidityPack = (type: string, val: EncodingTypes): string => {
             );
         }
 
-        return rightPad(value, size * 2);
+        return padRight(value, size * 2);
     }
     return '';
 };

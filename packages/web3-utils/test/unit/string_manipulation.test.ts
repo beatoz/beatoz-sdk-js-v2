@@ -15,10 +15,8 @@
 */
 import {
     fromTwosComplement,
-    leftPad,
     padLeft,
     padRight,
-    rightPad,
     toTwosComplement,
 } from '../../src/string_manipulation';
 
@@ -55,32 +53,6 @@ describe('string manipulation tests', () => {
         describe('invalid cases', () => {
             it.each(padInvalidData)('%s', (input, output) => {
                 expect(() => padRight(input[0], input[1], input[2])).toThrow(output);
-            });
-        });
-    });
-
-    describe('leftPad', () => {
-        describe('valid cases', () => {
-            it.each(padLeftData)('%s', (input, output) => {
-                expect(leftPad(input[0], input[1], input[2])).toEqual(output);
-            });
-        });
-        describe('invalid cases', () => {
-            it.each(padInvalidData)('%s', (input, output) => {
-                expect(() => leftPad(input[0], input[1], input[2])).toThrow(output);
-            });
-        });
-    });
-
-    describe('rightPad', () => {
-        describe('valid cases', () => {
-            it.each(padRightData)('%s', (input, output) => {
-                expect(rightPad(input[0], input[1], input[2])).toEqual(output);
-            });
-        });
-        describe('invalid cases', () => {
-            it.each(padInvalidData)('%s', (input, output) => {
-                expect(() => rightPad(input[0], input[1], input[2])).toThrow(output);
             });
         });
     });
