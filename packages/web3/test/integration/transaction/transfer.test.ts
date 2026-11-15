@@ -15,6 +15,7 @@
 */
 import { Web3 } from '../../../src';
 import {
+    getTestAccountAddress,
     getTestChainId,
     getTestProposalAccountPrivateKey,
     getTestWsServer,
@@ -31,19 +32,28 @@ describe('transfer test', () => {
 
     afterAll(() => closeProvider(web3));
 
-    it('transfer', async () => {
+    it('commits a transfer and moves the amount', async () => {
         const account = privateKeyToAccount(getTestProposalAccountPrivateKey()) as Web3Account;
-        const nonce = (await web3.beatoz.getAccount(account.address)).value.nonce;
+        const recipient = getTestAccountAddress();
+        const { value: rule } = await web3.beatoz.rule();
+        const { value: sender } = await web3.beatoz.getAccount(account.address);
+        const before = BigInt((await web3.beatoz.getAccount(recipient)).value.balance);
+
         const tx = TrxProtoBuilder.buildTransferTrxProto({
-            nonce: nonce,
+            nonce: sender.nonce,
             from: account.address,
-            to: 'fde6b792498effa9095694d722a6fc629a060b11',
+            to: recipient,
             amount: '10',
-            gas: 1000000,
-            gasPrice: '250000000000',
+            gas: Number(rule.minTrxGas),
+            gasPrice: rule.gasPrice,
         });
         TrxProtoBuilder.signTrxProto(tx, account, getTestChainId());
         const result = await web3.beatoz.broadcastTxCommit(tx);
-        console.log(result);
+
+        expect(result.check_tx.log).toEqual('');
+        expect(result.check_tx.code).toEqual(0);
+        expect(result.deliver_tx?.code).toEqual(0);
+        const after = BigInt((await web3.beatoz.getAccount(recipient)).value.balance);
+        expect(after).toEqual(before + 10n);
     });
 });

@@ -20,30 +20,91 @@ import {
     getTestWsServer,
     closeProvider,
 } from '../e2e_utils';
+import { asNodeAddress, getValidatorAddress } from '../chain_fixtures';
 import { privateKeyToAccount, Web3Account, TrxProtoBuilder } from '@beatoz/web3-accounts';
+import { BroadcastTxCommitResponse } from '@beatoz/web3-types';
+
+// One BEATOZ (10^18) is one unit of voting power, and a delegation must be a
+// whole number of them, at least the chain's minDelegatorPower. The node
+// refunds an undelegated stake only after lazyUnbondingBlocks (two weeks by
+// default), so the test checks that the stake is gone, not the balance.
+
+const AMOUNT_PER_POWER = 10n ** 18n;
 
 describe('staking test', () => {
     let web3: Web3;
+    let account: Web3Account;
+    let validator: string;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         web3 = new Web3(getTestWsServer());
+        account = privateKeyToAccount(getTestProposalAccountPrivateKey()) as Web3Account;
+        validator = await getValidatorAddress(web3);
     });
 
     afterAll(() => closeProvider(web3));
 
-    it('staking', async () => {
-        const account = privateKeyToAccount(getTestProposalAccountPrivateKey()) as Web3Account;
-        const nonce = (await web3.beatoz.getAccount(account.address)).value.nonce;
+    const gas = async () => {
+        const { value: rule } = await web3.beatoz.rule();
+        const { value: sender } = await web3.beatoz.getAccount(account.address);
+        return {
+            nonce: sender.nonce,
+            gas: Number(rule.minTrxGas),
+            gasPrice: rule.gasPrice,
+            power: BigInt(rule.minDelegatorPower),
+        };
+    };
+
+    const expectCommitted = (result: BroadcastTxCommitResponse) => {
+        expect(result.check_tx.log).toEqual('');
+        expect(result.check_tx.code).toEqual(0);
+        expect(result.deliver_tx?.code).toEqual(0);
+    };
+
+    // The stakes the account holds with the validator, by the hash of the
+    // transaction that made each one.
+    const stakesWithValidator = async () => {
+        const { value } = await web3.beatoz.stakes(account.address);
+        return (value ?? []).filter((s) => asNodeAddress(s.to) === asNodeAddress(validator));
+    };
+
+    let stakeHash: string;
+
+    it('delegates to a validator and the stake appears', async () => {
+        const { power, ...fee } = await gas();
         const tx = TrxProtoBuilder.buildDelegateTrxProto({
-            nonce: nonce,
+            ...fee,
             from: account.address,
-            to: 'fde6b792498effa9095694d722a6fc629a060b11',
-            amount: '1000000000000000000',
-            gas: 1000000,
-            gasPrice: '250000000000',
+            to: validator,
+            amount: (power * AMOUNT_PER_POWER).toString(),
         });
         TrxProtoBuilder.signTrxProto(tx, account, getTestChainId());
         const result = await web3.beatoz.broadcastTxCommit(tx);
-        console.log(result);
+
+        expectCommitted(result);
+        stakeHash = result.hash;
+        const stake = (await stakesWithValidator()).find(
+            (s) => s.txhash.toLowerCase() === stakeHash.toLowerCase(),
+        );
+        expect(stake).toBeDefined();
+        expect(String(stake?.power)).toEqual(power.toString());
+    });
+
+    it('undelegates that stake and it is gone', async () => {
+        expect(stakeHash).toBeDefined();
+        const { power: _power, ...fee } = await gas();
+        const tx = TrxProtoBuilder.buildUnDelegateTrxProto({
+            ...fee,
+            from: account.address,
+            to: validator,
+            amount: '0',
+            payload: { txHash: stakeHash },
+        });
+        TrxProtoBuilder.signTrxProto(tx, account, getTestChainId());
+        const result = await web3.beatoz.broadcastTxCommit(tx);
+
+        expectCommitted(result);
+        const hashes = (await stakesWithValidator()).map((s) => s.txhash.toLowerCase());
+        expect(hashes).not.toContain(stakeHash.toLowerCase());
     });
 });
