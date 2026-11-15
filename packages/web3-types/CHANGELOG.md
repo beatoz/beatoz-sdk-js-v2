@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
+
 - `LastCommitInfo.peer_maj_23s` is `Record<string, BlockId>`, the block each
   peer claims +2/3 for keyed by peer id, as the node encodes it; it was `{}`
   (#33).

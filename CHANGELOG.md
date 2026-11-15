@@ -15,6 +15,11 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-accounts`, `@beatoz/web3-types`, `@beatoz/web3-utils`:
+  `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
+
 - `@beatoz/web3-providers-ws`: **BREAKING:** `parseJsonRpcResponse`,
   `parseJsonRpcErrorResponse` and `parseJsonRpcSuccessResponse` take
   `unknown` and return the result as `unknown`, not `JsonRpcResult` (#33). A

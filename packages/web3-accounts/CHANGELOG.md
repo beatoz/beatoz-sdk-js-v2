@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
+
 - **BREAKING:** Builders, signing and `getContractAddress` throw
   `InvalidInputError` instead of `Error` (#100, #66). The four `mandatory
   argument is missed` errors name the missing field (`payload`,
