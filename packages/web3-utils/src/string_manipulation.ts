@@ -79,16 +79,6 @@ export const padRight = (value: Numbers, characterAmount: number, sign = '0'): s
 };
 
 /**
- * Adds a padding on the right of a string, if value is a integer or bigInt will be converted to a hex string. @alias `padRight`
- */
-export const rightPad = padRight;
-
-/**
- * Adds a padding on the left of a string, if value is a integer or bigInt will be converted to a hex string. @alias `padLeft`
- */
-export const leftPad = padLeft;
-
-/**
  * Converts a negative number into the two’s complement and return a hexstring of 64 nibbles.
  * @param value - The value to be converted.
  * @param nibbleWidth - The nibble width of the hex string (default is 64).

@@ -15,6 +15,12 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-utils`: **BREAKING:** one name per function (#167).
+  `fromUtf8` and `stringToHex` (use `utf8ToHex`), `hexToString`
+  (`hexToUtf8`), `fromAscii` (`asciiToHex`), `toAscii` (`hexToAscii`),
+  `toDecimal` (`hexToNumber`), `fromDecimal` (`numberToHex`), `leftPad` and
+  `rightPad` (`padLeft`, `padRight`) are gone.
+
 - `@beatoz/web3-core`: **BREAKING:** `setProvider` and the constructor refuse
   a string that is not an `http(s)://` or `ws(s)://` URL with
   `InvalidInputError` (#168). One without a scheme used to leave the previous
