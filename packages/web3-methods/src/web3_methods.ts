@@ -116,10 +116,6 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.numUnconfirmedTxs(this);
     }
 
-    broadcastEvidence(evidence: string) {
-        return rpcMethodsWrappers.broadcastEvidence(this, evidence);
-    }
-
     broadcastTxSync(tx: TrxProto) {
         return rpcMethodsWrappers.broadcastTxSync(this, tx);
     }

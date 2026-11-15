@@ -501,6 +501,10 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:**
+  `broadcastEvidence` is removed (#179). Submitting evidence of validator
+  misbehaviour is for validators and node operators, not SDK users.
+
 - `@beatoz/web3-rpc`, `@beatoz/web3-methods`, `@beatoz/web3-types`:
   **BREAKING:** `proposals()` and `ProposalResponse` are removed (#148). The
   method never returned a proposal: the node answered every call with

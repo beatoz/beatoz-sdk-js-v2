@@ -47,7 +47,6 @@ const ROUTES: Record<string, string[]> = {
     broadcast_tx_async: ['tx'],
     abci_query: ['path', 'data', 'height', 'prove'],
     abci_info: [],
-    broadcast_evidence: ['evidence'],
     account: ['addr', 'height'],
     delegatee: ['addr', 'height'],
     stakes: ['addr', 'height'],
@@ -168,11 +167,6 @@ const cases: Array<[string, () => unknown, Sent]> = [
         'numUnconfirmedTxs',
         () => m.numUnconfirmedTxs(manager),
         { method: 'num_unconfirmed_txs', params: {} },
-    ],
-    [
-        'broadcastEvidence',
-        () => m.broadcastEvidence(manager, 'ev'),
-        { method: 'broadcast_evidence', params: { evidence: 'ev' } },
     ],
     [
         'broadcastTxAsync',

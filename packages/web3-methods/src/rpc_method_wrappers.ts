@@ -244,10 +244,6 @@ export async function numUnconfirmedTxs(web3Context: Web3Context) {
     return rpcMethods.numUnconfirmedTxs(web3Context.requestManager);
 }
 
-export async function broadcastEvidence(web3Context: Web3Context, evidence: string) {
-    return rpcMethods.broadcastEvidence(web3Context.requestManager, evidence);
-}
-
 export async function broadcastTxSync(web3Context: Web3Context, tx: TrxProto) {
     return rpcMethods.broadcastTxSync(web3Context.requestManager, tx);
 }

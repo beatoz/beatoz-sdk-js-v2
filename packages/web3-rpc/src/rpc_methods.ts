@@ -393,13 +393,6 @@ export async function numUnconfirmedTxs(
     );
 }
 
-export async function broadcastEvidence(requestManager: Web3RequestManager, evidence: string) {
-    return requestManager.send({
-        method: 'broadcast_evidence',
-        params: { evidence: evidence },
-    });
-}
-
 export async function broadcastTxAsync(
     requestManager: Web3RequestManager,
     tx: TrxProto,

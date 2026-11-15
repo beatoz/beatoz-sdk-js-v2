@@ -73,6 +73,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `broadcastEvidence(requestManager, evidence)` is removed
+  (#179). Submitting evidence of validator misbehaviour is for validators and
+  node operators, not SDK users (as for #95 and #148).
+
 - **BREAKING:** `proposals(requestManager, txHash)` is removed (#148). It
   never returned a proposal: it asked the node for a `proposals` path the
   node does not answer (`invalid query path`), and sent the hash's text
