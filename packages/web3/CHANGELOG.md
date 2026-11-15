@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- `new Web3()` without a provider no longer prints a note, which still named
+  web3.js, to the console (#129).
+
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`
   files as ES modules rather than CommonJS. Without it the runtime half of the

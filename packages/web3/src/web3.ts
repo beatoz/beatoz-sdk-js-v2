@@ -17,7 +17,6 @@
 import { Web3PkgInfo } from './version.js';
 import { Web3Context } from '@beatoz/web3-core';
 import Web3Method from '@beatoz/web3-methods';
-import { isNullish } from '@beatoz/web3-validator';
 import { Web3MethodInterface } from './types.js';
 import { initAccountsForContext } from './accounts.js';
 import abi from './abi.js';
@@ -37,12 +36,6 @@ export class Web3 extends Web3Context {
     public beatoz: Web3MethodInterface;
     public constructor(provider?: string) {
         super(provider);
-
-        if (isNullish(provider) || (typeof provider === 'string' && provider.trim() === '')) {
-            console.warn(
-                'NOTE: web3.js is running without provider. You need to pass a provider in order to interact with the network!',
-            );
-        }
 
         const accounts = initAccountsForContext();
         this._wallet = accounts.wallet;

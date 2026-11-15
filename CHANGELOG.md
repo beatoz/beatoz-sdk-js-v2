@@ -763,6 +763,11 @@ entries below name the packages they apply to.
 - `@beatoz/web3-methods`: `subscribe(query)` no longer prints `subscribe query
   <query>` to the console on every call (#103).
 
+- `@beatoz/web3-accounts`, `@beatoz/web3`: `wallet.add()` with an address
+  already in the wallet and `new Web3()` without a provider no longer print to
+  the console (#129). `wallet.add()` puts the account back in its place, as
+  before.
+
 - `@beatoz/web3-accounts`: `signTransaction` on a transaction that already has a signature signed
   over that signature, which the node leaves out, so the node rejected the
   result as `invalid signature`. It now clears `sig` first, as
