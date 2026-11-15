@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `validators()` takes the height as optional, as `block()` does (#144).
+  With no height the node answers for the latest one, so reading the current
+  validator set no longer takes a height lookup first.
+
 - **BREAKING:** `waitForTx` refuses a bad `timeoutMs` or `intervalMs` with
   `InvalidInputError` (#100).
 

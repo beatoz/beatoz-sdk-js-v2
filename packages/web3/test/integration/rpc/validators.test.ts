@@ -15,7 +15,7 @@
 */
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { getSampleHeight } from '../chain_fixtures';
+import { getLatestHeight, getSampleHeight } from '../chain_fixtures';
 import { ValidatorsResponse } from '@beatoz/web3-types';
 
 describe('validators check ', () => {
@@ -35,5 +35,14 @@ describe('validators check ', () => {
         expect(testValidatorsResponse.total).toBeDefined();
         expect(testValidatorsResponse.count).toBeDefined();
         expect(testValidatorsResponse.validators).toBeDefined();
+    });
+
+    it('answers for the latest height when called without one', async () => {
+        // The node answers for its tip, or the block after it once in
+        // consensus, so never below a height read before the call.
+        const before = await getLatestHeight(testWebsocketWeb3Instance);
+        const { block_height, validators } = await testWebsocketWeb3Instance.beatoz.validators();
+        expect(block_height).toBeGreaterThanOrEqual(before);
+        expect(validators.length).toBeGreaterThan(0);
     });
 });

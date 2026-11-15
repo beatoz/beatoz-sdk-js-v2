@@ -60,7 +60,7 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.commit(this, height);
     }
 
-    validators(height: string | number, page?: number, per_page?: number) {
+    validators(height?: string | number, page?: number, per_page?: number) {
         return rpcMethodsWrappers.validators(this, height, page, per_page);
     }
 

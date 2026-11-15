@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `validators(requestManager, height?)` takes the height as optional, as
+  `block()` does (#144). With no height the node answers for the latest one.
+
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
   packages are ES modules only, and on 5.7 a CommonJS project that resolves them
   with `module`/`moduleResolution` `nodenext` cannot import them (`error
