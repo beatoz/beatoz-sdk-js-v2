@@ -15,20 +15,28 @@
 */
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { ConsensusStateResponse } from '@beatoz/web3-types';
+import { getLatestHeight } from '../chain_fixtures';
 
 describe('consensusState check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.consensusState method success return', async () => {
-        const testConsensusStateResponse: ConsensusStateResponse =
-            await testWebsocketWeb3Instance.beatoz.consensusState();
-        expect(testConsensusStateResponse.round_state).toBeDefined();
+    it('reports the height being decided, the round and the step', async () => {
+        const before = await getLatestHeight(web3);
+        const { round_state } = await web3.beatoz.consensusState();
+        const after = await getLatestHeight(web3);
+
+        // "height/round/step". The height is the block after the last committed
+        // one, or that block itself while it is still being committed.
+        const [height, round, step] = round_state['height/round/step'].split('/').map(Number);
+        expect(height).toBeGreaterThanOrEqual(before);
+        expect(height).toBeLessThanOrEqual(after + 1);
+        expect(round).toBeGreaterThanOrEqual(0);
+        expect(step).toBeGreaterThanOrEqual(1);
     });
 });

@@ -21,38 +21,39 @@ import {
     closeProvider,
 } from '../e2e_utils';
 import { privateKeyToAccount, Web3Account, TrxProtoBuilder } from '@beatoz/web3-accounts';
-import { AccountResponse, CheckTxResponse } from '@beatoz/web3-types';
 
 describe('checkTx check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.checkTx() method success return', async () => {
-        const secretKey = getTestAccountPrivateKey();
-        const web3Account = privateKeyToAccount(secretKey) as Web3Account;
-
-        const accountResponse: AccountResponse = await testWebsocketWeb3Instance.beatoz.getAccount(
-            web3Account.address,
-        );
+    // Only a transaction the node refuses: one that passes check_tx advances
+    // the sender's nonce in the node's check state until the next block, and
+    // the next test's real send would fail with "invalid nonce" (#44).
+    it('reports why the node would refuse a transaction', async () => {
+        const account = privateKeyToAccount(getTestAccountPrivateKey()) as Web3Account;
+        const { value: rule } = await web3.beatoz.rule();
+        const { value: sender } = await web3.beatoz.getAccount(account.address);
 
         const tx = TrxProtoBuilder.buildTransferTrxProto({
-            from: web3Account.address,
-            nonce: accountResponse.value.nonce,
-            to: web3Account.address,
+            from: account.address,
+            nonce: sender.nonce,
+            to: account.address,
             amount: '1',
-            gas: 4000,
-            gasPrice: '250000000000',
+            gas: Number(rule.minTrxGas) - 1,
+            gasPrice: String(rule.gasPrice),
         });
+        TrxProtoBuilder.signTrxProto(tx, account, getTestChainId());
 
-        TrxProtoBuilder.signTrxProto(tx, web3Account, getTestChainId());
-        const testCheckTxResponse: CheckTxResponse =
-            await testWebsocketWeb3Instance.beatoz.checkTx(tx);
-        expect(testCheckTxResponse.code).toBeDefined();
-        expect(testCheckTxResponse.log).toBeDefined();
+        const response = await web3.beatoz.checkTx(tx);
+
+        // 3 is ErrCodeCheckTx (beatoz-go types/xerrors); the cause is in the log.
+        expect(response.code).toBe(3);
+        expect(response.log).toContain(`too small gas (min: ${rule.minTrxGas})`);
+        expect(response.gas_wanted).toBe('0');
     });
 });

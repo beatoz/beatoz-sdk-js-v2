@@ -14,24 +14,27 @@
     limitations under the License.
 */
 import { Web3 } from '../../../src';
-import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { UnconfirmedTxsResponse } from '@beatoz/web3-types';
+import { getTestServer, getTestWsServer, closeProvider } from '../e2e_utils';
 
 describe('unconfirmedTxs check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.getunconfirmedTxs method success return', async () => {
-        const websocketUnconfirmedTxsResponse: UnconfirmedTxsResponse =
-            await testWebsocketWeb3Instance.beatoz.unconfirmedTxs(10);
-        expect(websocketUnconfirmedTxsResponse.n_txs).toBeDefined();
-        expect(websocketUnconfirmedTxsResponse.total).toBeDefined();
-        expect(websocketUnconfirmedTxsResponse.total_bytes).toBeDefined();
-        expect(websocketUnconfirmedTxsResponse.txs).toBeDefined();
+    it('returns at most the requested number of mempool transactions', async () => {
+        const response = await web3.beatoz.unconfirmedTxs(10);
+
+        // The tests broadcast with commit and run one at a time, so the
+        // mempool does not change between the two calls.
+        const raw = await fetch(`${getTestServer()}/unconfirmed_txs?limit=10`);
+        const { result } = await raw.json();
+
+        expect(response).toEqual(result);
+        expect(response.txs.length).toBe(Number(response.n_txs));
+        expect(response.txs.length).toBeLessThanOrEqual(10);
     });
 });

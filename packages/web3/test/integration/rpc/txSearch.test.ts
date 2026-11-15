@@ -15,21 +15,27 @@
 */
 import { Web3 } from '../../../src';
 import { getTestWsServer, closeProvider } from '../e2e_utils';
-import { TxSearchResponse } from '@beatoz/web3-types';
+import { sendSampleTransfer } from '../chain_fixtures';
 
 describe('txSearch check ', () => {
-    let testWebsocketWeb3Instance: Web3;
+    let web3: Web3;
 
     beforeAll(() => {
-        testWebsocketWeb3Instance = new Web3(getTestWsServer());
+        web3 = new Web3(getTestWsServer());
     });
 
-    afterAll(() => closeProvider(testWebsocketWeb3Instance));
+    afterAll(() => closeProvider(web3));
 
-    it('should call web3 with testWebsocketWeb3Instance.txSearch method success return', async () => {
-        const testTxSearchResponse: TxSearchResponse =
-            await testWebsocketWeb3Instance.beatoz.txSearch('tx.height=1');
-        expect(testTxSearchResponse.total_count).toBeDefined();
-        expect(testTxSearchResponse.txs).toBeDefined();
+    it('finds a transaction this test sent, by its hash', async () => {
+        const hash = await sendSampleTransfer(web3);
+        const indexed = await web3.beatoz.waitForTx(hash);
+
+        const response = await web3.beatoz.txSearch(`tx.hash='${hash}'`);
+
+        expect(response.total_count).toBe(1);
+        expect(response.txs).toHaveLength(1);
+        expect(response.txs[0].hash).toEqual(hash);
+        expect(response.txs[0].height).toEqual(indexed.height);
+        expect(response.txs[0].tx_result.code).toBe(0);
     });
 });
