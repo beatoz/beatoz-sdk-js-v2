@@ -13,9 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import rep1155Json from '../fixtures/REP1155.json';
-import { closeProvider, netInfo } from './e2e_utils';
-import { Web3 } from '@beatoz/web3';
+import rep1155Json from '../../fixtures/REP1155.json';
+import { closeProvider, netInfo } from '../contract_fixtures';
+import { Web3 } from '../../../src';
 import { Web3Account } from '@beatoz/web3-accounts';
 import { WebsocketProvider } from '@beatoz/web3-providers-ws';
 

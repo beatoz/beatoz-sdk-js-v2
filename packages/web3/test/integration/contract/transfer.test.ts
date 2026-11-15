@@ -13,16 +13,16 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import erc20Json from '../fixtures/erc20-abi.json';
+import erc20Json from '../../fixtures/erc20-abi.json';
 import {
     assertCommitted,
     closeProvider,
     deployTestToken,
     netInfo,
     tokenBalance,
-} from './e2e_utils';
+} from '../contract_fixtures';
 import { BroadcastTxSyncResponse, SubscriptionEvent } from '@beatoz/web3-types';
-import { Web3 } from '@beatoz/web3';
+import { Web3 } from '../../../src';
 
 const RECIPIENT = '0x0000000000000000000000000000000000000001';
 

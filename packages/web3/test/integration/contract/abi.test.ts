@@ -13,40 +13,33 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import erc20Json from '../fixtures/erc20-abi.json';
-import {
-    closeProvider,
-    deployTestToken,
-    netInfo,
-    TEST_TOKEN_SUPPLY,
-    tokenBalance,
-} from './e2e_utils';
-import { Contract } from '../../src';
+import { Contract } from '@beatoz/web3-contract';
+import erc20Json from '../../fixtures/erc20-abi.json';
+import { closeProvider, deployTestToken, netInfo } from '../contract_fixtures';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
-import { Web3 } from '@beatoz/web3';
+import { Web3 } from '../../../src';
 
-describe('balanceOf test', () => {
-    let deployedContract: { address: string; deployer: string };
+describe('abi test', () => {
+    let address: string;
     beforeAll(async () => {
         const web3 = new Web3(netInfo.WS);
         web3.beatoz.accounts.wallet.add(netInfo.ACCTS[0].KEY);
-        deployedContract = await deployTestToken(web3);
+        ({ address } = await deployTestToken(web3));
         closeProvider(web3);
     });
 
     const provider = new WebsocketProvider(netInfo.WS);
     afterAll(() => provider.disconnect());
 
-    it('balanceOf function', async () => {
-        const erc20Contract = new Contract(erc20Json, deployedContract.address) as any;
+    it('calls a deployed contract through an ABI imported from JSON', async () => {
+        const erc20Contract = new Contract(erc20Json, address) as any;
         erc20Contract.setProvider(provider);
 
-        // A fresh token: the deployer holds the whole supply, nobody else holds any.
-        expect(await tokenBalance(erc20Contract, deployedContract.deployer)).toEqual(
-            TEST_TOKEN_SUPPLY,
-        );
-        expect(
-            await tokenBalance(erc20Contract, '0x0000000000000000000000000000000000000001'),
-        ).toEqual(0n);
+        const name = await erc20Contract.methods.name().call();
+        const symbol = await erc20Contract.methods.symbol().call();
+
+        // The values deployTestToken passes to the constructor.
+        expect(name).toEqual('BeatozToken');
+        expect(symbol).toEqual('RGT');
     });
 });

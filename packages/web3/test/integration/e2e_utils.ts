@@ -69,6 +69,9 @@ export const getTestAccountPrivateKey = (): string => requireEnv('BEATOZ_TEST_PR
 export const getTestProposalAccountPrivateKey = (): string =>
     requireEnv('BEATOZ_TEST_PROPOSAL_PRIVATE_KEY');
 
+export const getTestProposalAccountAddress = (): string =>
+    requireEnv('BEATOZ_TEST_PROPOSAL_ADDRESS');
+
 /**
  * The reward node: the same image with a short inflation cycle, so a reward
  * accumulates while a test waits. `yarn node:start:reward` starts it and
