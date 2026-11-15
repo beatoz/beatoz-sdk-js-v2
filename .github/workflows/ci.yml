@@ -56,6 +56,9 @@ jobs:
       - run: yarn build
       - run: npx eslint .
       - run: yarn test
+      # Reports unused files, exports and dependencies without failing (#24).
+      - name: Report dead code (knip)
+        run: npx knip --no-exit-code
       - name: Check the build output
         if: github.event_name != 'pull_request' || !github.event.pull_request.draft
         run: node scripts/check-dist.mjs
