@@ -31,23 +31,32 @@ describe('setDoc test', () => {
 
     afterAll(() => closeProvider(web3));
 
-    it('setDoc', async () => {
+    it('commits a setDoc and the account shows the name and url', async () => {
         const account = privateKeyToAccount(getTestProposalAccountPrivateKey()) as Web3Account;
-        const nonce = (await web3.beatoz.getAccount(account.address)).value.nonce;
+        const { value: rule } = await web3.beatoz.rule();
+        const { value: sender } = await web3.beatoz.getAccount(account.address);
+        // Unique per run, so a value left by an earlier run cannot pass it.
         const payload = {
-            name: 'TEST-BEATOZ',
-            url: 'https://white-accused-stork-662.mypinata.cloud/ipfs/QmbgCYHEGvuX7wrDy3CZQDXhVLUZvbuLPMkoxwfj7JvYwx?_gl=1*kiada1*_ga*MTYzMTA3ODgyMS4xNjk2Mzk4MjIx*_ga_5RMPXG14TE*MTY5NzUyMDM4Ni4zLjEuMTY5NzUyMDY5Ni4yNS4wLjA',
+            name: `TEST-BEATOZ-${Date.now()}`,
+            url: `https://example.com/doc/${Date.now()}.json`,
         };
+
         const tx = TrxProtoBuilder.buildSetDocTrx({
-            nonce: nonce,
+            nonce: sender.nonce,
             from: account.address,
             to: '0000000000000000000000000000000000000000',
-            gas: 1000000,
-            gasPrice: '250000000000',
-            payload: payload,
+            gas: Number(rule.minTrxGas),
+            gasPrice: rule.gasPrice,
+            payload,
         });
         TrxProtoBuilder.signTrxProto(tx, account, getTestChainId());
         const result = await web3.beatoz.broadcastTxCommit(tx);
-        console.log(result);
+
+        expect(result.check_tx.log).toEqual('');
+        expect(result.check_tx.code).toEqual(0);
+        expect(result.deliver_tx?.code).toEqual(0);
+        const { value: after } = await web3.beatoz.getAccount(account.address);
+        expect(after.name).toEqual(payload.name);
+        expect(after.docURL).toEqual(payload.url);
     });
 });
