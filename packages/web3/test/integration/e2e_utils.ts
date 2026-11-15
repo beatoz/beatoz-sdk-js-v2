@@ -69,14 +69,6 @@ export const getTestAccountPrivateKey = (): string => requireEnv('BEATOZ_TEST_PR
 export const getTestProposalAccountPrivateKey = (): string =>
     requireEnv('BEATOZ_TEST_PROPOSAL_PRIVATE_KEY');
 
-export const getTestAccounts = (): ReadonlyArray<{ address: string; privateKey: string }> => [
-    { address: getTestAccountAddress(), privateKey: getTestAccountPrivateKey() },
-    {
-        address: requireEnv('BEATOZ_TEST_PROPOSAL_ADDRESS'),
-        privateKey: getTestProposalAccountPrivateKey(),
-    },
-];
-
 /**
  * The reward node: the same image with a short inflation cycle, so a reward
  * accumulates while a test waits. `yarn node:start:reward` starts it and
@@ -90,22 +82,6 @@ export const getRewardWsServer = (): string => requireEnv('BEATOZ_REWARD_WS_URL'
 export const getRewardChainId = (): string => requireEnv('BEATOZ_REWARD_CHAIN_ID');
 
 export const getRewardPrivateKey = (): string => requireEnv('BEATOZ_REWARD_PRIVATE_KEY');
-
-/**
- * Whether a node is reachable. Suites call this and skip instead of failing,
- * so running without a node reports skips rather than a wall of connection
- * errors.
- */
-export const isNodeReachable = async (): Promise<boolean> => {
-    try {
-        const response = await fetch(`${getTestServer()}/status`, {
-            signal: AbortSignal.timeout(3000),
-        });
-        return response.ok;
-    } catch {
-        return false;
-    }
-};
 
 /**
  * Closes the WebSocket behind a Web3 instance.

@@ -332,8 +332,6 @@ export const toCheckSumInvalidData: [string, string][] = [
     ['not an address', 'address must be 20 bytes of hex, got "not an address"'],
 ];
 
-export const bytesToUint8ArrayInvalidData: [any, string][] = bytesToHexInvalidData;
-
 export const bytesToUint8ArrayValidData: [Bytes, Uint8Array][] = [
     [new Uint8Array([72]), new Uint8Array([72])],
     [new Uint8Array([72, 12]), new Uint8Array([72, 12])],

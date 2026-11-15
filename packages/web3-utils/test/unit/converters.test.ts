@@ -65,7 +65,6 @@ import {
     utf8ToHexInvalidData,
     utf8ToHexValidData,
     toCheckSumValidData,
-    bytesToUint8ArrayInvalidData,
     bytesToUint8ArrayValidData,
     toBigIntValidData,
     toBigIntInvalidData,
@@ -399,7 +398,7 @@ describe('converters', () => {
             });
 
             describe('invalid cases', () => {
-                it.each(bytesToUint8ArrayInvalidData)('%s', (input, output) => {
+                it.each(bytesToHexInvalidData)('%s', (input, output) => {
                     expect(() => bytesToUint8Array(input)).toThrow(output);
                 });
             });

@@ -20,7 +20,6 @@ import {
     TrxProtoUtils,
     Web3Account,
 } from '@beatoz/web3-accounts';
-import { WebsocketProvider } from '../../src';
 import {
     getTestAccountAddress,
     getTestChainId,
@@ -92,7 +91,7 @@ export const waitUntil = async (
 };
 
 /** The height the chain reports right now. */
-export const latestHeight = async (): Promise<number> =>
+const latestHeight = async (): Promise<number> =>
     Number((await rpc('status', {})).sync_info.latest_block_height);
 
 /**
@@ -120,5 +119,3 @@ export const assertUnbroken = (heights: number[]): void => {
         }
     }
 };
-
-export type { WebsocketProvider };
