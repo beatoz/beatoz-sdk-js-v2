@@ -15,8 +15,8 @@
 */
 import { ResponsesDecoder, RuleResponse } from '../../src';
 
-// `result` of the node's `rule` query, as the test node (the beatoz/beatoz-re
-// image pinned in scripts/testnode.config.json) returned it on 2026-11-13.
+// `result` of the node's `rule` query, as the test node (beatoz/beatoz-re
+// v1.16.0-7df2e36) returned it on 2026-11-13.
 // Newer nodes send txFeePoolAddress instead of deadAddress; neither is typed.
 const live = {
     value: {
