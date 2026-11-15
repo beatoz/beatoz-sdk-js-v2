@@ -85,11 +85,6 @@ export default tseslint.config(
             '**/webpack.analyze.js',
             // Generated protobuf code - not hand-edited.
             'packages/web3-accounts/src/tx/trx_pb.ts',
-            // Dead code: the entire file is commented out.
-            // The license-header autofix treats the leading comment run as a
-            // malformed header and replaces it, wiping the contents. Must stay ignored.
-            // (Whether to keep or delete this file is a separate decision.)
-            'packages/web3-accounts/src/transfer_test.ts',
             // Individual exclusions carried over from the old .eslintignore files
             'packages/web3-providers-ws/test/websocket_provider.test.ts',
             'packages/web3-utils/test/**',
