@@ -1075,14 +1075,6 @@ export interface RewardResponse {
 }
 
 /**
- * Represents a governance proposal response.
- */
-// proposals() never gets a proposal from the node, so there is nothing to
-// type yet; #148 fixes the method and types the answer.
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ProposalResponse {}
-
-/**
  * The result of the node's `vm_call` query (beatoz-go `ctrlers/types/vm.go`),
  * which runs a contract call without a transaction.
  */

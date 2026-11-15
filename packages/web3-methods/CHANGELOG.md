@@ -97,6 +97,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `web3.beatoz.proposals(txHash)` is removed (#148). It never
+  returned a proposal: the node answered every call with `invalid query
+  path`. Proposals are validators' business, done with their wallet (#95).
+
 - **BREAKING:** `sendDeploy` and `web3.beatoz.contractAddrFromTx` are gone
   (#42); `contract.deploy().send()` deploys and returns the address.
   `contractAddrFromTx` took the last `contractAddress` in the transaction's

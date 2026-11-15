@@ -261,7 +261,6 @@ const cases: Array<[string, () => unknown, Sent]> = [
         () => m.subscribeTx(manager, 'tx.height>5'),
         { method: 'subscribe', params: { query: "tm.event='Tx' AND tx.height>5" } },
     ],
-    // proposals() is left out: it asks a path the node does not answer (#148).
 ];
 
 describe('rpc methods send what the node reads', () => {

@@ -501,6 +501,13 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`, `@beatoz/web3-types`:
+  **BREAKING:** `proposals()` and `ProposalResponse` are removed (#148). The
+  method never returned a proposal: the node answered every call with
+  `invalid query path`, and the hash was sent as text. Proposals are made and
+  voted on by validators, with their wallet, not through this SDK (as for the
+  builders removed in #95).
+
 - `@beatoz/web3-types`: **BREAKING:** The ABI type computation inherited from web3.js is gone (#134):
   `MatchPrimitiveType`, `PrimitiveStringType`, `PrimitiveBooleanType`,
   `PrimitiveIntegerType`, `PrimitiveBytesType`, `PrimitiveTupleType`,
