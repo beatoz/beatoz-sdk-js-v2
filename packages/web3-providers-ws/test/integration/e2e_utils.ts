@@ -61,32 +61,6 @@ export const getTestChainId = (): string => requireEnv('BEATOZ_CHAIN_ID');
 
 export const getTestAccountAddress = (): string => requireEnv('BEATOZ_TEST_ADDRESS');
 
-export const getTestAccountPrivateKey = (): string => requireEnv('BEATOZ_TEST_PRIVATE_KEY');
-
 /** A second funded account, for tests that need two distinct signers. */
 export const getTestProposalAccountPrivateKey = (): string =>
     requireEnv('BEATOZ_TEST_PROPOSAL_PRIVATE_KEY');
-
-export const getTestAccounts = (): ReadonlyArray<{ address: string; privateKey: string }> => [
-    { address: getTestAccountAddress(), privateKey: getTestAccountPrivateKey() },
-    {
-        address: requireEnv('BEATOZ_TEST_PROPOSAL_ADDRESS'),
-        privateKey: getTestProposalAccountPrivateKey(),
-    },
-];
-
-/**
- * Whether a node is reachable. Suites call this and skip instead of failing,
- * so running without a node reports skips rather than a wall of connection
- * errors.
- */
-export const isNodeReachable = async (): Promise<boolean> => {
-    try {
-        const response = await fetch(`${getTestServer()}/status`, {
-            signal: AbortSignal.timeout(3000),
-        });
-        return response.ok;
-    } catch {
-        return false;
-    }
-};

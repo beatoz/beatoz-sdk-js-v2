@@ -54,12 +54,6 @@ export const compareSha3JSValidData: [string, any | undefined][] = [
     ['0x1234', new Uint8Array(hexToBytes('0x1234'))],
 ];
 
-export const sha3InvalidData: [any, string][] = [
-    [1, 'Invalid value given "1". Error: not a valid string.'],
-    [BigInt(1010), 'Invalid value given "1010". Error: not a valid string.'],
-    [undefined, 'Invalid value given "undefined". Error: not a valid string.'],
-];
-
 export const sha3RawValidData: [Bytes, string | undefined][] = [
     ...sha3Data,
     ['', '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'],
@@ -67,7 +61,7 @@ export const sha3RawValidData: [Bytes, string | undefined][] = [
 
 export const compareSha3JSRawValidData: [string, string][] = [...compareSha3JSValidData];
 
-export const soliditySha3Data: [TypedObject[] | TypedObjectAbbreviated[], string | undefined][] = [
+const soliditySha3Data: [TypedObject[] | TypedObjectAbbreviated[], string | undefined][] = [
     [
         [{ type: 'string', value: '31323334' }],
         '0xf15f8da2ad27e486d632dc37d24912f634398918d6f9913a0a0ff84e388be62b',
@@ -287,9 +281,4 @@ export const keccak256ValidData: [string | Uint8Array | bigint, string][] = [
         '0x2d19cd91fbcc44e6412f92c11da7907cdedb1ace04c47447b42a61f1cd63b85a',
     ],
     [BigInt(3), '0x2a80e1ef1d7842f27f2e6be0972bb708b9a135c38860dbe73c27c3486c34f4de'],
-];
-
-export const elementaryNameValidData: [any, string][] = [
-    ['uint128', '128'],
-    ['int256', '256'],
 ];
