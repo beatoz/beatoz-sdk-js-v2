@@ -21,8 +21,8 @@ import {
 } from '../../src';
 import events from './fixtures/subscription_events.json';
 
-// One event of each kind as the test node (the beatoz/beatoz-re image pinned
-// in scripts/testnode.config.json) sent it on 2026-11-13, for a block with one
+// One event of each kind as the test node (beatoz/beatoz-re v1.16.0-7df2e36)
+// sent it on 2026-11-13, for a block with one
 // transfer. Assigning them to the event types checks the types against what
 // the node sends, wherever the tests are type-checked (#89).
 const newBlock: NewBlockSubscriptionEvent = events.newBlock as NewBlockSubscriptionEvent;

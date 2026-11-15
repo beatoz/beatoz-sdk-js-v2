@@ -1,7 +1,7 @@
 {
     "image": "beatoz/beatoz-re",
-    "tag": "v1.16.0-7df2e36",
-    "digest": "sha256:0f6ae8dcd72c232dd7454257d010d74ec4404694b3eacc40a876d31cd51a1dbd",
+    "tag": "v1.18.0-rc.2",
+    "digest": "sha256:725a56dbd43b2e153221ad8a7fa7181ccd8640f733dbaad36a46f4e34645e542",
     "container": "beatoz-sdk-testnode",
     "rpcPort": 26657,
     "p2pPort": 26656,

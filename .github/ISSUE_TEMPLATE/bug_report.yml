@@ -64,7 +64,7 @@ body:
     attributes:
       label: Chain and node
       description: Mainnet, a testnet or a local node, and the beatoz-go version if you know it.
-      placeholder: "local node from beatoz/beatoz-re v1.16.0"
+      placeholder: "local node from beatoz/beatoz-re v1.18.0-rc.2"
   - type: textarea
     id: actual
     attributes:
