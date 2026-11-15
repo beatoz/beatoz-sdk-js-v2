@@ -54,7 +54,7 @@
         "@beatoz/web3-types": "^1.6.5",
         "@beatoz/web3-validator": "^1.6.5",
         "ethereum-cryptography": "2.1.2",
-        "long": "5.2.3"
+        "long": "^5.3.2"
     },
     "peerDependencies": {
         "typescript": ">=5.8"

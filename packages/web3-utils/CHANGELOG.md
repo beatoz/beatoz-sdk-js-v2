@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
+
 - **BREAKING:** `soliditySha3` and friends refuse an array value without its
   type with `InvalidInputError` (#100). `hexStringToUint8Array` and the
   unused `storage.ts`, with the `node-localstorage` dependency, are gone.
