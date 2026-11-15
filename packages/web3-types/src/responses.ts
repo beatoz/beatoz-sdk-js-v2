@@ -897,35 +897,41 @@ export interface CheckTxResponse {
 }
 
 /**
- * Represents the response related to a delegatee.
+ * The result of the node's `delegatee` query: a validator and the power
+ * delegated to it (beatoz-go `ctrlers/vpower/ctrler_query.go`).
  */
 export interface DelegateeResponse {
     key: string;
     log?: string;
     code?: number;
     value?: DelegateeValue;
+    /** The block height the query was answered at. */
+    height: string;
 }
 
+/**
+ * A validator's power. The node encodes each int64 as a decimal string.
+ */
 export interface DelegateeValue {
     address: string;
     pubKey: string;
-    selfAmount: string;
-    selfPower: number;
-    totalAmount: string;
-    totalPower: number;
-    rewardAmount: string;
-    stakes: DelegateeStake[];
-}
-
-export interface DelegateeStake {
-    owner: string;
-    to: string;
-    amount: string;
-    power: number;
-    ReceivedReward: string;
-    txhash: string;
-    startHeight: number;
-    refundHeight: number;
+    /** Power the validator staked itself. */
+    selfPower: string;
+    /** Its own power plus what delegators staked to it. */
+    totalPower: string;
+    /** Always `'0'`: the node does not record slashed power here yet. */
+    slashedPower: string;
+    /** Addresses that delegated to the validator. */
+    delegators: string[];
+    /** Blocks the validator missed signing. The name is the node's spelling. */
+    notSingedBlockCount: string;
+    /**
+     * Every stake delegated to the validator.
+     *
+     * @deprecated The node keeps it only for backward compatibility and marks
+     * it for removal.
+     */
+    stakes?: StakesValue[];
 }
 
 /**
@@ -1012,22 +1018,29 @@ export interface AccountResponse {
 }
 
 /**
- * Represents the stakes related response.
+ * The result of the node's `stakes` query: the stakes an account made
+ * (beatoz-go `ctrlers/vpower/ctrler_query.go`).
  */
 export interface StakesResponse {
     key: string;
     value?: StakesValue[];
+    /** The block height the query was answered at. */
+    height: string;
 }
 
+/**
+ * One stake. The node encodes each int64 as a decimal string.
+ */
 export interface StakesValue {
+    /** The account that staked. */
     owner: string;
+    /** The validator it staked to. */
     to: string;
-    amount: string;
-    power: number;
-    ReceivedReward: string;
+    /** The transaction that made the stake; unstaking names it. */
     txhash: string;
-    startHeight: number;
-    refundHeight: number;
+    /** The block the stake was made in. */
+    startHeight: string;
+    power: string;
 }
 
 /**

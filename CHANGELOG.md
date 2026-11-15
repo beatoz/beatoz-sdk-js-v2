@@ -15,6 +15,17 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-types`: **BREAKING:** `StakesValue` and `DelegateeValue`
+  describe what the node's `stakes` and `delegatee` queries send (#128).
+  `StakesValue` loses `amount`, `ReceivedReward` and `refundHeight`, and
+  `DelegateeValue` loses `selfAmount`, `totalAmount` and `rewardAmount`; the
+  node sends none of them, so they were always `undefined`. `power`,
+  `startHeight`, `selfPower` and `totalPower` are decimal strings, as the node
+  sends them, not numbers. `DelegateeValue` gains `slashedPower`, `delegators`
+  and `notSingedBlockCount` (the node's spelling), and its `stakes` is optional
+  and deprecated, as the node marks it. `DelegateeStake` is gone; `stakes`
+  uses `StakesValue`. Both responses gain `height`.
+
 - `@beatoz/web3-contract`, `@beatoz/web3-types`: **BREAKING:** Contract method
   options take the builder's types (#6). `broadcast()` takes `gas` and
   `nonce` as numbers and `gasPrice` as a decimal string, passed through

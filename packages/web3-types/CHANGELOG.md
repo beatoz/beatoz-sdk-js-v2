@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `StakesValue` and `DelegateeValue` describe what the node's
+  `stakes` and `delegatee` queries send (#128). `StakesValue` loses `amount`,
+  `ReceivedReward` and `refundHeight`, and `DelegateeValue` loses
+  `selfAmount`, `totalAmount` and `rewardAmount`; the node sends none of them,
+  so they were always `undefined`. `power`, `startHeight`, `selfPower` and
+  `totalPower` are decimal strings, as the node sends them, not numbers.
+  `DelegateeValue` gains `slashedPower`, `delegators` and
+  `notSingedBlockCount` (the node's spelling), and its `stakes` is optional and
+  deprecated, as the node marks it. `DelegateeStake` is gone; `stakes` uses
+  `StakesValue`. Both responses gain `height`.
+
 - **BREAKING:** `NonPayableCallOptions`, `PayableCallOptions` and
   `ContractInitOptions` are removed (#6). `@beatoz/web3-contract` now defines
   its own method options (`CallOptions`, `NonPayableTxOptions`,
