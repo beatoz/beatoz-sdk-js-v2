@@ -51,7 +51,6 @@
         "test:reward": "jest --config=./test/reward/jest.config.js"
     },
     "devDependencies": {
-        "@openzeppelin/contracts": "^4.7.1",
         "@types/node": "22.20.2"
     },
     "dependencies": {

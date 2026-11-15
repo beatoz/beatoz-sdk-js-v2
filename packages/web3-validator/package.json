@@ -48,7 +48,6 @@
         "test:types": "tsc -p test/tsconfig.json"
     },
     "devDependencies": {
-        "@openzeppelin/contracts": "^4.7.1",
         "@types/node": "22.20.2"
     },
     "dependencies": {
