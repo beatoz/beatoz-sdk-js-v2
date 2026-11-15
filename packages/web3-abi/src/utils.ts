@@ -227,8 +227,12 @@ export const modifyParams = (
         );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (coder as any).coders.forEach((c: ReturnType<AbiCoder['_getCoder']>, i: number) => {
+    // A tuple coder from here on. ethers keeps TupleCoder out of its public
+    // exports, so only the field this reads is named.
+    const { coders } = coder as unknown as {
+        readonly coders: ReadonlyArray<ReturnType<AbiCoder['_getCoder']>>;
+    };
+    coders.forEach((c, i) => {
         if (c.name === 'tuple') {
             modifyParams(c, [param[i]]);
         } else {

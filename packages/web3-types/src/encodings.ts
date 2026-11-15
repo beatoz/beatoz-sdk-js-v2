@@ -141,8 +141,7 @@ export function assertNotEmpty<T>(value: T): T {
 
     if (typeof value === 'number' && value === 0) {
         throw new InvalidResponseError('a value in the response must not be 0, got 0');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } else if ((value as any as Lengther).length === 0) {
+    } else if ((value as Partial<Lengther>).length === 0) {
         throw new InvalidResponseError(
             `a value in the response must not be empty, got ${formatValue(value)}`,
         );
@@ -170,10 +169,13 @@ export function dictionaryToStringMap(obj: Record<string, unknown>): Map<string,
     return out;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const TextEncoder: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const TextDecoder: any;
+// Both are globals in browsers and Node, but in neither the ES lib nor this
+// package's types, so the part used here is declared.
+declare const TextEncoder: new () => { encode(input: string): Uint8Array };
+declare const TextDecoder: new (
+    label?: string,
+    options?: { fatal?: boolean },
+) => { decode(input: Uint8Array): string };
 
 export function toUtf8(str: string): Uint8Array {
     return new TextEncoder().encode(str);

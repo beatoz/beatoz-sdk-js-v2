@@ -96,7 +96,9 @@ export class Validator {
 
                 const instancePath = _instancePath ? `/${_instancePath}` : '';
                 if (error?.message === 'has less items than allowed') {
-                    const schemaData = this.getObjectValueByPath(schema, schemaPath);
+                    const schemaData = this.getObjectValueByPath(schema, schemaPath) as {
+                        minItems?: number;
+                    };
 
                     if (schemaData.minItems) {
                         keyword = 'minItems';
@@ -107,7 +109,9 @@ export class Validator {
                         message = `must NOT have fewer than ${schemaData.minItems} items`;
                     }
                 } else if (error?.message === 'has more items than allowed') {
-                    const schemaData = this.getObjectValueByPath(schema, schemaPath);
+                    const schemaData = this.getObjectValueByPath(schema, schemaPath) as {
+                        maxItems?: number;
+                    };
 
                     if (schemaData.maxItems) {
                         keyword = 'maxItems';
@@ -166,17 +170,17 @@ export class Validator {
             }
             if (parts.length === 0) return obj;
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let curr: any = obj;
+            let curr: unknown = obj;
             for (const part of parts) {
                 if (typeof part !== 'string') throw new Error('Invalid JSON pointer');
 
-                if (objpath) objpath.push(curr); // does not include target itself, but includes head
+                if (objpath) objpath.push(curr as object); // does not include target itself, but includes head
                 const prop = this.untilde(part);
                 if (typeof curr !== 'object') return undefined;
+                // A null curr throws here, as it did before; the catch below answers ''.
                 if (!Object.prototype.hasOwnProperty.call(curr, prop)) return undefined;
 
-                curr = curr[prop];
+                curr = (curr as Record<string, unknown>)[prop];
             }
 
             return curr;

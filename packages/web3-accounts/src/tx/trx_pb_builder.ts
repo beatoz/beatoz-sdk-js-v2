@@ -35,8 +35,7 @@ import {
 import { Web3Account } from '../types.js';
 import { RlpUtils } from './trx_rlp.js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isSet(value: any): boolean {
+function isSet(value: unknown): boolean {
     return value !== undefined;
 }
 
