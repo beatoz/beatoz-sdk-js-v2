@@ -14,15 +14,10 @@
     limitations under the License.
 */
 
-import { ReadonlyDate } from 'readonly-date';
 import { formatValue, InvalidResponseError } from '@beatoz/web3-errors';
 
 const rfc3339Matcher =
     /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(\.\d{1,9})?((?:[+-]\d{2}:\d{2})|Z)$/;
-
-function padded(integer: number, length = 2): string {
-    return integer.toString().padStart(length, '0');
-}
 
 export function fromRfc3339(str: string): Date {
     const matches = rfc3339Matcher.exec(str);
@@ -62,16 +57,4 @@ export function fromRfc3339(str: string): Date {
     const timestamp =
         Date.UTC(year, month - 1, day, hour, minute, second, milliSeconds) - tzOffset * 1000;
     return new Date(timestamp);
-}
-
-export function toRfc3339(date: Date | ReadonlyDate): string {
-    const year = date.getUTCFullYear();
-    const month = padded(date.getUTCMonth() + 1);
-    const day = padded(date.getUTCDate());
-    const hour = padded(date.getUTCHours());
-    const minute = padded(date.getUTCMinutes());
-    const second = padded(date.getUTCSeconds());
-    const ms = padded(date.getUTCMilliseconds(), 3);
-
-    return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
 }
