@@ -150,6 +150,17 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The ABI type computation inherited from web3.js is gone (#134):
+  `MatchPrimitiveType`, `PrimitiveStringType`, `PrimitiveBooleanType`,
+  `PrimitiveIntegerType`, `PrimitiveBytesType`, `PrimitiveTupleType`,
+  `ContractMethodInputParameters`, `ContractMethodOutputParameters`,
+  `ContractConstructor`, `ContractConstructorArgs`, `ContractMethod`,
+  `ContractMethods`, `ContractEvent`, `ContractEvents`, `FilterAbis`,
+  `ConvertToNumber`, `JsonFunctionInterface`, `JsonEventInterface`, and
+  `FixedSizeArray` and `GrowToSize`, which only they used. Contract method
+  types have come from abitype since #36 and nothing used these. To type an
+  ABI's arguments or results, use abitype (`AbiParametersToPrimitiveTypes`).
+
 - **BREAKING:** The API spec types are gone (#37): `BeatozExecutionAPI`,
   `EthExecutionAPI` with the Ethereum `*API` types it used, `Web3APISpec`,
   `Web3APIMethod`, `Web3APIParams` and `Web3APIReturnType`. The spec checked
