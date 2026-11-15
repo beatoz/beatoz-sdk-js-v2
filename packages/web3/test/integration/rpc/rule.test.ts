@@ -28,6 +28,6 @@ describe('rule check ', () => {
 
     it('should call web3 with testWebsocketWeb3Instance.rule() method success return', async () => {
         const testRuleResponse: RuleResponse = await testWebsocketWeb3Instance.beatoz.rule();
-        expect(testRuleResponse.value.version).toBeDefined();
+        expect(testRuleResponse.value.gasPrice).toBeDefined();
     });
 });

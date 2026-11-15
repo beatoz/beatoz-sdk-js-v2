@@ -15,6 +15,7 @@
 */
 import WebSocket from 'ws';
 import { AddressInfo } from 'net';
+import { JsonRpcRequest } from '@beatoz/web3-types';
 
 // A local WebSocket server stands in for the node, so the tests can drop the
 // connection when they need to. `onMessage` answers each request.
@@ -40,12 +41,14 @@ export const stop = (server: WebSocket.Server) =>
         server.close(() => resolve());
     });
 
-export const request = (method = 'status') => ({
-    jsonrpc: '2.0' as const,
-    id: `${method}-${Math.random()}`,
-    method,
-    params: method === 'subscribe' ? { query: "tm.event='NewBlock'" } : {},
-});
+// listen() types params as an array, but the node takes `{ query }` (#146).
+export const request = (method = 'status') =>
+    ({
+        jsonrpc: '2.0',
+        id: `${method}-${Math.random()}`,
+        method,
+        params: method === 'subscribe' ? { query: "tm.event='NewBlock'" } : {},
+    }) as unknown as JsonRpcRequest;
 export const errorFrom = (p: Promise<unknown>) =>
     p.then(
         () => undefined,
