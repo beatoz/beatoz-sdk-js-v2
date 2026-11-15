@@ -91,8 +91,6 @@ export default tseslint.config(
             // (Whether to keep or delete this file is a separate decision.)
             'packages/web3-accounts/src/transfer_test.ts',
             // Individual exclusions carried over from the old .eslintignore files
-            'packages/web3-types/src/responses.ts',
-            'packages/web3-providers-ws/src/**',
             'packages/web3-providers-ws/test/websocket_provider.test.ts',
             'packages/web3-utils/test/**',
             'packages/web3-validator/test/**',

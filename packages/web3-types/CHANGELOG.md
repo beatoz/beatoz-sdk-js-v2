@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `LastCommitInfo.peer_maj_23s` is `Record<string, BlockId>`, the block each
+  peer claims +2/3 for keyed by peer id, as the node encodes it; it was `{}`
+  (#33).
+
 - **BREAKING:** `StakesValue` and `DelegateeValue` describe what the node's
   `stakes` and `delegatee` queries send (#128). `StakesValue` loses `amount`,
   `ReceivedReward` and `refundHeight`, and `DelegateeValue` loses

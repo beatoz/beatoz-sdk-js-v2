@@ -13,6 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
 import { Listener, Producer } from 'xstream';
 
 export interface DefaultValueProducerCallsbacks {
@@ -51,8 +52,7 @@ export class DefaultValueProducer<T> implements Producer<T> {
     /**
      * Produce an error
      */
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    public error(error: any): void {
+    public error(error: unknown): void {
         if (this.listener) {
             this.listener.error(error);
         }

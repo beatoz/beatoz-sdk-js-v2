@@ -15,6 +15,15 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-providers-ws`: **BREAKING:** `parseJsonRpcResponse`,
+  `parseJsonRpcErrorResponse` and `parseJsonRpcSuccessResponse` take
+  `unknown` and return the result as `unknown`, not `JsonRpcResult` (#33). A
+  response that is not an object, or an error response with a `null` id, is
+  refused with `InvalidResponseError`.
+
+- `@beatoz/web3-types`: `LastCommitInfo.peer_maj_23s` is
+  `Record<string, BlockId>`, as the node encodes it; it was `{}` (#33).
+
 - `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `validators()` takes the height
   as optional, as `block()` does (#144). With no height the node answers for
   the latest one, so reading the current validator set no longer takes a

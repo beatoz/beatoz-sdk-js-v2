@@ -50,7 +50,7 @@ export class QueueingStreamingSocket {
         this.timeout = timeout;
         this.reconnectedHandler = reconnectedHandler;
 
-        const eventProducer: Producer<any> = {
+        const eventProducer: Producer<SocketWrapperMessageEvent> = {
             start: (listener) => (this.eventProducerListener = listener),
             stop: () => (this.eventProducerListener = undefined),
         };
@@ -99,7 +99,6 @@ export class QueueingStreamingSocket {
             },
             error: () => this.connectionStatusProducer.update(ConnectionStatus.Disconnected),
         });
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.socket.connected.then(() => {
             if (this.reconnectedHandler) {
                 this.reconnectedHandler();
@@ -120,7 +119,6 @@ export class QueueingStreamingSocket {
     public queueRequest(request: string): void {
         this.queue.push(request);
         // We don’t need to wait for the queue to be processed.
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.processQueue();
     }
 
@@ -136,7 +134,7 @@ export class QueueingStreamingSocket {
             try {
                 await this.socket.send(request);
                 this.isProcessingQueue = false;
-            } catch (error) {
+            } catch {
                 // Probably the connection is down; will try again automatically when reconnected.
                 this.queue.unshift(request);
                 this.isProcessingQueue = false;
