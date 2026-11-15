@@ -73,6 +73,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `proposals(requestManager, txHash)` is removed (#148). It
+  never returned a proposal: it asked the node for a `proposals` path the
+  node does not answer (`invalid query path`), and sent the hash's text
+  instead of its bytes. Proposals are made and voted on by validators, with
+  their wallet, not through this SDK (#95).
+
 - No longer depends on `@beatoz/web3-utils` or `@beatoz/web3-validator`,
   neither of which it imported.
 

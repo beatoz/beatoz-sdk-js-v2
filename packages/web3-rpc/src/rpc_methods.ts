@@ -50,7 +50,6 @@ import {
     DelegateeResponse,
     RuleResponse,
     VmCallResponse,
-    ProposalResponse,
     StakesResponse,
     RewardResponse,
     AccountResponse,
@@ -526,18 +525,6 @@ export async function getAccount(
             },
         }),
     );
-}
-
-export async function proposals(
-    requestManager: Web3RequestManager,
-    txHash: string,
-): Promise<ProposalResponse> {
-    return requestManager.send({
-        method: 'proposals',
-        params: {
-            txhash: Buffer.from(txHash).toString('base64'),
-        },
-    });
 }
 
 export async function stakes(

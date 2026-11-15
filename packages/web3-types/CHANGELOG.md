@@ -169,6 +169,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `ProposalResponse`, an empty interface, is removed with the
+  `proposals()` method it typed (#148).
+
 - **BREAKING:** The ABI type computation inherited from web3.js is gone (#134):
   `MatchPrimitiveType`, `PrimitiveStringType`, `PrimitiveBooleanType`,
   `PrimitiveIntegerType`, `PrimitiveBytesType`, `PrimitiveTupleType`,

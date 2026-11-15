@@ -156,10 +156,6 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.getAccount(this, addr);
     }
 
-    proposals(txHash: string) {
-        return rpcMethodsWrappers.proposals(this, txHash);
-    }
-
     stakes(addr: string) {
         if (!addr.startsWith('0x')) {
             addr = '0x' + addr;

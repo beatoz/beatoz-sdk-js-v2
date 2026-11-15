@@ -284,10 +284,6 @@ export async function getAccount(web3Context: Web3Context, addr: string) {
     return rpcMethods.getAccount(web3Context.requestManager, addr);
 }
 
-export async function proposals(web3Context: Web3Context, txHash: string) {
-    return rpcMethods.proposals(web3Context.requestManager, txHash);
-}
-
 export async function stakes(web3Context: Web3Context, addr: string) {
     return rpcMethods.stakes(web3Context.requestManager, addr);
 }
