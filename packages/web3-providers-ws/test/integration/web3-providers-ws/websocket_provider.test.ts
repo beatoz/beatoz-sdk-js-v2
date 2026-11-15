@@ -31,8 +31,16 @@ export function createJsonRpcRequest(
 }
 
 describe('WebsocketClient', () => {
+    let provider: WebsocketProvider;
+
+    beforeAll(() => {
+        provider = new WebsocketProvider(getTestWsServer());
+    });
+
+    // In afterAll, so a failed assertion cannot leave the socket open (#88).
+    afterAll(() => provider.disconnect());
+
     it('can make a simple call', async () => {
-        const provider = new WebsocketProvider(getTestWsServer());
         const healthResponse = await provider.request(createJsonRpcRequest('status'));
         expect(healthResponse.result).toBeDefined();
 
@@ -41,7 +49,5 @@ describe('WebsocketClient', () => {
 
         const statusResponse = await provider.execute(createJsonRpcRequest('status'));
         expect(statusResponse.result).toBeTruthy();
-
-        provider.disconnect();
     });
 });

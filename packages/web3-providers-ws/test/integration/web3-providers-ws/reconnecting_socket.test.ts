@@ -18,12 +18,25 @@ import { ConnectionStatus } from '../../../src/socket/queueing_streaming_socket'
 import { getTestWsServer } from '../e2e_utils';
 
 describe('ReconnectingSocket', () => {
+    let socket: ReconnectingSocket;
+    let disconnected = false;
+
+    // A test that fails before its own disconnect(), or reconnects after it,
+    // leaves a socket that keeps Jest from exiting (#88). Close it only then:
+    // a second disconnect() can throw.
+    afterAll(() => {
+        if (!disconnected || socket.connectionStatus.value !== ConnectionStatus.Disconnected) {
+            socket.disconnect();
+        }
+    });
+
     it('stays disconnected after disconnect()', async () => {
-        const socket = new ReconnectingSocket(getTestWsServer());
+        socket = new ReconnectingSocket(getTestWsServer());
         socket.connect();
         await socket.connectionStatus.waitFor(ConnectionStatus.Connected);
 
         socket.disconnect();
+        disconnected = true;
 
         // The first reconnect attempt is scheduled 100ms after a drop. Wait
         // well past it, so "did not reconnect" is not "has not yet".
