@@ -12,10 +12,15 @@ request: the commit messages (`npx commitlint`, see [Commit messages](./commits.
 node. A draft runs only the first four; mark it ready for review to run the
 rest. It also runs on every push to `dev`.
 
+The same job prints a dead code report (`npx knip --no-exit-code`, configured
+in [`knip.jsonc`](../knip.jsonc)): unused files, exports and dependencies. It
+never fails the check; a finding is looked at and filed as an issue before
+anything is removed.
+
 | Check | What it runs |
 | --- | --- |
 | `Commit messages` | commitlint over the pull request's commits |
-| `Build, lint, unit tests` | build, ESLint, unit tests, `check-dist.mjs` (not on drafts) |
+| `Build, lint, unit tests` | build, ESLint, unit tests, a knip report, `check-dist.mjs` (not on drafts) |
 | `Integration tests` | the test node and `yarn test:integration` (not on drafts) |
 
 ## Release checks

@@ -1,0 +1,22 @@
+{
+    "$schema": "https://unpkg.com/knip@6/schema.json",
+    // Reports only: CI runs `knip --no-exit-code` (#24), and each finding is
+    // looked at before anything is removed.
+    "workspaces": {
+        ".": {
+            "entry": ["scripts/**/*.{js,mjs}", "webpack.base.config.js"],
+            // webpack.base.config.js resolves these for the browser bundles
+            // (build:web); knip does not credit require.resolve() there.
+            "ignoreDependencies": ["constants-browserify", "crypto-browserify"],
+        },
+        "packages/*": {
+            // Type tests (test/types/*.types.ts) are compiled by test:types,
+            // not run by Jest.
+            "entry": ["test/**/*.{test,types}.ts"],
+            "project": ["src/**/*.ts", "test/**/*.ts"],
+            "webpack": {
+                "config": ["webpack.config.js", "webpack.analyze.js"],
+            },
+        },
+    },
+}
