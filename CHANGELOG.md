@@ -15,6 +15,11 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `validators()` takes the height
+  as optional, as `block()` does (#144). With no height the node answers for
+  the latest one, so reading the current validator set no longer takes a
+  height lookup first.
+
 - `@beatoz/web3-types`: **BREAKING:** `StakesValue` and `DelegateeValue`
   describe what the node's `stakes` and `delegatee` queries send (#128).
   `StakesValue` loses `amount`, `ReceivedReward` and `refundHeight`, and

@@ -179,7 +179,7 @@ export async function commit(
 
 export async function validators(
     requestManager: Web3RequestManager,
-    height: number | string,
+    height?: number | string,
     page?: number | string,
     per_page?: number | string,
 ): Promise<ValidatorsResponse> {

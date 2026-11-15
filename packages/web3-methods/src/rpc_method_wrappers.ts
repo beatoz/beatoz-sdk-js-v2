@@ -77,7 +77,7 @@ export async function commit(web3Context: Web3Context, height?: number | string)
 
 export async function validators(
     web3Context: Web3Context,
-    height: number | string,
+    height?: number | string,
     page?: number | string,
     per_page?: number | string,
 ) {
