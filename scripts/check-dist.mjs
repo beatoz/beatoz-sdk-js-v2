@@ -23,7 +23,10 @@
  *   1. every package loads with `import` and with `require`;
  *   2. the ESM build signs a transaction - `import * as` of a CommonJS module
  *      once left the build loading fine but unable to sign;
- *   3. the public types compile with no Node types available
+ *   3. the browser bundles load where Node's globals (`process`, `Buffer`,
+ *      `require`) do not exist, and the web3 one signs a transaction - webpack 5
+ *      no longer provides them, and a bundle missing one fails as it loads;
+ *   4. the public types compile with no Node types available
  *      (`types: []`, `skipLibCheck: false`), so users do not need `@types/node`.
  *
  * With `--installed`, the same checks run in a project that installed the
@@ -32,11 +35,13 @@
  */
 
 import { execFileSync } from 'node:child_process';
+import { webcrypto } from 'node:crypto';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const installed = process.argv.includes('--installed');
@@ -105,7 +110,60 @@ try {
     fail('sign with the ESM build', error);
 }
 
-// 3. public types without Node types
+// 3. the browser bundles, in a context with only what a browser has
+const browserContext = () => {
+    const context = {
+        TextEncoder,
+        TextDecoder,
+        crypto: webcrypto,
+        console,
+        setTimeout,
+        clearTimeout,
+    };
+    context.self = context;
+    context.window = context;
+    return vm.createContext(context);
+};
+const loadBundle = (name, file) => {
+    const dir = path.dirname(require.resolve(`${name}/package.json`, { paths: [projectRoot] }));
+    const context = browserContext();
+    vm.runInContext(fs.readFileSync(path.join(dir, file), 'utf8'), context);
+    return context;
+};
+try {
+    const context = loadBundle('@beatoz/web3', 'dist/web3.min.js');
+    const verified = vm.runInContext(
+        `(() => {
+            const account = new BeatozWeb3.Web3().beatoz.accounts.create();
+            const trx = BeatozWeb3.TrxProtoBuilder.buildTransferTrxProto({
+                from: account.address,
+                to: account.address,
+                amount: '1',
+                gas: 100000,
+                gasPrice: '48000000000',
+            });
+            account.signTransaction(trx, '0x1234');
+            return BeatozWeb3.TrxProtoBuilder.verifyTrxProto(trx, account, '0x1234');
+        })()`,
+        context,
+    );
+    if (verified !== true) throw new Error('the signature does not verify');
+    const validator = loadBundle('@beatoz/web3-validator', 'dist/web3-validator.min.js');
+    if (
+        vm.runInContext(`BeatozWeb3Validator.isAddress('${'0x' + '12'.repeat(20)}')`, validator) !==
+        true
+    ) {
+        throw new Error('BeatozWeb3Validator.isAddress does not accept an address');
+    }
+    console.log(
+        '✓ the browser bundles load without Node globals, and BeatozWeb3 signs a transaction',
+    );
+} catch (error) {
+    // Not the stack: it quotes the minified line, which is the whole bundle.
+    fail('the browser bundles', `${error?.name}: ${error?.message}`);
+}
+
+// 4. public types without Node types
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'beatoz-check-dist-'));
 try {
     // Inside the project, so the imports resolve to its packages. One ES

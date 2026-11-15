@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ## [Unreleased]
 
+### Added
+
+- The package carries its browser bundle, `dist/web3-validator.min.js`, built
+  with the package (#154). It sets one global, `BeatozWeb3Validator`, holding
+  the package's exports; `unpkg` and `jsdelivr` point at it. It was not
+  published before, failed as it loaded in a browser (`process is not
+  defined`), and its global was `undefined`.
+
 ### Changed
 
 - **BREAKING:** Invalid hex and tuple types without components throw

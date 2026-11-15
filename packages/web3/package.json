@@ -2,6 +2,8 @@
     "name": "@beatoz/web3",
     "version": "1.6.5",
     "main": "./lib/esm/index.js",
+    "unpkg": "./dist/web3.min.js",
+    "jsdelivr": "./dist/web3.min.js",
     "types": "./lib/types/index.d.ts",
     "exports": {
         ".": {
@@ -28,6 +30,7 @@
     },
     "files": [
         "lib/**/*",
+        "dist/**/*",
         "src/**/*",
         "CHANGELOG.md",
         "!**/*.tsbuildinfo"
@@ -35,7 +38,7 @@
     "scripts": {
         "clean": "rimraf dist && rimraf lib",
         "prebuild": "yarn clean",
-        "build": "yarn version:output && yarn build:esm && yarn build:types",
+        "build": "yarn version:output && yarn build:esm && yarn build:types && yarn build:web",
         "version:output": "[ -z $npm_package_version ] && rm ./src/version.ts || echo \"/* eslint-disable license-header/header */ export const Web3PkgInfo = { version: '$npm_package_version' };\" > ./src/version.ts",
         "build:esm": "tsc --build tsconfig.json && echo '{\"type\": \"module\"}' > ./lib/esm/package.json",
         "build:types": "tsc --build tsconfig.types.json && echo '{\"type\": \"module\"}' > ./lib/types/package.json",

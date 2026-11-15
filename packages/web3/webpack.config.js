@@ -19,7 +19,7 @@ const { getWebPackConfig } = require('../../webpack.base.config');
 module.exports = getWebPackConfig(
     __dirname,
     'web3.min.js',
-    'rWeb3',
-    'src/web3.ts',
+    'BeatozWeb3',
+    'src/index.ts',
     'tsconfig.json',
 );

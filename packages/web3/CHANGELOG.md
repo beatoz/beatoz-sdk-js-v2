@@ -73,6 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- The package carries its browser bundle, `dist/web3.min.js`, built with the
+  package (#154). It sets one global, `BeatozWeb3`, holding the package's
+  exports (`BeatozWeb3.Web3`, `BeatozWeb3.TrxProtoBuilder`, ...); `unpkg`
+  and `jsdelivr` point at it. It was not published before, failed as it
+  loaded in a browser (`process`, then `Buffer`, not defined), and its
+  global was `rWeb3`, holding only `Web3`.
+
 - Adds a `files` field, so the published package carries `lib/`, `src/`,
   `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
   Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which
