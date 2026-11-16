@@ -15,7 +15,9 @@
 */
 import WebSocket from 'ws';
 import WebsocketProvider from '../../src';
-import { answer, request, startServer, stop } from './ws_server';
+import { InvalidInputError } from '@beatoz/web3-errors';
+import { JsonRpcSubscribeRequest } from '@beatoz/web3-types';
+import { answer, startServer, stop, subscribeRequest } from './ws_server';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -54,7 +56,7 @@ describe('WebsocketProvider subscriptions', () => {
     });
 
     // The first event of a new listen, then the listener leaves.
-    const nextEvent = (req: ReturnType<typeof request>) =>
+    const nextEvent = (req: JsonRpcSubscribeRequest) =>
         new Promise((resolve, reject) => {
             const sub = provider!.listen(req).subscribe({
                 next: (event) => {
@@ -66,7 +68,7 @@ describe('WebsocketProvider subscriptions', () => {
         });
 
     it('gets events when the same query is listened to again', async () => {
-        const req = request('subscribe');
+        const req = subscribeRequest();
         await expect(nextEvent(req)).resolves.toMatchObject({ data: 1 });
         await waitUntil(() => methods().includes('unsubscribe'));
 
@@ -75,7 +77,7 @@ describe('WebsocketProvider subscriptions', () => {
     });
 
     it('gets events when listened to again after a reconnect', async () => {
-        const req = request('subscribe');
+        const req = subscribeRequest();
         await expect(nextEvent(req)).resolves.toMatchObject({ data: 1 });
         await waitUntil(() => methods().includes('unsubscribe'));
 
@@ -84,5 +86,32 @@ describe('WebsocketProvider subscriptions', () => {
         await provider!.connected();
 
         await expect(nextEvent(req)).resolves.toMatchObject({ data: 1 });
+    });
+
+    // The node reads a named query (tendermint rpc/core/routes.go). The type
+    // refuses anything else; listen() still refuses it from JavaScript (#146).
+    it('refuses a request that is not a subscribe with a query', () => {
+        const base = subscribeRequest();
+        expect(() =>
+            provider!.listen({
+                ...base,
+                // @ts-expect-error params are named, not positional
+                params: ["tm.event='NewBlock'"],
+            }),
+        ).toThrow(InvalidInputError);
+        expect(() =>
+            provider!.listen({
+                ...base,
+                // @ts-expect-error a subscribe request carries a query
+                params: {},
+            }),
+        ).toThrow(InvalidInputError);
+        expect(() =>
+            provider!.listen({
+                ...base,
+                // @ts-expect-error only a subscribe request can be listened to
+                method: 'status',
+            }),
+        ).toThrow(InvalidInputError);
     });
 });

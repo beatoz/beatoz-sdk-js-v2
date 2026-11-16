@@ -16,7 +16,6 @@
 import { WebsocketProvider } from '../../../src';
 import { getTestWsServer } from '../e2e_utils';
 import { assertUnbroken, produceBlock, produceBlocks, waitUntil } from '../block_fixtures';
-import { createJsonRpcRequest } from './websocket_provider.test';
 import { NewBlockHeaderSubscriptionEvent, SubscriptionEvent } from '@beatoz/web3-types';
 
 describe('WebsocketClient', () => {
@@ -35,7 +34,10 @@ describe('WebsocketClient', () => {
         const heights: number[] = [];
         let failure: Error | undefined;
 
-        const subscription = client.listen(createJsonRpcRequest('subscribe', { query })).subscribe({
+        // Built here, not imported from websocket_provider.test: importing a
+        // test file registers its tests in this one too (#142).
+        const request = { jsonrpc: '2.0', id: 1, method: 'subscribe', params: { query } } as const;
+        const subscription = client.listen(request).subscribe({
             error: (err: Error) => {
                 failure = err;
             },

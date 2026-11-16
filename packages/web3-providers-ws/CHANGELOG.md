@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `listen(request)` takes a `JsonRpcSubscribeRequest`: method
+  `'subscribe'` and `params: { query }`, the named parameter the node reads
+  (#146). It was typed with positional `params`, so a correct request needed
+  a cast and a wrong one compiled. A wrong request from JavaScript is still
+  refused with `InvalidInputError`.
+
 - **BREAKING:** `parseJsonRpcResponse`, `parseJsonRpcErrorResponse` and
   `parseJsonRpcSuccessResponse` take `unknown` instead of `any`, and the
   result they return is `unknown` instead of `JsonRpcResult`: they check that

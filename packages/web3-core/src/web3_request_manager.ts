@@ -17,12 +17,7 @@
 import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
 import { isNullish, jsonRpc } from '@beatoz/web3-utils';
-import {
-    Web3APIRequest,
-    JsonRpcRequest,
-    JsonRpcResponseWithResult,
-    SubscriptionEvent,
-} from '@beatoz/web3-types';
+import { Web3APIRequest, JsonRpcResponseWithResult, SubscriptionEvent } from '@beatoz/web3-types';
 import {
     InvalidInputError,
     InvalidResponseError,
@@ -111,7 +106,10 @@ export class Web3RequestManager extends Web3EventEmitter<{
         });
     }
 
-    public subscribe(request: Web3APIRequest): Stream<SubscriptionEvent> {
+    public subscribe(request: {
+        readonly method: 'subscribe';
+        readonly params: { readonly query: string };
+    }): Stream<SubscriptionEvent> {
         // Only Websocket Provider can subscribe.
         if (!(this.provider instanceof WebsocketProvider)) {
             throw new InvalidInputError('subscribe needs a WebSocket provider');
@@ -120,6 +118,6 @@ export class Web3RequestManager extends Web3EventEmitter<{
         const { provider } = this;
 
         const payload = jsonRpc.toPayload(request);
-        return provider.listen(payload as JsonRpcRequest);
+        return provider.listen({ ...payload, method: request.method, params: request.params });
     }
 }

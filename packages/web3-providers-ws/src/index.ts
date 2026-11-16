@@ -21,6 +21,7 @@ import {
     JsonRpcError,
     JsonRpcId,
     JsonRpcRequest,
+    JsonRpcSubscribeRequest,
     JsonRpcResponse,
     JsonRpcResponseWithError,
     JsonRpcResponseWithResult,
@@ -40,14 +41,14 @@ import {
 } from '@beatoz/web3-errors';
 
 class RpcEventProducer implements Producer<SubscriptionEvent> {
-    private readonly request: JsonRpcRequest;
+    private readonly request: JsonRpcSubscribeRequest;
     private readonly socket: ReconnectingSocket;
     private readonly url: string;
 
     private running = false;
     private subscriptions: Subscription[] = [];
 
-    public constructor(request: JsonRpcRequest, socket: ReconnectingSocket, url: string) {
+    public constructor(request: JsonRpcSubscribeRequest, socket: ReconnectingSocket, url: string) {
         this.request = request;
         this.socket = socket;
         this.url = url;
@@ -80,7 +81,10 @@ class RpcEventProducer implements Producer<SubscriptionEvent> {
         this.closeSubscriptions();
         // Tell the server we are done in order to save resources. We cannot wait for the result.
         // This may fail when socket connection is not open, thus ignore errors in queueRequest
-        const endRequest: JsonRpcRequest = { ...this.request, method: 'unsubscribe' };
+        const endRequest: JsonRpcRequest<{ readonly query: string }> = {
+            ...this.request,
+            method: 'unsubscribe',
+        };
         try {
             this.socket.queueRequest(JSON.stringify(endRequest));
         } catch (error) {
@@ -219,15 +223,16 @@ export default class WebsocketProvider {
         return response as JsonRpcResponseWithResult<unknown>;
     }
 
-    public listen(request: JsonRpcRequest): Stream<SubscriptionEvent> {
-        if (request.method !== 'subscribe') {
+    public listen(request: JsonRpcSubscribeRequest): Stream<SubscriptionEvent> {
+        // The type already requires both; JavaScript callers are not held to it.
+        const { method, params } = request as { method: unknown; params?: { query?: unknown } };
+        if (method !== 'subscribe') {
             throw new InvalidInputError(
-                `request.method must be "subscribe" to listen, got ${JSON.stringify(request.method)}`,
+                `request.method must be "subscribe" to listen, got ${JSON.stringify(method)}`,
             );
         }
 
-        // listen() types params as an array; the node takes `{ query }` (#146).
-        const query = (request.params as { query?: unknown } | undefined)?.query;
+        const query = params?.query;
         if (typeof query !== 'string') {
             throw new InvalidInputError(
                 `request.params.query must be a string, got ${JSON.stringify(query)}`,

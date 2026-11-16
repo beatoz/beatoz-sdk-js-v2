@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `Web3RequestManager.subscribe` takes `{ method: 'subscribe',
+  params: { query } }`, the shape the node reads, instead of any request
+  (#146).
+
 - **BREAKING:** `setProvider` and the constructor refuse a string that is not
   an `http(s)://` or `ws(s)://` URL with `InvalidInputError` (#168). One
   without a scheme, such as `localhost:26657`, used to leave the previous

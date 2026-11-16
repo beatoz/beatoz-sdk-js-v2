@@ -17,7 +17,7 @@ import WebsocketProvider from '../../../src/index';
 import { JsonRpcRequest } from '@beatoz/web3-types';
 import { uuidV4 } from '@beatoz/web3-utils';
 import { getTestWsServer } from '../e2e_utils';
-export function createJsonRpcRequest(
+function createJsonRpcRequest(
     method: string,
     params?: Record<string, unknown>,
 ): JsonRpcRequest<any> {
