@@ -15,6 +15,13 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-providers-ws`, `@beatoz/web3-core`: **BREAKING:**
+  `WebsocketProvider.listen` and `Web3RequestManager.subscribe` take the
+  subscribe request the node reads, `{ method: 'subscribe', params: { query
+  } }` (`JsonRpcSubscribeRequest` in `@beatoz/web3-types`) (#146). `listen`
+  was typed with positional `params`: a correct request needed a cast and a
+  wrong one compiled.
+
 - `@beatoz/web3-utils`: **BREAKING:** one name per function (#167).
   `fromUtf8` and `stringToHex` (use `utf8ToHex`), `hexToString`
   (`hexToUtf8`), `fromAscii` (`asciiToHex`), `toAscii` (`hexToAscii`),

@@ -75,6 +75,15 @@ export interface JsonRpcRequest<T = unknown[]> {
     readonly params?: T;
 }
 
+/**
+ * A subscribe request as the node reads it: a named `query`, not positional
+ * params (tendermint rpc/core/routes.go, `subscribe`: "query").
+ */
+export interface JsonRpcSubscribeRequest extends JsonRpcRequest<{ readonly query: string }> {
+    readonly method: 'subscribe';
+    readonly params: { readonly query: string };
+}
+
 export interface JsonRpcOptionalRequest<ParamType = unknown[]> extends Omit<
     JsonRpcRequest<ParamType>,
     'id' | 'jsonrpc'

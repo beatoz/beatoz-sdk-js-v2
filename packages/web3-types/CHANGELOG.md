@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `JsonRpcSubscribeRequest`: a subscribe request as the node reads it,
+  method `'subscribe'` with a named `query` (#146).
+
 - `RewardResponse`, `ResponsesDecoder.decodeReward` and `reward` in
   `BeatozExecutionAPI`, for the chain's `reward` query. `issued`, `withdrawn`
   and `slashed` describe only the last block that changed the ledger, not

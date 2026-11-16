@@ -16,7 +16,7 @@
 import WebSocket from 'ws';
 import { RpcRequestError, SocketClosedError } from '@beatoz/web3-errors';
 import WebsocketProvider from '../../src';
-import { answer, errorFrom, request, startServer, stop } from './ws_server';
+import { answer, errorFrom, request, startServer, stop, subscribeRequest } from './ws_server';
 
 describe('WebsocketProvider when the connection closes', () => {
     let server: WebSocket.Server | undefined;
@@ -76,7 +76,7 @@ describe('WebsocketProvider when the connection closes', () => {
         provider = new WebsocketProvider(`ws://localhost:${port}`);
 
         const err = await new Promise((resolve) => {
-            provider!.listen(request('subscribe')).subscribe({ error: resolve });
+            provider!.listen(subscribeRequest()).subscribe({ error: resolve });
         });
         expect(err).toBeInstanceOf(SocketClosedError);
     });
@@ -95,7 +95,7 @@ describe('WebsocketProvider when the connection closes', () => {
         provider = new WebsocketProvider(`ws://localhost:${port}`);
 
         const err = await new Promise((resolve) => {
-            provider!.listen(request('subscribe')).subscribe({ error: resolve });
+            provider!.listen(subscribeRequest()).subscribe({ error: resolve });
         });
         expect(err).toBeInstanceOf(RpcRequestError);
         expect(err).toMatchObject({ code: -32603, data: 'max subscriptions' });
