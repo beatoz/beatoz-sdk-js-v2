@@ -91,6 +91,22 @@ export class Web3Context extends Web3Config {
         return this.requestManager.provider;
     }
 
+    /**
+     * Uses `provider` for every request from now on: an HTTP or WebSocket
+     * provider, a URL (`http(s)://` or `ws(s)://`) to build one from, or
+     * `undefined` for none.
+     *
+     * The provider it replaces is not closed. A WebSocket provider keeps its
+     * socket open, and with it the process; disconnect it first:
+     *
+     * ```ts
+     * const old = web3.getProvider();
+     * web3.setProvider('ws://localhost:26657/websocket');
+     * if (old instanceof WebsocketProvider) old.disconnect();
+     * ```
+     *
+     * @throws InvalidInputError for a string that is not such a URL.
+     */
     public setProvider(provider?: HttpProvider | WebsocketProvider | string): boolean {
         // The request manager turns a URL into a provider. Doing it here as
         // well built a second one, and the first - for a ws:// URL an open
