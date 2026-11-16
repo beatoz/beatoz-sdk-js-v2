@@ -49,6 +49,14 @@ export class Web3RequestManager extends Web3EventEmitter<{
         }
     }
 
+    /**
+     * Sends every request through `provider` from now on. The provider it
+     * replaces is not closed: disconnect a WebSocket provider yourself, or its
+     * socket keeps the process alive. See `Web3Context.setProvider`.
+     *
+     * @throws InvalidInputError for a string that is not an `http(s)://` or
+     * `ws(s)://` URL.
+     */
     public setProvider(provider?: HttpProvider | WebsocketProvider | string): void {
         if (typeof provider !== 'string') {
             this._provider = provider;
