@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `web3.beatoz.transfer`, `delegate`, `undelegate` and `withdrawReward` send
+  a native transaction in one call (#41): the sender, an account in the
+  wallet, signs it, and the chain id, nonce, gas price and gas are filled in
+  when not given. The gas defaults to the chain's `minTrxGas`, since a native
+  transaction is charged all the gas it carries. A transaction the node
+  refuses, or that fails in the block, throws `TransactionFailedError` with
+  the node's log. `sendMode: 'sync' | 'async'` returns earlier.
+
+- `NonceManager` counts an account's nonces in memory (#43). The node reports
+  the nonce of the last committed block, so sync or async sends before the
+  next block all read the same one and the second is refused with
+  `invalid nonce`. Set `web3.beatoz.nonceManager = new NonceManager()` and
+  each send takes the next nonce; a failed send resets the account, which
+  reads the node again. Off unless set.
+
+- `nextNonce`, `buildWithNonce` and `broadcastSigned`, the steps the sends and
+  the contract package share.
+
+- Depends on `@beatoz/web3-accounts`, which builds and signs the transactions.
+
 - `web3.beatoz.totalSupply`, `totalTxFee`, `txCount`, `totalPower` and
   `votingPower`: the chain's total supply, fees paid so far, transactions run
   so far, staked power and validators' voting power (#46).

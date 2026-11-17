@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `Web3NonceManager`, the shape of a nonce manager (#43): `consume(address,
+  fetch)` and `reset(address)`. `NonceManager` in `@beatoz/web3-methods`
+  implements it.
+
 - `ChainValueResponse` (`height`, `value`) and
   `ResponsesDecoder.decodeChainValue`, for the node's single-value queries
   (#46). `value` is a decimal string, as amounts exceed a JavaScript number.

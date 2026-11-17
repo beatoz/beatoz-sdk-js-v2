@@ -27,6 +27,7 @@ export * from './responses.js';
 export * from './response_decoder.js';
 export * from './web3_api_types.js';
 export * from './web3_base_wallet.js';
+export * from './web3_nonce_manager.js';
 export * from './web3_deferred_promise_type.js';
 export * from './trx_proto.js';
 export * from './subscription_event.js';

@@ -53,12 +53,23 @@ export class Web3 extends Web3Context {
                 this._wallet = self.wallet;
                 this._accountProvider = self.accountProvider;
                 this._chainId = self.chainId;
+                // Read through to web3.beatoz at each send, so a nonce manager
+                // set after the contract was made still applies to it.
+                Object.defineProperty(this, 'nonceManager', {
+                    get: () => self.beatoz.nonceManager,
+                    set: (manager) => {
+                        self.beatoz.nonceManager = manager;
+                    },
+                });
             }
         }
 
         this.utils = utils;
 
         const beatoz = self.use(Web3Method);
+        // `use` passes the wallet in a context object that Web3Method does
+        // not read; transfer and the other sends sign with it.
+        beatoz['_wallet'] = self.wallet;
         //
         // // BEATOZ Module
         this.beatoz = Object.assign(beatoz, {

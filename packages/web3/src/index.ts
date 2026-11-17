@@ -42,6 +42,7 @@ export { Web3Validator } from '@beatoz/web3-validator';
 export * as utils from '@beatoz/web3-utils';
 export * as validator from '@beatoz/web3-validator';
 export { TrxProtoBuilder } from '@beatoz/web3-accounts';
+export { NonceManager } from '@beatoz/web3-methods';
 
 /**
  * Export all types from `web3-types` without a namespace (in addition to being available at `types` namespace).

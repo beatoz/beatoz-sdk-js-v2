@@ -18,6 +18,8 @@ import { Web3Context } from '@beatoz/web3-core';
 import * as rpcMethodsWrappers from './rpc_method_wrappers.js';
 import { TrxProto } from '@beatoz/web3-types';
 import { WaitForTxOptions } from './types.js';
+import * as sendTx from './send_tx.js';
+import { SendMode, SendTxOptions } from './send_tx.js';
 
 export class Web3Method extends Web3Context {
     public constructor() {
@@ -225,14 +227,35 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.subscribeTx(this, query);
     }
 
-    // public sendTransaction(
-    //     transaction:
-    //         | Transaction
-    //         | TransactionWithFromLocalWalletIndex
-    //         | TransactionWithToLocalWalletIndex
-    //         | TransactionWithFromAndToLocalWalletIndex,
-    //     options?: SendTransactionOptions,
-    // ) {
-    //     return rpcMethodsWrappers.sendTransaction(this, transaction, options);
-    // }
+    /** Sends `amount` from `from`, an account in the wallet, to `to`. See `SendTxOptions`. */
+    transfer<M extends SendMode = 'commit'>(
+        tx: { from: string; to: string; amount: string },
+        options?: SendTxOptions<M>,
+    ) {
+        return sendTx.transfer(this, tx, options);
+    }
+
+    /** Stakes `amount` from `from` to the validator `to`. See `SendTxOptions`. */
+    delegate<M extends SendMode = 'commit'>(
+        tx: { from: string; to: string; amount: string },
+        options?: SendTxOptions<M>,
+    ) {
+        return sendTx.delegate(this, tx, options);
+    }
+
+    /** Takes back the stake made by `txHash` from the validator `to`. See `SendTxOptions`. */
+    undelegate<M extends SendMode = 'commit'>(
+        tx: { from: string; to: string; txHash: string },
+        options?: SendTxOptions<M>,
+    ) {
+        return sendTx.undelegate(this, tx, options);
+    }
+
+    /** Withdraws `amount` of `from`'s reward to its balance. See `SendTxOptions`. */
+    withdrawReward<M extends SendMode = 'commit'>(
+        tx: { from: string; amount: string },
+        options?: SendTxOptions<M>,
+    ) {
+        return sendTx.withdrawReward(this, tx, options);
+    }
 }

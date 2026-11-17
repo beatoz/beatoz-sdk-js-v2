@@ -20,6 +20,7 @@ import {
     Web3AccountProvider,
     Web3BaseWalletAccount,
     Web3BaseWallet,
+    Web3NonceManager,
     ResponsesDecoder,
 } from '@beatoz/web3-types';
 import HttpProvider from '@beatoz/web3-providers-http';
@@ -43,6 +44,13 @@ export class Web3Context extends Web3Config {
     protected _accountProvider?: Web3AccountProvider<Web3BaseWalletAccount>;
     protected _wallet?: Web3BaseWallet<Web3BaseWalletAccount>;
     protected _chainId?: string;
+
+    /**
+     * Gives out the nonces of the transactions this context sends, when set;
+     * without one, each send reads its nonce from the node. Set one to send
+     * several transactions from an account before the next block.
+     */
+    public nonceManager?: Web3NonceManager;
 
     public get requestManager() {
         return this._requestManager!;
