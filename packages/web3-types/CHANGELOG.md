@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `ChainValueResponse` (`height`, `value`) and
+  `ResponsesDecoder.decodeChainValue`, for the node's single-value queries
+  (#46). `value` is a decimal string, as amounts exceed a JavaScript number.
+
 - `AccountResponse.height`: the block the query was answered at, as the
   other state query responses have it (#47).
 

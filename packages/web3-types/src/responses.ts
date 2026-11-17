@@ -1077,6 +1077,21 @@ export interface RewardResponse {
 }
 
 /**
+ * A chain-wide number the node answers with a single value: `total_supply`,
+ * `total_txfee`, `txn`, `stakes/total_power` and `stakes/voting_power`
+ * (beatoz-go `node/query.go`).
+ */
+export interface ChainValueResponse {
+    /** The block height the query was answered at. */
+    height: string;
+    /**
+     * A decimal integer, as a string: amounts are in the smallest unit and
+     * exceed what a JavaScript number holds exactly.
+     */
+    value: string;
+}
+
+/**
  * The result of the node's `vm_call` query (beatoz-go `ctrlers/types/vm.go`),
  * which runs a contract call without a transaction.
  */

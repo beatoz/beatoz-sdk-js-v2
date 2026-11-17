@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `web3.beatoz.totalSupply`, `totalTxFee`, `txCount`, `totalPower` and
+  `votingPower`: the chain's total supply, fees paid so far, transactions run
+  so far, staked power and validators' voting power (#46).
+
 - `web3.beatoz.getAccount`, `delegatee`, `stakes`, `reward` and `rule` take
   an optional `height` (#47): read the state as it was at that block.
 

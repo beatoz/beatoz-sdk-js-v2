@@ -53,6 +53,7 @@ import {
     VmCallResponse,
     StakesResponse,
     RewardResponse,
+    ChainValueResponse,
     AccountResponse,
     HealthResponse,
 } from '@beatoz/web3-types';
@@ -577,6 +578,56 @@ export async function reward(
             params: { addr: addr, height: stateHeight(height) },
         }),
     );
+}
+
+const chainValue = async (
+    requestManager: Web3RequestManager,
+    method: string,
+    params: { height?: string },
+): Promise<ChainValueResponse> =>
+    ResponsesDecoder.decodeChainValue(await requestManager.send({ method, params }));
+
+/** Total supply of the native coin, in the smallest unit (`total_supply`). */
+export async function totalSupply(
+    requestManager: Web3RequestManager,
+    height?: number | string,
+): Promise<ChainValueResponse> {
+    return chainValue(requestManager, 'total_supply', { height: stateHeight(height) });
+}
+
+/**
+ * Sum of the fees paid by every transaction so far, in the smallest unit
+ * (`total_txfee`). The node always answers for the latest block.
+ */
+export async function totalTxFee(requestManager: Web3RequestManager): Promise<ChainValueResponse> {
+    return chainValue(requestManager, 'total_txfee', {});
+}
+
+/**
+ * Number of transactions the chain has run so far (`txn`). The node always
+ * answers for the latest block.
+ */
+export async function txCount(requestManager: Web3RequestManager): Promise<ChainValueResponse> {
+    return chainValue(requestManager, 'txn', {});
+}
+
+/** Sum of the power staked to every delegatee (`stakes/total_power`). */
+export async function totalPower(
+    requestManager: Web3RequestManager,
+    height?: number | string,
+): Promise<ChainValueResponse> {
+    return chainValue(requestManager, 'stakes/total_power', { height: stateHeight(height) });
+}
+
+/**
+ * Sum of the power of the delegatees that qualify as validators
+ * (`stakes/voting_power`); at most `totalPower`.
+ */
+export async function votingPower(
+    requestManager: Web3RequestManager,
+    height?: number | string,
+): Promise<ChainValueResponse> {
+    return chainValue(requestManager, 'stakes/voting_power', { height: stateHeight(height) });
 }
 
 export async function vmCall(
