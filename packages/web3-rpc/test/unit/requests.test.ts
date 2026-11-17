@@ -204,6 +204,29 @@ const cases: Array<[string, () => unknown, Sent]> = [
         { method: 'delegatee', params: { addr: `0x${from}` } },
     ],
     ['rule', () => m.rule(manager), { method: 'rule', params: {} }],
+    // A state query's height goes as a decimal string; the node refuses a
+    // JSON number (#47).
+    ['rule at a height', () => m.rule(manager, 7), { method: 'rule', params: { height: '7' } }],
+    [
+        'getAccount at a height',
+        () => m.getAccount(manager, from, 5),
+        { method: 'account', params: { addr: `0x${from}`, height: '5' } },
+    ],
+    [
+        'delegatee at a height',
+        () => m.delegatee(manager, from, '6'),
+        { method: 'delegatee', params: { addr: `0x${from}`, height: '6' } },
+    ],
+    [
+        'stakes at a height',
+        () => m.stakes(manager, from, 8),
+        { method: 'stakes', params: { addr: `0x${from}`, height: '8' } },
+    ],
+    [
+        'reward at a height',
+        () => m.reward(manager, from, 9),
+        { method: 'reward', params: { addr: `0x${from}`, height: '9' } },
+    ],
     [
         'getAccount',
         () => m.getAccount(manager, from),

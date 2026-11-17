@@ -374,6 +374,7 @@ function decodeAccount(data: RpcAccountResponse): responses.AccountResponse {
             docURL: data.value.docURL ? data.value.docURL : undefined,
             code: data.value.code ? data.value.code : undefined,
         },
+        height: assertNotEmpty(data.height),
     };
 }
 
@@ -1090,6 +1091,7 @@ interface RpcAccountResponse {
         docURL?: string;
         code?: string;
     };
+    readonly height: string;
 }
 
 interface RpcValidatorsResponse {

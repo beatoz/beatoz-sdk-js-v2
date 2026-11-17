@@ -431,6 +431,10 @@ entries below name the packages they apply to.
 
 ### Added
 
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `getAccount`, `delegatee`,
+  `stakes`, `reward` and `rule` take an optional `height`, to read the state
+  at an earlier block (#47). `@beatoz/web3-types`: `AccountResponse.height`.
+
 - `@beatoz/web3`, `@beatoz/web3-validator`: the packages carry their browser
   bundles, `dist/web3.min.js` and `dist/web3-validator.min.js`, built with
   the package (#154). Each sets one global holding the package's exports:

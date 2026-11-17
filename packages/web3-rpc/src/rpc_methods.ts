@@ -489,9 +489,17 @@ export async function broadcastRawTxCommit(
 // end tendermint apis
 // start not tendermint apis
 
+/**
+ * The node reads a state query's height as a decimal string (it refuses a
+ * JSON number), and answers for the latest block when there is none.
+ */
+const stateHeight = (height?: number | string): string | undefined =>
+    typeof height === 'number' ? height.toString(10) : height;
+
 export async function delegatee(
     requestManager: Web3RequestManager,
     addr: string,
+    height?: number | string,
 ): Promise<DelegateeResponse> {
     if (!addr.startsWith('0x')) {
         addr = '0x' + addr;
@@ -500,16 +508,19 @@ export async function delegatee(
     return ResponsesDecoder.decodeDelegatee(
         await requestManager.send({
             method: 'delegatee',
-            params: { addr: addr },
+            params: { addr: addr, height: stateHeight(height) },
         }),
     );
 }
 
-export async function rule(requestManager: Web3RequestManager): Promise<RuleResponse> {
+export async function rule(
+    requestManager: Web3RequestManager,
+    height?: number | string,
+): Promise<RuleResponse> {
     return ResponsesDecoder.decodeRule(
         await requestManager.send({
             method: 'rule',
-            params: {},
+            params: { height: stateHeight(height) },
         }),
     );
 }
@@ -517,6 +528,7 @@ export async function rule(requestManager: Web3RequestManager): Promise<RuleResp
 export async function getAccount(
     requestManager: Web3RequestManager,
     addr: string,
+    height?: number | string,
 ): Promise<AccountResponse> {
     if (!addr.startsWith('0x')) {
         addr = '0x' + addr;
@@ -527,6 +539,7 @@ export async function getAccount(
             method: 'account',
             params: {
                 addr: addr,
+                height: stateHeight(height),
             },
         }),
     );
@@ -535,6 +548,7 @@ export async function getAccount(
 export async function stakes(
     requestManager: Web3RequestManager,
     addr: string,
+    height?: number | string,
 ): Promise<StakesResponse> {
     if (!addr.startsWith('0x')) {
         addr = '0x' + addr;
@@ -543,7 +557,7 @@ export async function stakes(
     return ResponsesDecoder.decodeStakes(
         await requestManager.send({
             method: 'stakes',
-            params: { addr: addr },
+            params: { addr: addr, height: stateHeight(height) },
         }),
     );
 }
@@ -551,6 +565,7 @@ export async function stakes(
 export async function reward(
     requestManager: Web3RequestManager,
     addr: string,
+    height?: number | string,
 ): Promise<RewardResponse> {
     if (!addr.startsWith('0x')) {
         addr = '0x' + addr;
@@ -559,7 +574,7 @@ export async function reward(
     return ResponsesDecoder.decodeReward(
         await requestManager.send({
             method: 'reward',
-            params: { addr: addr },
+            params: { addr: addr, height: stateHeight(height) },
         }),
     );
 }

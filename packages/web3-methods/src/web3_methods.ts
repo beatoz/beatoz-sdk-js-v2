@@ -145,28 +145,29 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.broadcastRawTxCommit(this, signedRawTx);
     }
 
-    delegatee(addr: string) {
-        return rpcMethodsWrappers.delegatee(this, addr);
+    /** `height`: the block to read the state at; the latest when left out. */
+    delegatee(addr: string, height?: number | string) {
+        return rpcMethodsWrappers.delegatee(this, addr, height);
     }
 
-    rule() {
-        return rpcMethodsWrappers.rule(this);
+    /** `height`: the block to read the rules at; the latest when left out. */
+    rule(height?: number | string) {
+        return rpcMethodsWrappers.rule(this, height);
     }
 
-    getAccount(addr: string) {
-        return rpcMethodsWrappers.getAccount(this, addr);
+    /** `height`: the block to read the state at; the latest when left out. */
+    getAccount(addr: string, height?: number | string) {
+        return rpcMethodsWrappers.getAccount(this, addr, height);
     }
 
-    stakes(addr: string) {
-        if (!addr.startsWith('0x')) {
-            addr = '0x' + addr;
-        }
-
-        return rpcMethodsWrappers.stakes(this, addr);
+    /** `height`: the block to read the state at; the latest when left out. */
+    stakes(addr: string, height?: number | string) {
+        return rpcMethodsWrappers.stakes(this, addr, height);
     }
 
-    reward(addr: string) {
-        return rpcMethodsWrappers.reward(this, addr);
+    /** `height`: the block to read the state at; the latest when left out. */
+    reward(addr: string, height?: number | string) {
+        return rpcMethodsWrappers.reward(this, addr, height);
     }
 
     vmCall(addr: string, to: string, height: number, data: string) {

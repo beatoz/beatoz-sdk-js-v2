@@ -268,24 +268,24 @@ export async function broadcastRawTxCommit(web3Context: Web3Context, signedRawTx
     return rpcMethods.broadcastRawTxCommit(web3Context.requestManager, signedRawTx);
 }
 
-export async function delegatee(web3Context: Web3Context, addr: string) {
-    return rpcMethods.delegatee(web3Context.requestManager, addr);
+export async function delegatee(web3Context: Web3Context, addr: string, height?: number | string) {
+    return rpcMethods.delegatee(web3Context.requestManager, addr, height);
 }
 
-export async function rule(web3Context: Web3Context) {
-    return rpcMethods.rule(web3Context.requestManager);
+export async function rule(web3Context: Web3Context, height?: number | string) {
+    return rpcMethods.rule(web3Context.requestManager, height);
 }
 
-export async function getAccount(web3Context: Web3Context, addr: string) {
-    return rpcMethods.getAccount(web3Context.requestManager, addr);
+export async function getAccount(web3Context: Web3Context, addr: string, height?: number | string) {
+    return rpcMethods.getAccount(web3Context.requestManager, addr, height);
 }
 
-export async function stakes(web3Context: Web3Context, addr: string) {
-    return rpcMethods.stakes(web3Context.requestManager, addr);
+export async function stakes(web3Context: Web3Context, addr: string, height?: number | string) {
+    return rpcMethods.stakes(web3Context.requestManager, addr, height);
 }
 
-export async function reward(web3Context: Web3Context, addr: string) {
-    return rpcMethods.reward(web3Context.requestManager, addr);
+export async function reward(web3Context: Web3Context, addr: string, height?: number | string) {
+    return rpcMethods.reward(web3Context.requestManager, addr, height);
 }
 
 export async function vmCall(

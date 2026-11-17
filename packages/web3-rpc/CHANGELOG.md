@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `getAccount`, `delegatee`, `stakes`, `reward` and `rule` take an optional
+  `height` (#47): the state at that block, the latest when left out. It is
+  sent as a decimal string, as the node requires.
+
 - `reward(requestManager, addr)` reads an account's reward ledger through the
   chain's `reward` query. The address may come with or without `0x`.
 
