@@ -67,15 +67,7 @@ import {
     TransactionFailedError,
 } from '@beatoz/web3-errors';
 import { getEthTxCallParams, getSendTxParams } from './utils.js';
-import {
-    broadcastTxAsync,
-    broadcastTxCommit,
-    broadcastTxSync,
-    call,
-    getAccount,
-    rule,
-    vmEstimateGas,
-} from '@beatoz/web3-methods';
+import { broadcastSigned, call, buildWithNonce, rule, vmEstimateGas } from '@beatoz/web3-methods';
 import { TrxProtoBuilder, getContractAddress } from '@beatoz/web3-accounts';
 import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
@@ -437,37 +429,35 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         }
 
         const chainId = this.chainId ?? (await this.decideChainId());
-        const nonce =
-            options.nonce ?? Number((await getAccount(this, fromAcct.address)).value.nonce);
         // The caller's values go to the builder as given, which checks them.
         const gas = options.gas;
         const gasPrice = options.gasPrice ?? (await rule(this)).value.gasPrice;
+        const input = _tx.input;
 
-        const txProto = TrxProtoBuilder.buildContractTrxProto({
-            from: fromAcct.address,
-            to: _tx.to,
-            nonce,
-            gas,
-            gasPrice,
-            amount: options.value ?? '0',
-            // TransactionCall types input as Bytes and the builder takes hex.
-            // A string goes through as it always has; bytesToHex would also
-            // reject hex without 0x, which the builder accepts.
-            payload: {
-                data: typeof _tx.input === 'string' ? _tx.input : bytesToHex(_tx.input),
-            },
-        });
+        const txProto = await buildWithNonce(this, fromAcct.address, options.nonce, (nonce) =>
+            TrxProtoBuilder.buildContractTrxProto({
+                from: fromAcct.address,
+                to: _tx.to,
+                nonce,
+                gas,
+                gasPrice,
+                amount: options.value ?? '0',
+                // TransactionCall types input as Bytes and the builder takes hex.
+                // A string goes through as it always has; bytesToHex would also
+                // reject hex without 0x, which the builder accepts.
+                payload: {
+                    data: typeof input === 'string' ? input : bytesToHex(input),
+                },
+            }),
+        );
 
         fromAcct.signTransaction(txProto, chainId);
 
-        if (options.sendMode !== undefined) {
-            if (options.sendMode === 'sync') {
-                return broadcastTxSync(this, txProto);
-            } else if (options.sendMode === 'async') {
-                return broadcastTxAsync(this, txProto);
-            }
-        }
-        return broadcastTxCommit(this, txProto);
+        const sendMode =
+            options.sendMode === 'sync' || options.sendMode === 'async'
+                ? options.sendMode
+                : 'commit';
+        return broadcastSigned(this, txProto, fromAcct.address, sendMode);
     }
 
     private _getAbiParams(abi: AbiFunctionFragment, params: unknown[]): Array<unknown> {
@@ -533,7 +523,6 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
         }
 
         const chainId = this.chainId ?? (await this.decideChainId());
-        const nonce = Number((await getAccount(this, account.address)).value.nonce);
         const gasPrice = options.gasPrice ?? (await rule(this)).value.gasPrice;
 
         // A dry run before paying for the deploy. It does not set the gas: the
@@ -552,17 +541,21 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             );
         }
 
-        const tx = TrxProtoBuilder.buildContractTrxProto({
-            from: account.address,
-            to: ZERO_ADDRESS,
-            nonce,
-            gas: options.gas,
-            gasPrice,
-            amount: '0',
-            payload: { data },
-        });
+        // Taken after the checks above, which send nothing; the address below
+        // is derived from it.
+        const tx = await buildWithNonce(this, account.address, undefined, (nonce) =>
+            TrxProtoBuilder.buildContractTrxProto({
+                from: account.address,
+                to: ZERO_ADDRESS,
+                nonce,
+                gas: options.gas,
+                gasPrice,
+                amount: '0',
+                payload: { data },
+            }),
+        );
         account.signTransaction(tx, chainId);
-        const res = await broadcastTxCommit(this, tx);
+        const res = await broadcastSigned(this, tx, account.address);
         if (res.check_tx.code !== 0) {
             throw new TransactionFailedError({
                 stage: 'check_tx',
@@ -582,12 +575,20 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
         // The node derives the address from the sender and the nonce, so it
         // needs no lookup, which would wait for the transaction to be indexed.
-        const address = getContractAddress(account.address, nonce);
+        const address = getContractAddress(account.address, tx.nonce.toNumber());
         const contract = new Contract<Abi>(this._jsonInterface as unknown as Abi, address);
         contract._requestManager = this._requestManager;
         contract._wallet = this._wallet;
         contract._accountProvider = this._accountProvider;
         contract._chainId = chainId;
+        // The deployer's nonce manager, read at each send as the deployer
+        // reads it, so the new contract counts with the same one.
+        Object.defineProperty(contract, 'nonceManager', {
+            get: () => this.nonceManager,
+            set: (manager) => {
+                this.nonceManager = manager;
+            },
+        });
         return { address, contract, hash: res.hash, height: res.height };
     }
 

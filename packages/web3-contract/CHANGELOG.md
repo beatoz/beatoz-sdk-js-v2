@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ## [Unreleased]
 
+### Added
+
+- Method sends and deploys take their nonce from `web3.beatoz.nonceManager`
+  when it is set (#43), read at each send, so a contract made before the
+  manager was set uses it too. A send that fails resets the account in it.
+
 ### Changed
 
 - **BREAKING:** Method options take the types the transaction builder does

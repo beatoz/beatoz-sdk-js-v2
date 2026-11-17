@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ## [Unreleased]
 
+### Added
+
+- `web3.beatoz` holds the wallet, so `transfer` and the other native sends
+  sign with its accounts (#41). It had been left out: `web3.beatoz.wallet` was
+  `undefined`.
+
+- `NonceManager` is exported from the package root (#43).
+
 ### Changed
 
 - **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The

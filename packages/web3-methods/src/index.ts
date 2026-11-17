@@ -16,6 +16,7 @@
 
 import { Web3Method } from './web3_methods.js';
 export * from './rpc_method_wrappers.js';
+export * from './send_tx.js';
 
 export * from './schemas.js';
 export * from './types.js';

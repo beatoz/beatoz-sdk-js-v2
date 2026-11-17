@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ## [Unreleased]
 
+### Added
+
+- `Web3Context.nonceManager`: when set, sends take their nonce from it
+  instead of reading the node each time (#43).
+
 ### Changed
 
 - **BREAKING:** `Web3RequestManager.subscribe` takes `{ method: 'subscribe',
