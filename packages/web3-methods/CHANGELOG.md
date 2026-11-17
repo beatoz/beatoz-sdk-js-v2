@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `web3.beatoz.vmEstimateGas(addr, to, data)` and
+  `web3.beatoz.blockSearch(query, page?, per_page?, order_by?)` (#48). Both
+  were implemented in web3-rpc but not reachable from `web3.beatoz`.
+
 - `web3.beatoz.waitForTx(hash, { timeoutMs, intervalMs })` waits until the
   node has indexed a transaction and returns it. A broadcast, the commit
   reply included, can answer before the transaction is indexed, so looking it

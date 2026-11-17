@@ -33,6 +33,7 @@ import {
     BlockchainResponse,
     BlockResponse,
     BlockResultsResponse,
+    BlockSearchResponse,
     CommitResponse,
     GenesisResponse,
     NetInfoResponse,
@@ -622,7 +623,7 @@ export async function blockSearch(
     page?: number | string,
     per_page?: number | string,
     order_by?: string,
-) {
+): Promise<BlockSearchResponse> {
     if (typeof page === 'number') {
         page = page.toString(10);
     }
@@ -631,15 +632,17 @@ export async function blockSearch(
         per_page = per_page.toString(10);
     }
 
-    return requestManager.send({
-        method: 'block_search',
-        params: {
-            query: query,
-            page: page,
-            per_page: per_page,
-            order_by: order_by,
-        },
-    });
+    return ResponsesDecoder.decodeBlockSearch(
+        await requestManager.send({
+            method: 'block_search',
+            params: {
+                query: query,
+                page: page,
+                per_page: per_page,
+                order_by: order_by,
+            },
+        }),
+    );
 }
 
 export function subscribe(
