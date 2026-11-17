@@ -74,18 +74,28 @@ export class Wallet extends Web3BaseWallet<Web3Account> {
             if (isNullish(index)) {
                 return false;
             }
-            this._addressMap.delete(addressOrIndex.toLowerCase());
             this.splice(index, 1);
+            this.reindex();
 
             return true;
         }
 
         if (this[addressOrIndex]) {
             this.splice(addressOrIndex, 1);
+            this.reindex();
             return true;
         }
 
         return false;
+    }
+
+    // splice moves every later account down one place, so the address map
+    // is rebuilt from the accounts as they now stand.
+    private reindex(): void {
+        this._addressMap.clear();
+        this.forEach((account, index) => {
+            this._addressMap.set(account.address.toLowerCase(), index);
+        });
     }
 
     public clear(): this {

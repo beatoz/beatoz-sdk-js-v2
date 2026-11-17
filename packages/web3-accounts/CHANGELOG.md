@@ -194,6 +194,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- `Wallet.remove()` left lookups by address pointing at the wrong account
+  (#139). Removing moves every later account down one place, but the address
+  map kept the old places, so `wallet.get(address)` returned another account,
+  and a caller signing with it signed with another key; removing by index did
+  not forget the address at all. The map is rebuilt after each removal.
+
 - `wallet.add()` with an address already in the wallet no longer prints
   `Account <address> already exists.` to the console (#129). It puts the
   account back in its place, as before.

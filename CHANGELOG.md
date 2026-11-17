@@ -827,6 +827,10 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-accounts`: after `wallet.remove()`, `wallet.get(address)`
+  could return another account, and so sign with another key (#139). The
+  address map is rebuilt after each removal.
+
 - `@beatoz/web3-methods`: `subscribe(query)` no longer prints `subscribe query
   <query>` to the console on every call (#103).
 
