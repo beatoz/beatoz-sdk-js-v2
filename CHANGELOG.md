@@ -517,6 +517,12 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- Repository: `documents/`, the 1.x usage guide in English and Korean (#21).
+  It was never checked against 2.0 and described APIs that are gone or changed
+  (CommonJS, the old subscriptions, builder inputs). The API is documented in
+  TSDoc and the package CHANGELOGs; the README says the GitBook covers 1.x. No
+  package shipped it.
+
 - `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:**
   `broadcastEvidence` is removed (#179). Submitting evidence of validator
   misbehaviour is for validators and node operators, not SDK users.

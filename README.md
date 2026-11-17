@@ -68,7 +68,12 @@ build of the repository writes both to each package's `dist/`.
 
 ### Documentation / API-Document 
 
-You can find documents https://beatoz.gitbook.io/beatoz-sdk-js/docs-en
+The API is documented in the sources (TSDoc), which ship with each package and
+show in an editor, and each package's `CHANGELOG.md` records what changed and
+how to move from 1.x.
+
+The [GitBook](https://beatoz.gitbook.io/beatoz-sdk-js/docs-en) documents 1.x, from
+[beatoz-sdk-js](https://github.com/beatoz/beatoz-sdk-js), and does not match 2.0.
 
 ## Contributing
 
