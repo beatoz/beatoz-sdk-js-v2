@@ -108,6 +108,11 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.abciQuery(this, path, data, height, prove);
     }
 
+    /**
+     * The node's transaction check. Not a dry run: a passing check advances
+     * the sender's nonce until the next block, so the same transaction sent
+     * right after is refused as `invalid nonce`. See `rpcMethods.checkTx`.
+     */
     checkTx(tx: TrxProto) {
         return rpcMethodsWrappers.checkTx(this, tx);
     }
