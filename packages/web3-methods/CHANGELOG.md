@@ -58,6 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `web3.beatoz.consensusParams` returns numbers, as its type
+  declared (#38).
+
 - `validators()` takes the height as optional, as `block()` does (#144).
   With no height the node answers for the latest one, so reading the current
   validator set no longer takes a height lookup first.
@@ -127,6 +130,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   default import ambiguous.
 
 ### Removed
+
+- **BREAKING:** `web3.beatoz.dumpConsensusState` and `consensusState` are
+  removed (#38); see web3-rpc.
 
 - **BREAKING:** `web3.beatoz.broadcastEvidence(evidence)` is removed (#179):
   submitting evidence of validator misbehaviour is a validator and node

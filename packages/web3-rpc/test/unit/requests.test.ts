@@ -37,8 +37,6 @@ const ROUTES: Record<string, string[]> = {
     tx_search: ['query', 'prove', 'page', 'per_page', 'order_by'],
     block_search: ['query', 'page', 'per_page', 'order_by'],
     validators: ['height', 'page', 'per_page'],
-    dump_consensus_state: [],
-    consensus_state: [],
     consensus_params: ['height'],
     unconfirmed_txs: ['limit'],
     num_unconfirmed_txs: [],
@@ -130,12 +128,6 @@ const cases: Array<[string, () => unknown, Sent]> = [
         () => m.validators(manager),
         { method: 'validators', params: {} },
     ],
-    [
-        'dumpConsensusState',
-        () => m.dumpConsensusState(manager),
-        { method: 'dump_consensus_state', params: {} },
-    ],
-    ['consensusState', () => m.consensusState(manager), { method: 'consensus_state', params: {} }],
     [
         'consensusParams',
         () => m.consensusParams(manager, 5),

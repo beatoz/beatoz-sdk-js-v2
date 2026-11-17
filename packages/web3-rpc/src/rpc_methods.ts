@@ -40,8 +40,6 @@ import {
     StatusResponse,
     GenesisChunkedResponse,
     ValidatorsResponse,
-    DumpConsensusStateResponse,
-    ConsensusStateResponse,
     NumUnconfirmedTxsResponse,
     UnconfirmedTxsResponse,
     TxResponse,
@@ -231,28 +229,6 @@ export async function genesisChunked(
             params: {
                 chunk: chunk,
             },
-        }),
-    );
-}
-
-export async function dumpConsensusState(
-    requestManager: Web3RequestManager,
-): Promise<DumpConsensusStateResponse> {
-    return ResponsesDecoder.decodeDumpConsensusState(
-        await requestManager.send({
-            method: 'dump_consensus_state',
-            params: {},
-        }),
-    );
-}
-
-export async function consensusState(
-    requestManager: Web3RequestManager,
-): Promise<ConsensusStateResponse> {
-    return ResponsesDecoder.decodeConsensusState(
-        await requestManager.send({
-            method: 'consensus_state',
-            params: {},
         }),
     );
 }

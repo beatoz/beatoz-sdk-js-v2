@@ -633,81 +633,48 @@ export interface ValidatorUpdate {
 }
 
 export interface ConsensusParamsResponse {
+    /** The height the parameters were read at. */
     block_height: number;
     consensus_params: ConsensusParams;
 }
 
 /**
- * Represents consensus parameters governing the blockchain network.
+ * The consensus parameters (tendermint-ethaddr `proto/tendermint/types/params.proto`).
+ * The node sends its 64-bit integers as decimal strings; the SDK turns them into
+ * numbers, and throws `InvalidResponseError` for one beyond a safe integer.
  */
 export interface ConsensusParams {
-    /** Parameters related to the blocks in the blockchain */
     readonly block: BlockParams;
-    /** Parameters related to evidence handling in the blockchain */
     readonly evidence: EvidenceParams;
-
-    /** Parameters related to the transactions in the blockchain */
     readonly validator: ValidatorParams;
-
-    /** Parameters related to the version of the blockchain protocol */
     readonly version: VersionParams;
 }
 
-/**
- * Represents the parameters related to evidence handling in the blockchain.
- */
-export interface ValidatorParams {
-    readonly pub_key_types: string[];
-}
-
-/**
- * Represents the parameters related to evidence handling in the blockchain.
- */
-export interface VersionParams {
-    /** Version number for the blockchain protocol */
-    readonly app_version: number;
-}
-
-/**
- * Represents parameters associated with blocks in the blockchain.
- */
 export interface BlockParams {
-    /** Maximum size of a block (in bytes) */
+    /** Largest block, in bytes. */
     readonly max_bytes: number;
-    /** Maximum amount of gas that can be used in a block */
+    /** Most gas a block may use; `-1` for no limit. */
     readonly max_gas: number;
-    /** Time interval between blocks (in milliseconds) */
+    /** Least time between blocks, in milliseconds. */
     readonly time_iota_ms: number;
 }
 
-/**
- * Represents the size limitations for a transaction.
- */
-export interface TxSizeParams {
-    /** Maximum size of a transaction (in bytes) */
-    readonly max_bytes: number;
-    /** Maximum amount of gas that can be used in a transaction */
-    readonly max_gas: number;
-}
-
-/**
- * Represents the gossip parameters for a block.
- */
-export interface BlockGossipParams {
-    /** Size of a part of the block (in bytes) used for gossiping */
-    readonly block_part_size_bytes: number;
-}
-
-/**
- * Represents the evidence parameters for the blockchain.
- */
 export interface EvidenceParams {
-    /** Maximum age (in number of blocks) of evidence that can be submitted */
+    /** Oldest evidence accepted, in blocks. */
     readonly max_age_num_blocks: number;
-    /** Maximum age (in duration) of evidence that can be submitted */
+    /** Oldest evidence accepted, in nanoseconds. */
     readonly max_age_duration: number;
-    /** Maximum number of evidence that can be submitted in a single transaction */
+    /** Most evidence a block may hold, in bytes. */
     readonly max_bytes: number;
+}
+
+export interface ValidatorParams {
+    /** Key types validators may use, such as `secp256k1`. */
+    readonly pub_key_types: string[];
+}
+
+export interface VersionParams {
+    readonly app_version: number;
 }
 
 /**
@@ -722,150 +689,6 @@ export interface NetInfoResponse {
     n_peers: string;
     /** Detailed information about the peers the node is connected to */
     peers: [];
-}
-
-/**
- * Represents the current consensus state of a node.
- */
-export interface DumpConsensusStateResponse {
-    /** Detailed state information about the current round of consensus */
-    round_state: RoundState;
-    /** Detailed information about the peers the node is connected to in the context of consensus */
-    peers: PeerInfo[];
-}
-
-export interface PeerInfo {
-    node_address: string;
-    peer_state: PeerState;
-}
-
-export interface PeerState {
-    round_state: PeerRoundState;
-    stats: {
-        votes: string;
-        block_parts: string;
-    };
-}
-
-export interface PeerRoundState {
-    height: number;
-    round: number;
-    step: number;
-    start_time: ReadonlyDate;
-    proposal: boolean;
-    proposal_block_part_set_header: {
-        total: number;
-        hash: string;
-    };
-    proposal_block_parts?: null;
-    proposal_pol_round: number;
-    proposal_pol: string;
-    prevotes: string;
-    precommits: string;
-    last_commit_round: number;
-    last_commit: string;
-    catchup_commit_round: number;
-    catchup_commit: string;
-}
-
-export interface RoundState {
-    /** Height of the current block being proposed */
-    readonly height: number;
-    /** Current round number in the consensus process */
-    readonly round: number;
-    /** Current step number in the consensus process */
-    readonly step: number;
-    /** Timestamp indicating when the current round started */
-    readonly start_time: ReadonlyDate;
-    /** Timestamp indicating when the last block was committed */
-    readonly commit_time: ReadonlyDate;
-    /** Information about the validators for the current round */
-    readonly validators: DumpConsensusValidators;
-    /** Round number in which the current block was locked in */
-    readonly locked_round: number;
-    /** Round number in which the current block was deemed valid */
-    readonly valid_round: string;
-    /** Current votes for the block in this round */
-    readonly votes: Vote[];
-    /** Round number in which the current block was committed */
-    readonly commit_round: number;
-    /** Information about the last commit for the previous block */
-    readonly last_commit: LastCommitInfo;
-    /** Information about the validators from the last round */
-    readonly last_validators: DumpConsensusValidators;
-    /** Indicates if a timeout was triggered for a precommit in the current round */
-    readonly triggered_timeout_precommit: boolean;
-}
-
-export interface Vote {
-    readonly round: number;
-    readonly prevotes: string[];
-    readonly prevotes_bit_array: string;
-    readonly precommits: string[];
-    readonly precommits_bit_array: string;
-}
-
-export interface LastCommitInfo {
-    /** Votes for the last commit */
-    readonly votes: string[];
-    /** Bitmap representing which validators voted in the last commit */
-    readonly votes_bit_array: string;
-    /** The block each peer claims +2/3 for, keyed by peer id */
-    readonly peer_maj_23s?: Record<string, BlockId>;
-}
-
-export interface DumpConsensusValidators {
-    /** List of validators from the last round */
-    readonly validators: DumpConsensusValidator[];
-    /** Validator that proposed the last block */
-    readonly proposer: DumpConsensusValidator;
-}
-
-export interface DumpConsensusValidator {
-    /** Address of the validator */
-    readonly address: HexString;
-    /** Public key of the validator */
-    readonly pub_key: ValidatorPubkey;
-    /** Voting power of the validator in the consensus algorithm */
-    readonly voting_power: string;
-    readonly proposer_priority: string;
-}
-
-/**
- * Represents the consensus state of a blockchain node.
- */
-export interface ConsensusStateResponse {
-    readonly round_state: ConsensusRoundState;
-}
-
-export interface ConsensusRoundState {
-    /** A combination of block height, consensus round, and step */
-    readonly 'height/round/step': string;
-    /** Timestamp when the current round started */
-    readonly start_time: ReadonlyDate;
-    /** Hash of the proposed block for the current round */
-    readonly proposal_block_hash?: string;
-    /** Hash of the block that the node has locked on for the current round */
-    readonly locked_block_hash?: string;
-    /** Hash of the block that the node considers valid for the current round */
-    readonly valid_block_hash?: string;
-    /** Voting details for each height */
-    readonly height_vote_set: HeightVoteSet[];
-    /** Proposer details for the current block */
-    readonly proposer: { address: string; index: number };
-}
-
-export interface HeightVoteSet {
-    /** Consensus round number */
-    round: number;
-    /** List of prevotes for the round */
-    prevotes: string[];
-    /** Bitmap indicating which validators prevoted */
-    prevotes_bit_array: string;
-    /** List of precommits for the round */
-    precommits: string[];
-    /** Bitmap indicating which validators precommitted */
-    precommits_bit_array: string;
 }
 
 /**

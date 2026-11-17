@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `consensusParams` returns numbers, as its type declared (#38);
+  it returned the node's strings. See web3-types.
+
 - **BREAKING:** `blockSearch` returns the decoded `BlockSearchResponse`
   (`blocks`, `total_count`) instead of the raw JSON-RPC response (#48), as
   `txSearch` does. The decoder was there and unused.
@@ -86,6 +89,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   default import ambiguous.
 
 ### Removed
+
+- **BREAKING:** `dumpConsensusState` and `consensusState` are removed (#38).
+  They show a node's consensus in progress, for whoever runs the node, not
+  for SDK users; and their types did not match the node (`height` and
+  `start_time` arrive as strings). Ask the node's `dump_consensus_state` and
+  `consensus_state` routes directly.
 
 - **BREAKING:** `broadcastEvidence(requestManager, evidence)` is removed
   (#179). Submitting evidence of validator misbehaviour is for validators and
