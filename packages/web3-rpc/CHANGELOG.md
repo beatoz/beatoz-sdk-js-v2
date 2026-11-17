@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `blockSearch` returns the decoded `BlockSearchResponse`
+  (`blocks`, `total_count`) instead of the raw JSON-RPC response (#48), as
+  `txSearch` does. The decoder was there and unused.
+
 - `validators(requestManager, height?)` takes the height as optional, as
   `block()` does (#144). With no height the node answers for the latest one.
 

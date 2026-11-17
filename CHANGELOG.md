@@ -15,6 +15,11 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-methods`, `@beatoz/web3-rpc`: `web3.beatoz.vmEstimateGas` and
+  `web3.beatoz.blockSearch` (#48). **BREAKING** in `@beatoz/web3-rpc`:
+  `blockSearch` returns the decoded `BlockSearchResponse` instead of the raw
+  JSON-RPC response.
+
 - `@beatoz/web3-providers-ws`, `@beatoz/web3-core`: **BREAKING:**
   `WebsocketProvider.listen` and `Web3RequestManager.subscribe` take the
   subscribe request the node reads, `{ method: 'subscribe', params: { query

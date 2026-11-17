@@ -173,6 +173,16 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.vmCall(this, addr, to, height, data);
     }
 
+    /** The gas an EVM call from `addr` to `to` with `data` would use, at the latest block. */
+    vmEstimateGas(addr: string, to: string, data: string) {
+        return rpcMethodsWrappers.vmEstimateGas(this, addr, to, data);
+    }
+
+    /** Blocks matching a query on block events, such as `block.height > 100`. */
+    blockSearch(query: string, page?: number, per_page?: number, order_by?: 'asc' | 'desc') {
+        return rpcMethodsWrappers.blockSearch(this, query, page, per_page, order_by);
+    }
+
     subscribe(query: string) {
         return rpcMethodsWrappers.subscribe(this, query);
     }

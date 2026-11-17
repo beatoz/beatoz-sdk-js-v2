@@ -307,6 +307,16 @@ export async function vmEstimateGas(
     return rpcMethods.vmEstimateGas(web3Context.requestManager, addr, to, data);
 }
 
+export async function blockSearch(
+    web3Context: Web3Context,
+    query: string,
+    page?: number,
+    per_page?: number,
+    order_by?: 'asc' | 'desc',
+) {
+    return rpcMethods.blockSearch(web3Context.requestManager, query, page, per_page, order_by);
+}
+
 export function subscribe(web3Context: Web3Context, query: string): Stream<SubscriptionEvent> {
     return rpcMethods.subscribe(web3Context.requestManager, query);
 }
