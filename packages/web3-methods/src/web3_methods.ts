@@ -170,6 +170,31 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.reward(this, addr, height);
     }
 
+    /** Total supply, in the smallest unit; `height` as for `getAccount`. */
+    totalSupply(height?: number | string) {
+        return rpcMethodsWrappers.totalSupply(this, height);
+    }
+
+    /** Fees paid by every transaction so far, at the latest block. */
+    totalTxFee() {
+        return rpcMethodsWrappers.totalTxFee(this);
+    }
+
+    /** Transactions the chain has run so far, at the latest block. */
+    txCount() {
+        return rpcMethodsWrappers.txCount(this);
+    }
+
+    /** Power staked to every delegatee; `height` as for `getAccount`. */
+    totalPower(height?: number | string) {
+        return rpcMethodsWrappers.totalPower(this, height);
+    }
+
+    /** Power of the delegatees that qualify as validators; `height` as for `getAccount`. */
+    votingPower(height?: number | string) {
+        return rpcMethodsWrappers.votingPower(this, height);
+    }
+
     vmCall(addr: string, to: string, height: number, data: string) {
         return rpcMethodsWrappers.vmCall(this, addr, to, height, data);
     }

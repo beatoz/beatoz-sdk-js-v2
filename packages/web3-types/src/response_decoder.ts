@@ -267,6 +267,12 @@ export class ResponsesDecoder {
         return response.result as responses.RewardResponse;
     }
 
+    public static decodeChainValue(
+        response: JsonRpcResponseWithResult<unknown>,
+    ): responses.ChainValueResponse {
+        return response.result as responses.ChainValueResponse;
+    }
+
     public static decodeVmCall(
         response: JsonRpcResponseWithResult<unknown>,
     ): responses.VmCallResponse {

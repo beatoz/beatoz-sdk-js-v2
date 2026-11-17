@@ -288,6 +288,26 @@ export async function reward(web3Context: Web3Context, addr: string, height?: nu
     return rpcMethods.reward(web3Context.requestManager, addr, height);
 }
 
+export async function totalSupply(web3Context: Web3Context, height?: number | string) {
+    return rpcMethods.totalSupply(web3Context.requestManager, height);
+}
+
+export async function totalTxFee(web3Context: Web3Context) {
+    return rpcMethods.totalTxFee(web3Context.requestManager);
+}
+
+export async function txCount(web3Context: Web3Context) {
+    return rpcMethods.txCount(web3Context.requestManager);
+}
+
+export async function totalPower(web3Context: Web3Context, height?: number | string) {
+    return rpcMethods.totalPower(web3Context.requestManager, height);
+}
+
+export async function votingPower(web3Context: Web3Context, height?: number | string) {
+    return rpcMethods.votingPower(web3Context.requestManager, height);
+}
+
 export async function vmCall(
     web3Context: Web3Context,
     addr: string,

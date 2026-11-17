@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `totalSupply`, `totalTxFee`, `txCount`, `totalPower` and `votingPower`
+  read the node's `total_supply`, `total_txfee`, `txn`, `stakes/total_power`
+  and `stakes/voting_power` (#46), each a `ChainValueResponse`.
+  `totalSupply`, `totalPower` and `votingPower` take an optional `height`;
+  the node answers `total_txfee` and `txn` only at the latest block.
+
 - `getAccount`, `delegatee`, `stakes`, `reward` and `rule` take an optional
   `height` (#47): the state at that block, the latest when left out. It is
   sent as a decimal string, as the node requires.
