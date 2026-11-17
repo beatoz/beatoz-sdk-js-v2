@@ -39,4 +39,15 @@ describe('account check ', () => {
         expect(testAccountResponse.value.nonce).toBeDefined();
         expect(testAccountResponse.value.balance).toBeDefined();
     });
+
+    // The first block holds the genesis state: no transaction has been sent
+    // from the account yet (#47).
+    it('reads the account as it was at an earlier height', async () => {
+        const address = getTestAccountAddress();
+        const then = await web3.beatoz.getAccount(address, 1);
+
+        expect(then.height).toEqual('1');
+        expect(then.value.nonce).toBe(0);
+        expect(asNodeAddress(then.value.address)).toEqual(asNodeAddress(address));
+    });
 });

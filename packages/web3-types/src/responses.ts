@@ -1016,6 +1016,8 @@ export interface AccountResponse {
         docURL?: string;
         code?: string;
     };
+    /** The block height the query was answered at. */
+    height: string;
 }
 
 /**

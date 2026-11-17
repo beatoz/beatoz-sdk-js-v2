@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `web3.beatoz.getAccount`, `delegatee`, `stakes`, `reward` and `rule` take
+  an optional `height` (#47): read the state as it was at that block.
+
 - `web3.beatoz.vmEstimateGas(addr, to, data)` and
   `web3.beatoz.blockSearch(query, page?, per_page?, order_by?)` (#48). Both
   were implemented in web3-rpc but not reachable from `web3.beatoz`.

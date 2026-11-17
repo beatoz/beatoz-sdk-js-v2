@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `AccountResponse.height`: the block the query was answered at, as the
+  other state query responses have it (#47).
+
 - `JsonRpcSubscribeRequest`: a subscribe request as the node reads it,
   method `'subscribe'` with a named `query` (#146).
 
