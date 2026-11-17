@@ -367,6 +367,17 @@ export async function abciQuery(
     );
 }
 
+/**
+ * Runs the node's transaction check (`check_tx`) and returns its verdict.
+ *
+ * Not a dry run. A transaction that passes advances its sender's nonce in
+ * the node's check state until the next block, without entering the
+ * mempool, so sending the same transaction right after is refused as
+ * `invalid nonce` (beatoz-go `node/app.go` `CheckTx` runs the transaction,
+ * `node/trx_executor.go` `AddNonce`). Check only a transaction you will not
+ * send, or wait for a block. To try an EVM call, use `vmCall` or
+ * `vmEstimateGas`, which change nothing.
+ */
 export async function checkTx(
     requestManager: Web3RequestManager,
     tx: TrxProto,
