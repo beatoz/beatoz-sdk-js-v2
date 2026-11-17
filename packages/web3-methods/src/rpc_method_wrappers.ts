@@ -92,14 +92,6 @@ export async function genesisChunked(web3Context: Web3Context, chunk: number | s
     return rpcMethods.genesisChunked(web3Context.requestManager, chunk);
 }
 
-export async function dumpConsensusState(web3Context: Web3Context) {
-    return rpcMethods.dumpConsensusState(web3Context.requestManager);
-}
-
-export async function consensusState(web3Context: Web3Context) {
-    return rpcMethods.consensusState(web3Context.requestManager);
-}
-
 export async function consensusParams(web3Context: Web3Context, height?: number | string) {
     return rpcMethods.consensusParams(web3Context.requestManager, height);
 }

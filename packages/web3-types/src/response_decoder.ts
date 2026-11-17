@@ -175,22 +175,16 @@ export class ResponsesDecoder {
         return response.result as responses.GenesisChunkedResponse;
     }
 
-    public static decodeDumpConsensusState(
-        response: JsonRpcResponseWithResult<unknown>,
-    ): responses.DumpConsensusStateResponse {
-        return response.result as responses.DumpConsensusStateResponse;
-    }
-
-    public static decodeConsensusState(
-        response: JsonRpcResponseWithResult<unknown>,
-    ): responses.ConsensusStateResponse {
-        return response.result as responses.ConsensusStateResponse;
-    }
-
     public static decodeConsensusParams(
         response: JsonRpcResponseWithResult<unknown>,
     ): responses.ConsensusParamsResponse {
-        return response.result as responses.ConsensusParamsResponse;
+        // The node sends the 64-bit integers as strings; decode them as
+        // blockResults decodes its consensus_param_updates (#38).
+        const result = assertObject(response.result) as RpcConsensusParamsResponse;
+        return {
+            block_height: apiToSmallInt(assertNotEmpty(result.block_height)),
+            consensus_params: decodeConsensusParams(assertObject(result.consensus_params)),
+        };
     }
 
     public static decodeUnconfirmedTxs(
@@ -930,6 +924,11 @@ interface RpcBlockResultsResponse {
     readonly end_block_events: readonly RpcEvent[] | null;
     readonly validator_updates: readonly RpcValidatorUpdate[] | null;
     readonly consensus_param_updates: RpcConsensusParams | null;
+}
+
+interface RpcConsensusParamsResponse {
+    readonly block_height: string;
+    readonly consensus_params: RpcConsensusParams;
 }
 
 export interface RpcBlockParams {

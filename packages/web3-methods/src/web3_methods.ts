@@ -74,14 +74,6 @@ export class Web3Method extends Web3Context {
         return rpcMethodsWrappers.genesisChunked(this, chunk);
     }
 
-    dumpConsensusState() {
-        return rpcMethodsWrappers.dumpConsensusState(this);
-    }
-
-    consensusState() {
-        return rpcMethodsWrappers.consensusState(this);
-    }
-
     consensusParams(height?: string | number) {
         return rpcMethodsWrappers.consensusParams(this, height);
     }

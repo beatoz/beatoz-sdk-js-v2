@@ -30,8 +30,23 @@ describe('consensusParams check ', () => {
     it('should call web3 with testWebsocketWeb3Instance.consensusParams method success return', async () => {
         const testConsensusParamsResponse: ConsensusParamsResponse =
             await testWebsocketWeb3Instance.beatoz.consensusParams();
-        expect(testConsensusParamsResponse.block_height).toBeDefined();
-        expect(testConsensusParamsResponse.consensus_params).toBeDefined();
+        // The node sends its 64-bit integers as strings; the SDK decodes
+        // them to numbers, as the type says (#38).
+        const { block_height, consensus_params } = testConsensusParamsResponse;
+        expect(block_height).toEqual(expect.any(Number));
+        const { block, evidence, validator, version } = consensus_params;
+        for (const value of [
+            block.max_bytes,
+            block.max_gas,
+            block.time_iota_ms,
+            evidence.max_age_num_blocks,
+            evidence.max_age_duration,
+            evidence.max_bytes,
+            version.app_version,
+        ]) {
+            expect(Number.isSafeInteger(value)).toBe(true);
+        }
+        expect(validator.pub_key_types).toEqual(expect.any(Array));
     });
 
     it('should call web3 with testWebsocketWeb3Instance.consensusParams(height) method success return', async () => {

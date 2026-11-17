@@ -38,6 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `ResponsesDecoder.decodeConsensusParams` decodes the
+  response instead of casting it (#38). The node sends `block_height` and
+  every parameter as a decimal string, while `ConsensusParamsResponse` declared
+  numbers; they are now numbers, as `blockResults` already decoded its
+  `consensus_param_updates`. A value beyond a safe integer throws
+  `InvalidResponseError`.
+
 - `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
   ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
   encoded transactions are byte for byte the same.
@@ -182,6 +189,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `error TS2834: Relative import paths need explicit file extensions`.
 
 ### Removed
+
+- **BREAKING:** `DumpConsensusStateResponse`, `ConsensusStateResponse` and the
+  types only they used (`RoundState`, `PeerInfo`, `PeerState`,
+  `PeerRoundState`, `LastCommitInfo`, `DumpConsensusValidators`,
+  `DumpConsensusValidator`, `ConsensusRoundState`, `HeightVoteSet`, and a
+  second `Vote` that merged into the block `Vote`), with their decoders
+  (#38). Their queries are gone; see web3-rpc. `TxSizeParams` and
+  `BlockGossipParams`, which nothing used, are gone too.
 
 - **BREAKING:** `ProposalResponse`, an empty interface, is removed with the
   `proposals()` method it typed (#148).
