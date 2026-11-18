@@ -155,6 +155,11 @@ entries below name the packages they apply to.
   answer, so a failure such as `out of gas` went unnoticed unless the caller
   read its codes. An `async` send still returns before either is known.
 
+- `@beatoz/web3-types`, `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:** `StakesResponse.value` is always an array, empty for an
+  account with no stakes. The node sends `null` then (a nil slice in
+  beatoz-go's `queryStakes`), which reached the caller under a type that said
+  `undefined` or an array; `ResponsesDecoder.decodeStakes` turns it into `[]`.
+
 - `@beatoz/web3-types`, `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:** `ResponsesDecoder.decodeConsensusParams` decodes the
   response instead of casting it (#38). The node sends `block_height` and
   every parameter as a decimal string, while `ConsensusParamsResponse` declared

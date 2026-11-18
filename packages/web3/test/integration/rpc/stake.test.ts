@@ -30,6 +30,7 @@ describe('stakes check ', () => {
             '1594b3a79f75a81f0181dd6d113a95dca419e7ec',
         );
         expect(testStakeResponse.key).toEqual('1594B3A79F75A81F0181DD6D113A95DCA419E7EC');
-        expect(testStakeResponse.value).toBeDefined();
+        // An account with no stakes gives an empty array, not the node's null.
+        expect(Array.isArray(testStakeResponse.value)).toBe(true);
     });
 });

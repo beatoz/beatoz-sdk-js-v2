@@ -252,7 +252,12 @@ export class ResponsesDecoder {
     public static decodeStakes(
         response: JsonRpcResponseWithResult<unknown>,
     ): responses.StakesResponse {
-        return response.result as responses.StakesResponse;
+        const result = response.result as Omit<responses.StakesResponse, 'value'> & {
+            value: responses.StakesValue[] | null;
+        };
+        // The node marshals an account with no stakes as a nil slice, `null`
+        // (beatoz-go ctrlers/vpower/ctrler_query.go queryStakes).
+        return { ...result, value: result.value ?? [] };
     }
 
     public static decodeReward(

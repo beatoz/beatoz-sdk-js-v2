@@ -64,7 +64,7 @@ const delegatee = await web3.beatoz.delegatee(validatorAddress);
 // value: { address, selfPower, totalPower, slashedPower, delegators, ... }
 
 const stakes = await web3.beatoz.stakes(address);
-// value: [{ owner, to, txhash, startHeight, power }], or null with no stake
+// value: [{ owner, to, txhash, startHeight, power }], empty with no stake
 
 const reward = await web3.beatoz.reward(address);
 // value: { cumulated, ... }: cumulated is what withdrawReward can take

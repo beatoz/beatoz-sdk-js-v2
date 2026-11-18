@@ -44,6 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `stakes` returns an empty `value` array for an account with
+  no stakes, instead of the node's `null`. See web3-types.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
   had not been accurate for some time: several dependencies already required
   Node 18 or later. Three things set the floor, and the highest wins:
