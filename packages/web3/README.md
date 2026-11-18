@@ -65,6 +65,8 @@ from this package gives:
 
 ## Links
 
+- [Documentation](https://github.com/beatoz/beatoz-sdk-js-v2/blob/main/docs/README.md)
+- [Migrating from 1.x](https://github.com/beatoz/beatoz-sdk-js-v2/blob/main/MIGRATION.md)
 - [Source](https://github.com/beatoz/beatoz-sdk-js-v2/tree/main/packages/web3)
 - [Changelog](https://github.com/beatoz/beatoz-sdk-js-v2/blob/main/packages/web3/CHANGELOG.md): what changed, and how to move from 1.x
 - [Issues](https://github.com/beatoz/beatoz-sdk-js-v2/issues)

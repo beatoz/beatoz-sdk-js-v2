@@ -39,9 +39,13 @@ await token.methods
 
 `web3.beatoz` also sends `delegate`, `undelegate` and `withdrawReward`, reads
 blocks, transactions and chain values, and subscribes to new blocks and
-transactions over a `ws://` URL. The methods are documented in the sources
-(TSDoc), which your editor shows, and each package's `CHANGELOG.md` records
-what changed and how to move from 1.x.
+transactions over a `ws://` URL.
+
+- **[Documentation](docs/README.md)**: getting started, accounts and signing,
+  sending transactions, contracts, reading the chain, subscriptions, errors.
+- **[Migrating from 1.x](MIGRATION.md)**: what to change, in order.
+- Every function is documented in its source (TSDoc), which your editor shows,
+  and each package's `CHANGELOG.md` records what changed and why.
 
 ### In a browser
 
