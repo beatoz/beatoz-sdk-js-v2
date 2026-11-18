@@ -241,6 +241,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `TrxProtoBuilder.signedRawTrxProto(trxProto, account)` is
+  removed (#209). It took no chain id and signed for a hardcoded `localnet0`,
+  so every node refused its transactions. Use
+  `account.signTransaction(trxProto, chainId).rawTransaction`.
+
 - **BREAKING:** The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save`
   and `load`, `web3.accounts.decrypt`, the matching abstract methods of
   `Web3BaseWallet`, `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`,

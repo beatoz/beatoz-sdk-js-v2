@@ -564,6 +564,11 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-accounts`: **BREAKING:** `TrxProtoBuilder.signedRawTrxProto(trxProto, account)` is
+  removed (#209). It took no chain id and signed for a hardcoded `localnet0`,
+  so every node refused its transactions. Use
+  `account.signTransaction(trxProto, chainId).rawTransaction`.
+
 - `@beatoz/web3-methods`: **BREAKING:** The JSON schemas from web3.js are removed but `logSchema`,
   which `decodeEventABI` uses (#202): `accessListItemSchema`,
   `accessListSchema`, `accessListResultSchema`, `chainSchema`, `hardforkSchema`,
