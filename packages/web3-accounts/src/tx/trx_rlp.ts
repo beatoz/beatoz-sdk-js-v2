@@ -16,8 +16,7 @@
 
 import { InvalidInputError } from '@beatoz/web3-errors';
 import { TrxProto } from '@beatoz/web3-types';
-import { rlp } from 'ethereumjs-util';
-import BN from 'bn.js';
+import { RLP } from '@ethereumjs/rlp';
 import {
     TrxPayloadContractProto,
     TrxPayloadProposalProto,
@@ -40,14 +39,14 @@ export const RlpUtils = {
                 // unstaking
                 const unstakingPayload: TrxPayloadUnstakingProto =
                     trxPb.TrxPayloadUnstakingProto.decode(trx.Payload);
-                payload = rlp.encode(unstakingPayload.txHash);
+                payload = RLP.encode(unstakingPayload.txHash);
                 break;
             }
             case 4: {
                 // proposal
                 const proposalPayload: TrxPayloadProposalProto =
                     trxPb.TrxPayloadProposalProto.decode(trx.Payload);
-                payload = rlp.encode([
+                payload = RLP.encode([
                     proposalPayload.message,
                     proposalPayload.startVotingHeight.toNumber(),
                     proposalPayload.votingBlocks.toNumber(),
@@ -62,14 +61,14 @@ export const RlpUtils = {
                 const votingPayload: TrxPayloadVotingProto = trxPb.TrxPayloadVotingProto.decode(
                     trx.Payload,
                 );
-                payload = rlp.encode([votingPayload.txHash, votingPayload.choice]);
+                payload = RLP.encode([votingPayload.txHash, votingPayload.choice]);
                 break;
             }
             case 6: {
                 // contract
                 const contractPayload: TrxPayloadContractProto =
                     trxPb.TrxPayloadContractProto.decode(trx.Payload);
-                payload = rlp.encode(contractPayload.Data);
+                payload = RLP.encode(contractPayload.Data);
                 break;
             }
             case 7: {
@@ -77,14 +76,14 @@ export const RlpUtils = {
                 const setDocPayload: TrxPayloadSetDocProto = trxPb.TrxPayloadSetDocProto.decode(
                     trx.Payload,
                 );
-                payload = rlp.encode([setDocPayload.name, setDocPayload.url]);
+                payload = RLP.encode([setDocPayload.name, setDocPayload.url]);
                 break;
             }
             case 8: {
                 // withdraw
                 const withdrawPayload: TrxPayloadWithdrawProto =
                     trxPb.TrxPayloadWithdrawProto.decode(trx.Payload);
-                payload = rlp.encode(withdrawPayload.ReqAmt);
+                payload = RLP.encode(withdrawPayload.ReqAmt);
                 break;
             }
             default:
@@ -94,9 +93,10 @@ export const RlpUtils = {
                     `transaction type must be 1 to 8, the types the chain accepts, got ${trx.type}`,
                 );
         }
-        return rlp.encode([
+        const encoded = RLP.encode([
             trx.version,
-            new BN(trx.time.toString()),
+            // Nanoseconds, beyond a safe integer.
+            BigInt(trx.time.toString()),
             trx.nonce.toNumber(),
             trx.from,
             trx.to,
@@ -107,5 +107,6 @@ export const RlpUtils = {
             payload,
             trx.sig,
         ]);
+        return Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength);
     },
 };
