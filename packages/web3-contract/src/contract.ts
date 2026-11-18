@@ -65,7 +65,14 @@ import {
     TransactionFailedError,
 } from '@beatoz/web3-errors';
 import { getEthTxCallParams, getSendTxParams } from './utils.js';
-import { broadcastSigned, call, buildWithNonce, rule, vmEstimateGas } from '@beatoz/web3-methods';
+import {
+    assertAccepted,
+    broadcastSigned,
+    call,
+    buildWithNonce,
+    rule,
+    vmEstimateGas,
+} from '@beatoz/web3-methods';
 import { TrxProtoBuilder, getContractAddress } from '@beatoz/web3-accounts';
 import HttpProvider from '@beatoz/web3-providers-http';
 import WebsocketProvider from '@beatoz/web3-providers-ws';
@@ -453,7 +460,11 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             options.sendMode === 'sync' || options.sendMode === 'async'
                 ? options.sendMode
                 : 'commit';
-        return broadcastSigned(this, txProto, fromAcct.address, sendMode);
+        const res = await broadcastSigned(this, txProto, fromAcct.address, sendMode);
+        // As web3.beatoz.transfer and deploy do: a refused or failed
+        // transaction throws rather than come back looking like a result.
+        assertAccepted(res, sendMode);
+        return res;
     }
 
     private _getAbiParams(abi: AbiFunctionFragment, params: unknown[]): Array<unknown> {

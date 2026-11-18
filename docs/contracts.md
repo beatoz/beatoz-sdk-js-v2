@@ -52,19 +52,23 @@ several, `undefined` for none. Integers come back as `bigint`.
 ## Send a transaction to a function
 
 ```js
-const res = await token.methods
-    .transfer('0x0000000000000000000000000000000000000001', '1000')
-    .send({ from: sender.address, gas: 200_000 });
+import { TransactionFailedError } from '@beatoz/web3';
 
-if (res.check_tx.code !== 0 || res.deliver_tx?.code !== 0) {
-    console.log(res.check_tx.log || res.deliver_tx?.log);
+try {
+    const res = await token.methods
+        .transfer('0x0000000000000000000000000000000000000001', '1000')
+        .send({ from: sender.address, gas: 200_000 });
+    console.log(res.hash, res.height);
+} catch (e) {
+    if (e instanceof TransactionFailedError) console.log(e.stage, e.log); // 'deliver_tx', 'out of gas'
 }
 ```
 
-`send()` and `broadcast()` are the same. `gas` is required. Unlike
-`web3.beatoz.transfer`, a contract send **returns** the node's answer when the
-transaction fails instead of throwing, so check its codes. A gas limit below
-what the call uses fails in the block, and the fee is still charged.
+`send()` and `broadcast()` are the same. `gas` is required. When the node
+refuses the transaction (`check_tx`) or it fails in the block (`deliver_tx`),
+they throw `TransactionFailedError`, as `web3.beatoz.transfer` does. A gas
+limit below what the call uses fails in the block, and the fee is still
+charged.
 
 Options:
 

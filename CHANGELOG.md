@@ -148,6 +148,13 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-contract`: **BREAKING:** A contract method's `send()` and `broadcast()` throw
+  `TransactionFailedError` (`stage`, the node's `code` and `log`, `hash`) when
+  the node refuses the transaction or it fails in the block, as
+  `deploy().send()` and `web3.beatoz.transfer` do. They returned the node's
+  answer, so a failure such as `out of gas` went unnoticed unless the caller
+  read its codes. An `async` send still returns before either is known.
+
 - `@beatoz/web3-types`, `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:** `ResponsesDecoder.decodeConsensusParams` decodes the
   response instead of casting it (#38). The node sends `block_height` and
   every parameter as a decimal string, while `ConsensusParamsResponse` declared
