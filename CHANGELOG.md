@@ -15,6 +15,31 @@ entries below name the packages they apply to.
 
 ### Added
 
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`, `@beatoz/web3-types`: `totalSupply`, `totalTxFee`, `txCount`, `totalPower` and `votingPower`
+  read the node's `total_supply`, `total_txfee`, `txn`, `stakes/total_power`
+  and `stakes/voting_power` (#46), each a `ChainValueResponse`.
+  `totalSupply`, `totalPower` and `votingPower` take an optional `height`;
+  the node answers `total_txfee` and `txn` only at the latest block.
+
+- `@beatoz/web3`: `web3.beatoz` holds the wallet, so `transfer` and the other native sends
+  sign with its accounts (#41). It had been left out: `web3.beatoz.wallet` was
+  `undefined`.
+
+- `@beatoz/web3-methods`, `@beatoz/web3-core`, `@beatoz/web3-types`, `@beatoz/web3-contract`, `@beatoz/web3`: `NonceManager` counts an account's nonces in memory (#43). The node reports
+  the nonce of the last committed block, so sync or async sends before the
+  next block all read the same one and the second is refused with
+  `invalid nonce`. Set `web3.beatoz.nonceManager = new NonceManager()` and
+  each send takes the next nonce; a failed send resets the account, which
+  reads the node again. Off unless set.
+
+- `@beatoz/web3-methods`, `@beatoz/web3`: `web3.beatoz.transfer`, `delegate`, `undelegate` and `withdrawReward` send
+  a native transaction in one call (#41): the sender, an account in the
+  wallet, signs it, and the chain id, nonce, gas price and gas are filled in
+  when not given. The gas defaults to the chain's `minTrxGas`, since a native
+  transaction is charged all the gas it carries. A transaction the node
+  refuses, or that fails in the block, throws `TransactionFailedError` with
+  the node's log. `sendMode: 'sync' | 'async'` returns earlier.
+
 - `@beatoz/web3-accounts`, `@beatoz/web3-types`, `@beatoz/web3-methods`,
   `@beatoz/web3-contract`: signing takes `{ scheme: 'v0' | 'v1' }` (#119): `signTransaction`,
   `signTransactionAsPayer` and `TrxProtoBuilder.signTrxProto`. The node takes
@@ -122,6 +147,13 @@ entries below name the packages they apply to.
   bytes.
 
 ### Changed
+
+- `@beatoz/web3-types`, `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:** `ResponsesDecoder.decodeConsensusParams` decodes the
+  response instead of casting it (#38). The node sends `block_height` and
+  every parameter as a decimal string, while `ConsensusParamsResponse` declared
+  numbers; they are now numbers, as `blockResults` already decoded its
+  `consensus_param_updates`. A value beyond a safe integer throws
+  `InvalidResponseError`.
 
 - `@beatoz/web3-abi`, `@beatoz/web3-contract`: **BREAKING:** Encoding checks the kind of `bool` and `string` values,
   through arrays and tuples (#213). A `bool` takes only `true` or `false`: the
@@ -514,14 +546,14 @@ entries below name the packages they apply to.
 
 - `@beatoz/web3-contract`, `@beatoz/web3-methods`: **BREAKING:** Deploying
   takes one call and resolves with the contract's address (#42):
-  `contract.deploy({ bytecode, args }).send({ from })` returns `{ address,
+  `contract.deploy({ bytecode, args }).send({ from, gas })` returns `{ address,
   contract, hash, height }`, where `contract` is a `Contract` at the new
   address on the same provider and wallet. The account of `from` comes from
-  the wallet and the chain id is filled in; the gas is the node's
-  `vm_estimate_gas` for the deploy and the gas price the chain's unless given.
-  `args` is typed from the ABI's constructor, as methods' arguments are. A
-  deploy the node rejects or that fails throws `Web3ContractError` with the
-  node's log, as does one the estimate says would fail. The address is
+  the wallet and the chain id is filled in; `gas` is required
+  (#127), and the gas price is the chain's unless given.
+  `args` is typed from the ABI's constructor, as methods' arguments are. A deploy the node rejects or that fails throws
+  `TransactionFailedError` with the node's log, and one whose constructor the
+  estimate shows reverting throws `ContractFunctionRevertedError`. The address is
   computed from the sender and the nonce, as the node does, so it needs no
   lookup of the transaction and no wait for it to be indexed.
   `deploy(bytecode, args, account, chainId, gas)`, which returned the commit
@@ -579,6 +611,12 @@ entries below name the packages they apply to.
   `index.d.ts` happening to sit next to the file named by `main`.
 
 ### Removed
+
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`, `@beatoz/web3-types`: **BREAKING:** `dumpConsensusState` and `consensusState` are removed (#38).
+  They show a node's consensus in progress, for whoever runs the node, not
+  for SDK users; and their types did not match the node (`height` and
+  `start_time` arrive as strings). Ask the node's `dump_consensus_state` and
+  `consensus_state` routes directly.
 
 - `@beatoz/web3-accounts`: **BREAKING:** `TrxProtoBuilder.signedRawTrxProto(trxProto, account)` is
   removed (#209). It took no chain id and signed for a hardcoded `localnet0`,
