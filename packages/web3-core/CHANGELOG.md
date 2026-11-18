@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - `Web3Context.nonceManager`: when set, sends take their nonce from it
   instead of reading the node each time (#43).
 

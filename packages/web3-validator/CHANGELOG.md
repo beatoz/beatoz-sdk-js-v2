@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - The package carries its browser bundle, `dist/web3-validator.min.js`, built
   with the package (#154). It sets one global, `BeatozWeb3Validator`, holding
   the package's exports; `unpkg` and `jsdelivr` point at it. It was not

@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - `web3.beatoz.transfer`, `delegate`, `undelegate` and `withdrawReward` send
   a native transaction in one call (#41): the sender, an account in the
   wallet, signs it, and the chain id, nonce, gas price and gas are filled in
