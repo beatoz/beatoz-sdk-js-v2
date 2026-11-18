@@ -438,6 +438,11 @@ entries below name the packages they apply to.
 
 ### Added
 
+- All packages: `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `getAccount`, `delegatee`,
   `stakes`, `reward` and `rule` take an optional `height`, to read the state
   at an earlier block (#47). `@beatoz/web3-types`: `AccountResponse.height`.

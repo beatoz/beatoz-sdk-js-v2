@@ -123,6 +123,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - Adds a `files` field, so the published package carries `lib/`, `src/`,
   `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
   Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which

@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - `totalSupply`, `totalTxFee`, `txCount`, `totalPower` and `votingPower`
   read the node's `total_supply`, `total_txfee`, `txn`, `stakes/total_power`
   and `stakes/voting_power` (#46), each a `ChainValueResponse`.

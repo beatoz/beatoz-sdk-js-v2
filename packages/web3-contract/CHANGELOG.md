@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
 - Method sends and deploys take their nonce from `web3.beatoz.nonceManager`
   when it is set (#43), read at each send, so a contract made before the
   manager was set uses it too. A send that fails resets the account in it.
