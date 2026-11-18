@@ -22,7 +22,7 @@ import BN from 'bn.js';
 import { fromNanoSecond, getNanoSecond } from '@beatoz/web3-utils';
 import { createHash } from 'crypto';
 import { TrxProtoUtils } from './trx_pb.js';
-import { HexString, SignOptions, TrxProto } from '@beatoz/web3-types';
+import { SignOptions, TrxProto } from '@beatoz/web3-types';
 import { checkScheme, schemeOf, signingPreimage, withSchemeV } from './sign_scheme.js';
 import {
     DecodedTransaction,
@@ -34,7 +34,6 @@ import {
     TransactionWithoutAmount,
 } from './tx_types.js';
 import { Web3Account } from '../types.js';
-import { RlpUtils } from './trx_rlp.js';
 
 function isSet(value: unknown): boolean {
     return value !== undefined;
@@ -477,21 +476,6 @@ function signTrxProto(
     ];
 }
 
-function signedRawTrxProto(trxProto: TrxProto, account: Web3Account): HexString {
-    const encodedData = RlpUtils.encodeTrxProto(trxProto);
-
-    const chainId = 'localnet0';
-    const prefix = `\x19BEATOZ(${chainId}) Signed Message:\n${encodedData.length}`;
-
-    const prefixedData = Buffer.concat([Buffer.from(prefix), encodedData]);
-
-    trxProto.sig = account.sign(new Uint8Array(prefixedData));
-
-    const signedTxByte = new BytesUint8Array(TrxProtoUtils.encode(trxProto).finish());
-
-    return Buffer.from(signedTxByte).toString('base64');
-}
-
 /**
  * Whether `account` signed `trxProto` as its sender, under the scheme its
  * signature's last byte names (0/1 for v0, 27/28 for v1); false for any other.
@@ -516,7 +500,6 @@ export const TrxProtoBuilder = {
     verifyTrxProto,
     signTrxProto,
     buildContractTrxProto,
-    signedRawTrxProto,
     buildSetDocTrx,
     buildWithdrawTrx,
 };
