@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `send()`, `broadcast()` and `deploy().send()` take `scheme`, the signature
+  scheme, `v0` by default (#119).
+
 - `package.json` has `description`, `repository` (with this package's
   directory) and `bugs` (#196), so the npm page shows what the package is and
   links to the source and the issue tracker. The README is rewritten for the

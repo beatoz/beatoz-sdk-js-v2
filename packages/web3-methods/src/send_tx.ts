@@ -20,6 +20,7 @@ import {
     BroadcastTxAsyncResponse,
     BroadcastTxCommitResponse,
     BroadcastTxSyncResponse,
+    SignScheme,
     TrxProto,
     Web3NonceManager,
 } from '@beatoz/web3-types';
@@ -154,6 +155,8 @@ export interface SendTxOptions<M extends SendMode = 'commit'> {
     gasPrice?: string;
     /** Default `commit`. */
     sendMode?: M;
+    /** The signature scheme, `v0` by default; see `SignScheme`. */
+    scheme?: SignScheme;
 }
 
 type Fields = { from: string; nonce: number; gas: number; gasPrice: string };
@@ -180,7 +183,7 @@ async function sendNative<M extends SendMode>(
             gasPrice: options.gasPrice ?? rule!.gasPrice,
         }),
     );
-    account.signTransaction(tx, chainId);
+    account.signTransaction(tx, chainId, { scheme: options.scheme });
 
     const res = await broadcastSigned(web3Context, tx, account.address, options.sendMode);
     assertAccepted(res, options.sendMode);

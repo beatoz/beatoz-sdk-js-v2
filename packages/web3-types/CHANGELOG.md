@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `SignScheme` (`'v0' | 'v1'`) and `SignOptions`; `Web3BaseWalletAccount.signTransaction`
+  takes `SignOptions` as an optional third argument (#119).
+
 - `package.json` has `description`, `repository` (with this package's
   directory) and `bugs` (#196), so the npm page shows what the package is and
   links to the source and the issue tracker. The README is rewritten for the

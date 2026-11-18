@@ -22,7 +22,8 @@ import BN from 'bn.js';
 import { fromNanoSecond, getNanoSecond } from '@beatoz/web3-utils';
 import { createHash } from 'crypto';
 import { TrxProtoUtils } from './trx_pb.js';
-import { HexString, TrxProto } from '@beatoz/web3-types';
+import { HexString, SignOptions, TrxProto } from '@beatoz/web3-types';
+import { checkScheme, schemeOf, signingPreimage, withSchemeV } from './sign_scheme.js';
 import {
     DecodedTransaction,
     Transaction,
@@ -455,16 +456,21 @@ function buildSetDocTrx(transaction: TransactionWithoutAmount<TransactionPayload
     };
 }
 
+/**
+ * Signs `trxProto` as its sender with `account` and sets `sig`; returns the
+ * signature and the encoded transaction. `options.scheme` as for
+ * `signTransaction`.
+ */
 function signTrxProto(
     trxProto: TrxProto,
     account: Web3Account,
     chainId: string,
+    options?: SignOptions,
 ): [BytesUint8Array, BytesUint8Array] {
+    const scheme = checkScheme(options?.scheme);
     trxProto.sig = new Uint8Array();
-    const encodedData = RlpUtils.encodeTrxProto(trxProto);
-    const prefix = `\x19BEATOZ(${chainId}) Signed Message:\n${encodedData.length}`;
-    const prefixedData = Buffer.concat([Buffer.from(prefix), encodedData]);
-    trxProto.sig = account.sign(new Uint8Array(prefixedData));
+    const sig = account.sign(signingPreimage(trxProto, chainId, scheme));
+    trxProto.sig = withSchemeV(sig, scheme);
     return [
         new BytesUint8Array(trxProto.sig),
         new BytesUint8Array(TrxProtoUtils.encode(trxProto).finish()),
@@ -486,17 +492,20 @@ function signedRawTrxProto(trxProto: TrxProto, account: Web3Account): HexString 
     return Buffer.from(signedTxByte).toString('base64');
 }
 
+/**
+ * Whether `account` signed `trxProto` as its sender, under the scheme its
+ * signature's last byte names (0/1 for v0, 27/28 for v1); false for any other.
+ */
 function verifyTrxProto(trxProto: TrxProto, account: Web3Account, chainId: string): boolean {
     const oriSig = trxProto.sig;
+    const scheme = schemeOf(oriSig);
+    if (scheme === undefined) return false;
     trxProto.sig = new Uint8Array();
-
-    const encodedData = RlpUtils.encodeTrxProto(trxProto);
-    const prefix = `\x19BEATOZ(${chainId}) Signed Message:\n${encodedData.length}`;
-
-    const prefixedData = Buffer.concat([Buffer.from(prefix), encodedData]);
-    const ret = account.pubKey.verify(oriSig, prefixedData);
-    trxProto.sig = oriSig;
-    return ret;
+    try {
+        return account.pubKey.verify(oriSig, signingPreimage(trxProto, chainId, scheme));
+    } finally {
+        trxProto.sig = oriSig;
+    }
 }
 
 export const TrxProtoBuilder = {

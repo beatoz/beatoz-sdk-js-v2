@@ -25,6 +25,7 @@ import {
     BroadcastTxAsyncResponse,
     BroadcastTxSyncResponse,
     BroadcastTxCommitResponse,
+    SignScheme,
     VmCallResponse,
 } from '@beatoz/web3-types';
 
@@ -61,6 +62,8 @@ export interface PayableTxOptions extends NonPayableTxOptions {
 
 export type BroadcastTxOptions = {
     sendMode?: string; // 'async' | 'sync' | 'commit'
+    /** The signature scheme, `v0` by default; see `SignScheme`. */
+    scheme?: SignScheme;
 };
 
 /** What a deploy's `send()` takes. */
@@ -71,6 +74,8 @@ export interface DeployOptions {
     gas: number;
     /** The gas price in wei, as a decimal string. Left out, the chain's. */
     gasPrice?: string;
+    /** The signature scheme, `v0` by default; see `SignScheme`. */
+    scheme?: SignScheme;
 }
 
 export type ContractAbiWithSignature = ReadonlyArray<AbiFragment & { signature: HexString }>;
