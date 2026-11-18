@@ -17,7 +17,9 @@
 import { keccak256 } from 'ethereum-cryptography/keccak.js';
 import { BytesUint8Array } from '@beatoz/web3-types';
 import { createHash, randomBytes } from 'crypto';
-import secp256k1 from 'secp256k1';
+// The secp256k1 package's API, computed by noble (pure JS) rather than
+// elliptic, which the secp256k1 package falls back to in browsers.
+import * as secp256k1 from 'ethereum-cryptography/secp256k1-compat.js';
 
 // The builder input. `type`, `hash` and `sig` are not in it: each builder
 // sets its own type, and the hash and signature come from signing.
