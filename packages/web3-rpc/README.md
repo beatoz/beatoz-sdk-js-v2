@@ -1,36 +1,27 @@
+# @beatoz/web3-rpc
 
-# Web3.js - web3-rpc
+Typed requests for the BEATOZ node JSON-RPC routes.
 
-Web3.js
-
-## Installation
-
-
-### Using NPM
+Part of the [BEATOZ JavaScript SDK](https://github.com/beatoz/beatoz-sdk-js-v2). Applications normally install
+[`@beatoz/web3`](https://www.npmjs.com/package/@beatoz/web3), which includes
+this package; install it on its own only to use it without the rest.
 
 ```bash
-npm install @beatoz/web3
+npm install @beatoz/web3-rpc
 ```
 
-### Using Yarn
+## Requirements
 
-```bash
-yarn add @beatoz/web3
-```
+- Node.js 22.22.2 or later. The package is an ES module; `require()` works too,
+  as Node 22.12 and later can load ES modules.
+- TypeScript 5.8 or later, if you use TypeScript.
 
-## Getting Started
+## Links
 
+- [Source](https://github.com/beatoz/beatoz-sdk-js-v2/tree/main/packages/web3-rpc)
+- [Changelog](https://github.com/beatoz/beatoz-sdk-js-v2/blob/main/packages/web3-rpc/CHANGELOG.md): what changed, and how to move from 1.x
+- [Issues](https://github.com/beatoz/beatoz-sdk-js-v2/issues)
 
-## Prerequisites
+## License
 
-
-## Package.json Scripts
-
-| Script      | Description                                                        |
-|-------------| ------------------------------------------------------------------ |
-| clean       | Uses `rimraf` to remove `dist/`                                    |
-| build       | Uses `tsc` to build all packages                                   |
-| lint        | Uses `eslint` to lint all packages                                 |
-| lint:fix    | Uses `eslint` to check and fix any warnings                        |
-| test        | Uses `jest` to run unit tests in each package                      |
-| test:slient | Uses `jest` to run tests under `/test/integration` in each package |
+Apache-2.0
