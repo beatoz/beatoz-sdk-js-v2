@@ -195,6 +195,23 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** Ethereum-only types from web3.js are removed (#202). They
+  describe what BEATOZ does not have, and nothing in the SDK used them:
+  `Uncles`, `BlockTags`, `BlockTag`, `Hardfork`, `HardforksOrdered`,
+  `ValidChains`, `CustomChain`, `Common`, `AccessList`, `AccessListEntry`,
+  `AccessListResult`, `FeeHistory`, `FeeHistoryBase`, `StorageProof`,
+  `AccountObject`, `BlockBase`, `HexString256Bytes`, the `PopulatedUnsigned*`
+  transactions, the `*Input`/`*Output` formatter types (`TransactionInput`,
+  `BlockOutput`, `ReceiptOutput`, `LogsOutput`, `PostInput`, `SyncOutput`
+  and the rest), `Receipt`, `TransactionInfo`, `TransactionForAccessList` and
+  the `TransactionWith*LocalWalletIndex` types. `Transaction` keeps `from`,
+  `to`, `value`, `gas`, `gasPrice`, `data`, `input` and `nonce`, the fields the
+  contract package reads; its Ethereum fields (`accessList`, `common`,
+  `chain`, `hardfork`, `maxFeePerGas`, `maxPriorityFeePerGas`, `chainId`,
+  `networkId`, `gasLimit`, `type`, `v`, `r`, `s`, `yParity`) are gone. A
+  second, identical declaration of `Log`, `LogBase` and
+  `TransactionReceiptBase` is removed.
+
 - **BREAKING:** `BytesUint8Array.fromWords` and `toWords` are removed, and
   with them the dependencies on `crypto-js` and `@types/crypto-js` (#193).
   They converted to and from `crypto-js` word arrays, which nothing in the SDK

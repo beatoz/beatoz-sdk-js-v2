@@ -43,7 +43,10 @@ import {
     jsonInterfaceMethodToString,
 } from '@beatoz/web3-abi';
 
-import { blockSchema, logSchema } from '@beatoz/web3-methods';
+import { logSchema } from '@beatoz/web3-methods';
+
+// A block number, formatted as a hex quantity in a filter.
+const blockNumberFormat = { format: 'uint' };
 
 import { InvalidInputError } from '@beatoz/web3-errors';
 
@@ -60,13 +63,13 @@ export const encodeEventABI = (
     const opts: Writeable<Filter> = {};
 
     if (!isNullish(options?.fromBlock)) {
-        opts.fromBlock = format(blockSchema.properties.number, options?.fromBlock, {
+        opts.fromBlock = format(blockNumberFormat, options?.fromBlock, {
             number: FMT_NUMBER.HEX,
             bytes: FMT_BYTES.HEX,
         });
     }
     if (!isNullish(options?.toBlock)) {
-        opts.toBlock = format(blockSchema.properties.number, options?.toBlock, {
+        opts.toBlock = format(blockNumberFormat, options?.toBlock, {
             number: FMT_NUMBER.HEX,
             bytes: FMT_BYTES.HEX,
         });
