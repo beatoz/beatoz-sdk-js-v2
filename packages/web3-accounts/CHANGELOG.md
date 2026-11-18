@@ -8,18 +8,86 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ## [Unreleased]
 
+### Added
+
+- `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
+- `signTransactionAsPayer(trxProto, privateKey, chainId)` and
+  `Web3Account.signTransactionAsPayer(trxProto, chainId)`: fee delegation
+  (#3). After the sender signs, another account signs as the payer, which sets
+  `payer` and `payerSig`; the chain then charges the fee to the payer, so the
+  sender needs only the amount it sends. The sender's signature does not cover
+  the payer, so the payer can sign elsewhere (a server paying its users' fees).
+  The payer signs the node's v0 preimage with the sender's signature in it, as
+  beatoz-go's `SignerV0` verifies it; moving both signatures to v1 is #119. It
+  throws if the sender has not signed or the payer is the sender.
+  `decodeTransaction` returns `payer` and `payerSig` when they are set.
+
+- `getContractAddress(from, nonce)`: the address of the contract a deploy
+  transaction from `from` with `nonce` creates, the last 20 bytes of
+  keccak256(rlp([from, nonce])) as the node computes it (#42).
+
+- `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),
+  which moves part of the sender's accumulated staking reward into its balance.
+  The chain accepted these all along; the SDK could decode one but not build it.
+  The value goes in `payload.reqAmt`; `amount` must be zero, as the chain
+  requires. A zero `reqAmt` is refused before anything is sent: the chain would
+  accept it, but it moves nothing and only pays the fee.
+
+  `reqAmt`, `amount` and `gasPrice` must be decimal strings of digits. `reqAmt`
+  and `gasPrice` are encoded the way beatoz-go's `uint256.Int.Bytes()` encodes
+  them - minimal, and empty for zero - because the node re-encodes them that way
+  to check the signature; any other form of the same number fails as `invalid
+  signature`.
+
+  Against the regular test node it reaches the reward check (`not found result`
+  for an account with no reward), so the node decoded it and accepted the
+  signature. The payout is tested against a second node from the same image
+  whose genesis lowers inflationCycleBlocks to 20 (`yarn node:start:reward`,
+  `yarn test:reward`): delegate, wait for a reward, withdraw exactly what
+  accumulated, and the balance rises by the reward less the fee; a request above
+  the reward is refused as `insufficient reward`.
+
+- Adds a `files` field, so the published package carries `lib/`, `src/`,
+  `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
+  Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which
+  extended a file that was never published) and the `.tsbuildinfo` incremental
+  build caches.
+
+- Ships `src/`. The source maps have always pointed at `../../src/*.ts`, but
+  those files were not published, so a debugger could not open the line a stack
+  trace named. v2 is still moving quickly, and reading the source is part of
+  using it.
+
+- Ships `LICENSE`. Every package declared `Apache-2.0` while publishing no copy
+  of the license text.
+
+- `privateKeyToAccount`, `privateKeyToPrvKey` and `sign` accept a `Uint8Array`
+  private key. They previously declared `HexString | ArrayBufferLike`, which
+  excluded the most common way to hold key bytes.
+
 ### Changed
 
-- No longer depends on `ethereumjs-util` (#192), a 2019 release no longer
-  maintained, which brought `pbkdf2` (a moderate advisory) and `elliptic`
-  into every install for two calls. The signed RLP is encoded with
-  `@ethereumjs/rlp`, and `getContractAddress` hashes with `ethereum-cryptography`.
-  The bytes are the same for every transaction, checked over 814 cases of all
-  eight types, except the one below.
+- **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
+  had not been accurate for some time: several dependencies already required
+  Node 18 or later. Three things set the floor, and the highest wins:
+  `require(esm)`, which lets these packages ship ES modules only, landed in
+  22.12; ESLint 10, which lints this repository, declares
+  `^20.19.0 || ^22.13.0 || >=24`; and lerna 10, which builds and tests it, does
+  not install below 22.22.2. The packages keep the repository's floor so that
+  there is one number, and 22.22.2 is a security release of Node 22.
 
-- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
-  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
-  encoded transactions are byte for byte the same.
+- **BREAKING:** Declares `typescript: ">=5.8"` as an optional peer dependency;
+  no supported compiler was declared before. The emitted declarations use
+  `Uint8Array<ArrayBufferLike>`, a generic form TypeScript has from 5.7
+  (`error TS2315: Type 'Uint8Array' is not generic` below it), and a CommonJS
+  project that resolves these ES-module-only packages with
+  `module`/`moduleResolution` `nodenext` can import them from 5.8
+  (`error TS1479` on 5.7). A project on TypeScript 5.7 or older upgrades
+  TypeScript; nothing else changes.
 
 - **BREAKING:** Builders, signing and `getContractAddress` throw
   `InvalidInputError` instead of `Error` (#100, #66). The four `mandatory
@@ -27,20 +95,6 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `payload.txHash`, `payload.data`, `payload.reqAmt`), and some messages are
   reworded: `... must fit in 256 bits, got ...`, `transaction type must be 1
   to 8, the types the chain accepts, got ...`.
-
-- **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
-  packages are ES modules only, and on 5.7 a CommonJS project that resolves them
-  with `module`/`moduleResolution` `nodenext` cannot import them (`error
-  TS1479`); from 5.8 it can, as Node 22.12 and later can `require` them. ES
-  module projects and `moduleResolution` `node` or `bundler` worked on 5.7, but
-  one floor that holds for every project is simpler to state. A project on
-  TypeScript 5.7 or older upgrades TypeScript; nothing else changes.
-
-- **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
-  which builds and tests the repository, does not install below it, and the
-  packages keep the repository's floor so that there is one number. 22.22.2 is a
-  security release of Node 22. A user on Node 22 below it upgrades Node; nothing
-  else changes.
 
 - **BREAKING:** Transaction payloads are typed per transaction type.
   `Transaction<T>` declared `payload?: object | T`, so any object compiled for
@@ -131,8 +185,6 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   longer compiles, and one passed anyway fails before anything is built:
   `type is not a builder input; each builder sets its own`. Remove them from
   builder calls; the result is unchanged.
-- `buildTransferTrxProto` uses the `time` it is given, as the other builders
-  do. It always used the current time before.
 
 - **BREAKING:** `decodeTransaction` returns each payload in the shape its
   builder takes, so a decoded transaction builds the same bytes again: a
@@ -142,67 +194,87 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   its `options` are hex strings instead of `Uint8Array`s. Read the new names;
   for a withdraw, the amount no longer needs converting from hex.
 
-### Added
+- **BREAKING:** Adds an `exports` map, so only the package root and its
+  `package.json` can be imported. Deep paths such as
+  `@beatoz/web3-accounts/lib/commonjs/index` now fail with
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Everything under `lib/` used to be
+  reachable, which meant the whole build output was public API.
 
-- `package.json` has `description`, `repository` (with this package's
-  directory) and `bugs` (#196), so the npm page shows what the package is and
-  links to the source and the issue tracker. The README is rewritten for the
-  package (#197); it was the web3.js template.
+- **BREAKING:** Transaction builders set `payer` and `payerSig` on the objects
+  they return, following the `TrxProto` change in `@beatoz/web3-types`.
 
-- `signTransactionAsPayer(trxProto, privateKey, chainId)` and
-  `Web3Account.signTransactionAsPayer(trxProto, chainId)`: fee delegation
-  (#3). After the sender signs, another account signs as the payer, which sets
-  `payer` and `payerSig`; the chain then charges the fee to the payer, so the
-  sender needs only the amount it sends. The sender's signature does not cover
-  the payer, so the payer can sign elsewhere (a server paying its users' fees).
-  The payer signs the node's v0 preimage with the sender's signature in it, as
-  beatoz-go's `SignerV0` verifies it; moving both signatures to v1 is #119. It
-  throws if the sender has not signed or the payer is the sender.
-  `decodeTransaction` returns `payer` and `payerSig` when they are set.
+- No longer depends on `ethereumjs-util` (#192), a 2019 release no longer
+  maintained, which brought `pbkdf2` (a moderate advisory) and `elliptic`
+  into every install for two calls. The signed RLP is encoded with
+  `@ethereumjs/rlp`, and `getContractAddress` hashes with `ethereum-cryptography`.
+  The bytes are the same for every transaction, checked over 814 cases of all
+  eight types, except the one below.
 
-- `getContractAddress(from, nonce)`: the address of the contract a deploy
-  transaction from `from` with `nonce` creates, the last 20 bytes of
-  keccak256(rlp([from, nonce])) as the node computes it (#42).
+- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
 
-- `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw transaction (type 8),
-  which moves part of the sender's accumulated staking reward into its balance.
-  The chain accepted these all along; the SDK could decode one but not build it.
-  The value goes in `payload.reqAmt`; `amount` must be zero, as the chain
-  requires. A zero `reqAmt` is refused before anything is sent: the chain would
-  accept it, but it moves nothing and only pays the fee.
+- `buildTransferTrxProto` uses the `time` it is given, as the other builders
+  do. It always used the current time before.
 
-  `reqAmt`, `amount` and `gasPrice` must be decimal strings of digits. `reqAmt`
-  and `gasPrice` are encoded the way beatoz-go's `uint256.Int.Bytes()` encodes
-  them - minimal, and empty for zero - because the node re-encodes them that way
-  to check the signature; any other form of the same number fails as `invalid
-  signature`.
+- The `npm` range is gone from `engines`. These packages are installed with
+  whatever the consumer uses, and a constraint on one package manager says
+  nothing about the others.
 
-  Against the regular test node it reaches the reward check (`not found result`
-  for an account with no reward), so the node decoded it and accepted the
-  signature. The payout is tested against a second node from the same image
-  whose genesis lowers inflationCycleBlocks to 20 (`yarn node:start:reward`,
-  `yarn test:reward`): delegate, wait for a reward, withdraw exactly what
-  accumulated, and the balance rises by the reward less the fee; a request above
-  the reward is refused as `insufficient reward`.
+- Adds a `types` field. Type resolution previously relied on `index.d.ts`
+  happening to sit next to the file named by `main`.
 
-### Security
+- `src/tx/trx_pb.proto` is now a verbatim copy of the chain's
+  `protos/trx.proto`. The copy in this repository had been edited after
+  generation: `TrxPayloadProposalProto` field numbers were renumbered and the
+  fee delegation fields were missing. The generated code carried the chain's
+  numbers, so nothing on the wire changes.
 
-- `protobufjs` is now `^7.6.6`, up from an exact `7.2.5`. 7.2.5 is inside the
-  affected range of eleven advisories, one critical. Most concern loading
-  schemas or JSON descriptors at runtime, which this package never does: it
-  ships code generated by ts-proto and uses only `protobufjs/minimal`. Two reach
-  that path - GHSA-q6x5-8v7m-xcrf (overlong UTF-8 accepted by the fallback
-  decoder used outside Node, so in browsers) and GHSA-685m-2w69-288q (no depth
-  limit when skipping unknown group fields while decoding).
+### Removed
 
-  The range is no longer pinned, so later 7.x security releases reach consumers
-  without a release of this package.
+- **BREAKING:** The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save`
+  and `load`, `web3.accounts.decrypt`, the matching abstract methods of
+  `Web3BaseWallet`, `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`,
+  `CipherOptions`, `ScryptParams` and `PBKDF2SHA256Params` types. Every one of
+  them only threw `not implemented` or `Not supported yet`; they came with the
+  web3.js fork. Nothing changes for a caller that did not call them.
 
-  The bytes on the wire do not change. Every message type in `trx_pb.proto`,
-  across 156 cases including int64 extremes and multi-byte strings, encodes to
-  the same bytes under 7.2.5 and 7.6.6, so signatures over them are unchanged.
-  Against the official node, CheckTx decoded one transaction of each of the
-  eight types beatoz-go accepts, and the integration suites pass.
+- **BREAKING:** `buildProposalTrx`, `buildVotingTrx` and their input types
+  `TransactionPayloadProposal` and `TransactionPayloadVoting` are gone.
+  beatoz-go accepts proposals and votes only from validators, who send them with
+  the BEATOZ wallet, and no service used the SDK for them. `decodeTransaction`,
+  `signTrxProto` and `verifyTrxProto` still handle these transaction types.
+
+- **BREAKING:** The CommonJS build is gone. `lib/commonjs` is no longer built
+  or published, and the package ships ESM only.
+
+  Node 22.12 and later can `require()` an ES module, so a CommonJS consumer on a
+  supported Node keeps working without source changes:
+
+  ```js
+  require('@beatoz/web3-accounts')   // still resolves, via require(esm)
+  ```
+
+  The `exports` map uses a `default` condition rather than `import`, so the
+  `require` condition matches it too. A bundler or a TypeScript setup pinned to
+  an older Node resolution mode may still need updating.
+
+- **BREAKING:** `main` now points at the ESM entry and the `module` field is
+  gone; both described the same build before.
+
+- No longer depends on `crypto-js`, `@types/crypto-js`, `constants-browserify`,
+  `crypto-browserify` or `path-browserify`, none of which it imported. The three
+  `*-browserify` packages are webpack polyfills used by this repository's browser
+  build; they are declared at the root, where that build runs.
+
+- `ts-proto` moved from `dependencies` to `devDependencies`. It provides the
+  `protoc-gen-ts_proto` binary used to regenerate `trx_pb.ts`; consumers never
+  regenerate protobuf code.
+
+- `.npmignore` is gone, from this package and from the repository root. `files`
+  takes precedence over it, so keeping both would leave a file that looks like
+  it decides what ships but does not. The root one had been reaching into the
+  workspace packages and excluding `src/` from all of them.
 
 ### Fixed
 
@@ -235,34 +307,6 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   every call through it was a call on `undefined`. A default import gets the
   module itself, which is how ES modules are meant to consume CommonJS.
 
-### Changed
-
-- **BREAKING:** The minimum Node version is 22.13, raised from 22.12. Two things
-  set the floor and the higher one now wins: `require(esm)` - the reason these
-  packages can ship ESM only - landed in 22.12, while ESLint 10, which this
-  repository is linted with, declares `^20.19.0 || ^22.13.0 || >=24`. Holding the
-  packages to 22.12 left the repository unable to satisfy its own toolchain at
-  its own floor. The window given up, 22.12.0 through 22.12.x, ran from December
-  2024 to January 2025.
-
-- The `npm` range is gone from `engines`. These packages are installed with
-  whatever the consumer uses, and a constraint on one package manager says
-  nothing about the others.
-
-### Changed
-
-- **BREAKING:** The declared TypeScript floor is now 5.7, raised from 5.4. 5.4
-  was never true: this package is built with TypeScript 6.0.3, and the emitted
-  declarations use `Uint8Array<ArrayBufferLike>`, a generic form that only exists
-  from 5.7. A consumer on 5.4 reading these declarations hit
-  `error TS2315: Type 'Uint8Array' is not generic`.
-
-  It went unnoticed because `skipLibCheck: true` - the setting most projects
-  carry, and all four of ours - skips type-checking declarations in
-  `node_modules` entirely. The claim only failed for consumers who check them.
-
-### Fixed
-
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`
   files as ES modules rather than CommonJS. Without it the runtime half of the
@@ -276,110 +320,25 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   consumer using `moduleResolution: node16` or `nodenext` hit
   `error TS2834: Relative import paths need explicit file extensions`.
 
-### Removed
-
-- **BREAKING:** The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save`
-  and `load`, `web3.accounts.decrypt`, the matching abstract methods of
-  `Web3BaseWallet`, `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`,
-  `CipherOptions`, `ScryptParams` and `PBKDF2SHA256Params` types. Every one of
-  them only threw `not implemented` or `Not supported yet`; they came with the
-  web3.js fork. Nothing changes for a caller that did not call them.
-
-- **BREAKING:** `buildProposalTrx`, `buildVotingTrx` and their input types
-  `TransactionPayloadProposal` and `TransactionPayloadVoting` are gone.
-  beatoz-go accepts proposals and votes only from validators, who send them with
-  the BEATOZ wallet, and no service used the SDK for them. `decodeTransaction`,
-  `signTrxProto` and `verifyTrxProto` still handle these transaction types.
-
-- No longer depends on `crypto-js`, `@types/crypto-js`, `constants-browserify`,
-  `crypto-browserify` or `path-browserify`, none of which it imported. The three
-  `*-browserify` packages are webpack polyfills used by this repository's browser
-  build; they are declared at the root, where that build runs.
-
-- `ts-proto` moved from `dependencies` to `devDependencies`. It provides the
-  `protoc-gen-ts_proto` binary used to regenerate `trx_pb.ts`; consumers never
-  regenerate protobuf code.
-
-### Added
-
-- Adds a `files` field, so the published package carries `lib/`, `src/`,
-  `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
-  Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which
-  extended a file that was never published) and the `.tsbuildinfo` incremental
-  build caches.
-
-- Ships `src/`. The source maps have always pointed at `../../src/*.ts`, but
-  those files were not published, so a debugger could not open the line a stack
-  trace named. v2 is still moving quickly, and reading the source is part of
-  using it.
-
-- Ships `LICENSE`. Every package declared `Apache-2.0` while publishing no copy
-  of the license text.
-
-### Removed
-
-- `.npmignore` is gone, from this package and from the repository root. `files`
-  takes precedence over it, so keeping both would leave a file that looks like
-  it decides what ships but does not. The root one had been reaching into the
-  workspace packages and excluding `src/` from all of them.
-
-### Removed
-
-- **BREAKING:** The CommonJS build is gone. `lib/commonjs` is no longer built
-  or published, and the package ships ESM only.
-
-  Node 22.12 and later can `require()` an ES module, and the minimum supported
-  Node is now 22.12 for that reason, raised from 22.0. A CommonJS consumer on a
-  supported Node keeps working without source changes:
-
-  ```js
-  require('@beatoz/web3-accounts')   // still resolves, via require(esm)
-  ```
-
-  The `exports` map uses a `default` condition rather than `import`, so the
-  `require` condition matches it too. A bundler or a TypeScript setup pinned to
-  an older Node resolution mode may still need updating.
-
-- **BREAKING:** `main` now points at the ESM entry and the `module` field is
-  gone; both described the same build before.
-
-### Changed
-
-- **BREAKING:** Adds an `exports` map, so only the package root and its
-  `package.json` can be imported. Deep paths such as
-  `@beatoz/web3-accounts/lib/commonjs/index` now fail with
-  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Everything under `lib/` used to be
-  reachable, which meant the whole build output was public API.
-
-- Adds a `types` field. Type resolution previously relied on `index.d.ts`
-  happening to sit next to the file named by `main`.
-
-### Changed
-
-- **BREAKING:** The minimum supported Node.js version is now 22. It was 16.19,
-  which had not been accurate for some time: several dependencies already
-  required Node 18 or later.
-
-### Added
-
-- `privateKeyToAccount`, `privateKeyToPrvKey` and `sign` accept a `Uint8Array`
-  private key. They previously declared `HexString | ArrayBufferLike`, which
-  excluded the most common way to hold key bytes.
-- Declares `typescript: ">=5.4"` as an optional peer dependency. No
-  supported compiler range was declared before.
-
-### Fixed
-
 - The ESM build could not be imported. The generated protobuf code imported
   `protobufjs/minimal` without an extension, which `require()` resolves and
   ESM does not, so the module failed with `ERR_MODULE_NOT_FOUND`.
 
-### Changed
+### Security
 
-- `src/tx/trx_pb.proto` is now a verbatim copy of the chain's
-  `protos/trx.proto`. The copy in this repository had been edited after
-  generation: `TrxPayloadProposalProto` field numbers were renumbered and the
-  fee delegation fields were missing. The generated code carried the chain's
-  numbers, so nothing on the wire changes.
-- **BREAKING:** Transaction builders set `payer` and `payerSig` on the objects
-  they return, following the `TrxProto` change in `@beatoz/web3-types`.
+- `protobufjs` is now `^7.6.6`, up from an exact `7.2.5`. 7.2.5 is inside the
+  affected range of eleven advisories, one critical. Most concern loading
+  schemas or JSON descriptors at runtime, which this package never does: it
+  ships code generated by ts-proto and uses only `protobufjs/minimal`. Two reach
+  that path - GHSA-q6x5-8v7m-xcrf (overlong UTF-8 accepted by the fallback
+  decoder used outside Node, so in browsers) and GHSA-685m-2w69-288q (no depth
+  limit when skipping unknown group fields while decoding).
+
+  The range is no longer pinned, so later 7.x security releases reach consumers
+  without a release of this package.
+
+  The bytes on the wire do not change. Every message type in `trx_pb.proto`,
+  across 156 cases including int64 extremes and multi-byte strings, encodes to
+  the same bytes under 7.2.5 and 7.6.6, so signatures over them are unchanged.
+  Against the official node, CheckTx decoded one transaction of each of the
+  eight types beatoz-go accepts, and the integration suites pass.

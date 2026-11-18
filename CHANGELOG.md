@@ -13,26 +13,123 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 Work towards v2. Package versions become independent with this release, so the
 entries below name the packages they apply to.
 
+### Added
+
+- All packages: `package.json` has `description`, `repository` (with this package's
+  directory) and `bugs` (#196), so the npm page shows what the package is and
+  links to the source and the issue tracker. The README is rewritten for the
+  package (#197); it was the web3.js template.
+
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `getAccount`, `delegatee`,
+  `stakes`, `reward` and `rule` take an optional `height`, to read the state
+  at an earlier block (#47). `@beatoz/web3-types`: `AccountResponse.height`.
+
+- `@beatoz/web3`, `@beatoz/web3-validator`: the packages carry their browser
+  bundles, `dist/web3.min.js` and `dist/web3-validator.min.js`, built with
+  the package (#154). Each sets one global holding the package's exports:
+  `BeatozWeb3` (`BeatozWeb3.Web3`, `BeatozWeb3.TrxProtoBuilder`, ...) and
+  `BeatozWeb3Validator`. `unpkg` and `jsdelivr` point at them. Before, the
+  bundles were not published, and they failed as they loaded in a browser
+  (`process is not defined`, then `Buffer is not defined`); `BeatozWeb3`
+  was `rWeb3` and held only the `Web3` class, and the validator's global was
+  `undefined`.
+
+- `@beatoz/web3-accounts`: `signTransactionAsPayer(trxProto, privateKey, chainId)` and
+  `Web3Account.signTransactionAsPayer(trxProto, chainId)`: fee delegation
+  (#3). After the sender signs, another account signs as the payer, which sets
+  `payer` and `payerSig`; the chain then charges the fee to the payer, so the
+  sender needs only the amount it sends. The sender's signature does not cover
+  the payer, so the payer can sign elsewhere (a server paying its users' fees).
+  The payer signs the node's v0 preimage with the sender's signature in it, as
+  beatoz-go's `SignerV0` verifies it; moving both signatures to v1 is #119. It
+  throws if the sender has not signed or the payer is the sender.
+  `decodeTransaction` returns `payer` and `payerSig` when they are set.
+
+- `@beatoz/web3-accounts`: `getContractAddress(from, nonce)`, the address of
+  the contract a deploy transaction from `from` with `nonce` creates (#42).
+
+- `@beatoz/web3-methods`, `@beatoz/web3`:
+  `web3.beatoz.waitForTx(hash, { timeoutMs, intervalMs })` waits until the
+  node has indexed a transaction and returns it. A broadcast, the commit
+  reply included, can answer before the transaction is indexed, so looking it
+  up straight away can fail as `tx (...) not found`; callers wrote their own
+  polling for it. It retries only on that answer - any other error, such as a
+  node with indexing disabled, is thrown at once. After `timeoutMs` (default
+  30000, looking every `intervalMs`, default 500) it throws a `TimeoutError`
+  holding the node's last answer in `cause`, also when a lookup is still
+  unanswered then; a bad `timeoutMs` or `intervalMs` throws
+  `InvalidInputError`. Being indexed is not success: check `tx_result.code`.
+
+- `@beatoz/web3-accounts`: `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw
+  transaction (type 8), which moves part of the sender's accumulated staking
+  reward into its balance. The chain accepted these all along; the SDK could
+  decode one but not build it. The value goes in `payload.reqAmt`; `amount` must
+  be zero, as the chain requires. A zero `reqAmt` is refused before anything is
+  sent: the chain would accept it, but it moves nothing and only pays the fee.
+
+  `reqAmt`, `amount` and `gasPrice` must be decimal strings of digits. `reqAmt`
+  and `gasPrice` are encoded the way beatoz-go's `uint256.Int.Bytes()` encodes
+  them - minimal, and empty for zero - because the node re-encodes them that way
+  to check the signature; any other form of the same number fails as `invalid
+  signature`.
+
+  Against the regular test node it reaches the reward check (`not found result`
+  for an account with no reward), so the node decoded it and accepted the
+  signature. The payout is tested against a second node from the same image
+  whose genesis lowers inflationCycleBlocks to 20 (`yarn node:start:reward`,
+  `yarn test:reward`): delegate, wait for a reward, withdraw exactly what
+  accumulated, and the balance rises by the reward less the fee; a request above
+  the reward is refused as `insufficient reward`.
+
+- `@beatoz/web3-methods`, `@beatoz/web3-rpc`, `@beatoz/web3-types`:
+  `web3.beatoz.reward(addr)` returns an account's reward ledger. `cumulated` is
+  the amount a withdraw transaction can take; `issued`, `withdrawn` and
+  `slashed` describe only the last block that changed the ledger.
+
+- Every package now has a `files` field, so a published package carries
+  `lib/`, `src/`, `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`,
+  and nothing else. Build leftovers no longer ship: `tsconfig.types.json`,
+  `tsdoc.json` - which extended a file that was never published, so it could
+  not be read where it landed - and the `.tsbuildinfo` incremental build
+  caches, which record absolute paths from the machine that built them.
+
+- Every package now ships `src/`. The source maps have always pointed at
+  `../../src/*.ts`, but those files were not published, so a debugger could not
+  open the line a stack trace named. A stack trace already reported the right
+  `.ts` file and line without this, under `--enable-source-maps`; what `src/`
+  adds is being able to read that line, and having "Go to Definition" land on
+  the implementation instead of stopping at the `.d.ts`. v2 is still moving
+  quickly and reading the source is part of using it.
+
+- Every package now ships `LICENSE`. All thirteen declared `Apache-2.0` while
+  publishing no copy of the license text.
+
+- `@beatoz/web3-accounts`: `privateKeyToAccount`, `privateKeyToPrvKey` and
+  `sign` accept a `Uint8Array` private key. They previously declared
+  `HexString | ArrayBufferLike`, which excluded the most common way to hold key
+  bytes.
+
 ### Changed
 
-- `@beatoz/web3-accounts`: No longer depends on `ethereumjs-util` (#192), a 2019 release no longer
-  maintained, which brought `pbkdf2` (a moderate advisory) and `elliptic`
-  into every install for two calls. The signed RLP is encoded with
-  `@ethereumjs/rlp`, and `getContractAddress` hashes with `ethereum-cryptography`.
-  The bytes are the same for every transaction, checked over 814 cases of all
-  eight types, except the one below.
+- All packages: **BREAKING:** The minimum Node version is 22.22.2, raised from
+  16.19, which had not been accurate for some time: several dependencies
+  already required Node 18 or later. Three things set the floor, and the
+  highest wins: `require(esm)`, which lets these packages ship ES modules only,
+  landed in 22.12; ESLint 10, which lints this repository, declares
+  `^20.19.0 || ^22.13.0 || >=24`; and lerna 10, which builds and tests it, does
+  not install below 22.22.2. The packages keep the repository's floor so that
+  there is one number (guides/release.md, Environment), and 22.22.2 is a
+  security release of Node 22.
 
-- `@beatoz/web3-methods`, `@beatoz/web3-rpc`: `web3.beatoz.vmEstimateGas` and
-  `web3.beatoz.blockSearch` (#48). **BREAKING** in `@beatoz/web3-rpc`:
-  `blockSearch` returns the decoded `BlockSearchResponse` instead of the raw
-  JSON-RPC response.
-
-- `@beatoz/web3-providers-ws`, `@beatoz/web3-core`: **BREAKING:**
-  `WebsocketProvider.listen` and `Web3RequestManager.subscribe` take the
-  subscribe request the node reads, `{ method: 'subscribe', params: { query
-  } }` (`JsonRpcSubscribeRequest` in `@beatoz/web3-types`) (#146). `listen`
-  was typed with positional `params`: a correct request needed a cast and a
-  wrong one compiled.
+- All packages: **BREAKING:** Every package declares `typescript: ">=5.8"` as
+  an optional peer dependency; no supported compiler was declared before. It is
+  optional so a JavaScript consumer is not asked to install TypeScript. The
+  emitted declarations use `Uint8Array<ArrayBufferLike>`, a generic form
+  TypeScript has from 5.7 (`error TS2315: Type 'Uint8Array' is not generic`
+  below it), and a CommonJS project that resolves these ES-module-only packages
+  with `module`/`moduleResolution` `nodenext` can import them from 5.8
+  (`error TS1479` on 5.7). A project on TypeScript 5.7 or older upgrades
+  TypeScript; nothing else changes.
 
 - `@beatoz/web3-utils`: **BREAKING:** one name per function (#167).
   `fromUtf8` and `stringToHex` (use `utf8ToHex`), `hexToString`
@@ -45,24 +142,11 @@ entries below name the packages they apply to.
   `InvalidInputError` (#168). One without a scheme used to leave the previous
   provider in place silently, and an empty string was stored as the provider.
 
-- `@beatoz/web3-accounts`, `@beatoz/web3-types`, `@beatoz/web3-utils`:
-  `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
-  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
-  encoded transactions are byte for byte the same.
-
 - `@beatoz/web3-providers-ws`: **BREAKING:** `parseJsonRpcResponse`,
   `parseJsonRpcErrorResponse` and `parseJsonRpcSuccessResponse` take
   `unknown` and return the result as `unknown`, not `JsonRpcResult` (#33). A
   response that is not an object, or an error response with a `null` id, is
   refused with `InvalidResponseError`.
-
-- `@beatoz/web3-types`: `LastCommitInfo.peer_maj_23s` is
-  `Record<string, BlockId>`, as the node encodes it; it was `{}` (#33).
-
-- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `validators()` takes the height
-  as optional, as `block()` does (#144). With no height the node answers for
-  the latest one, so reading the current validator set no longer takes a
-  height lookup first.
 
 - `@beatoz/web3-types`: **BREAKING:** `StakesValue` and `DelegateeValue`
   describe what the node's `stakes` and `delegatee` queries send (#128).
@@ -74,18 +158,6 @@ entries below name the packages they apply to.
   and `notSingedBlockCount` (the node's spelling), and its `stakes` is optional
   and deprecated, as the node marks it. `DelegateeStake` is gone; `stakes`
   uses `StakesValue`. Both responses gain `height`.
-
-- `@beatoz/web3-contract`, `@beatoz/web3-types`: **BREAKING:** Contract method
-  options take the builder's types (#6). `broadcast()` takes `gas` and
-  `nonce` as numbers and `gasPrice` as a decimal string, passed through
-  unchanged instead of through `Number()` (10^21 became `1e+21`, values past
-  2^53 were rounded). A payable method's `broadcast()` sends `value`; it
-  always sent zero. `call()` and `estimateGas()` take only `from`. `gas` is
-  required by `broadcast()` and `deploy().send()` (#127): the default was
-  below the EVM's intrinsic gas, and the node's estimate is not a limit.
-  `maxFeePerGas`, `maxPriorityFeePerGas` and `type` are gone, and so are
-  `NonPayableCallOptions`, `PayableCallOptions` and `ContractInitOptions`
-  from `@beatoz/web3-types`.
 
 - `@beatoz/web3-providers-ws`: **BREAKING:** A dropped connection reaches the caller (#100, last part).
   A request waiting for its answer, or queued and not yet sent, fails with
@@ -114,7 +186,7 @@ entries below name the packages they apply to.
   Removed as unused: `web3-types`' internal `Uint32`, `Uint53`, `Uint64`,
   `encodeString`, `encodeUvarint`, `encodeTime`, `encodeBytes`,
   `apiToBigInt`, `smallIntToApi`, `assert.ts` and `base64.ts` (with the
-  `bn.js` and `base64-js` dependencies), `web3-utils`' `storage.ts` (with
+  `base64-js` dependency), `web3-utils`' `storage.ts` (with
   `node-localstorage`) and `hexStringToUint8Array`, and `web3-validator`'s
   `isHexPrefixed` and `validateNoLeadingZeroes`.
 
@@ -129,6 +201,7 @@ entries below name the packages they apply to.
   function with outputs that returns no data, as a call to an address
   without code does, throws `ContractFunctionZeroDataError` instead of an ABI
   decoding error. `decodeRevert(errors, data)` is exported.
+
 - `@beatoz/web3-contract`: **BREAKING:** `deploy().send()` throws `ContractFunctionRevertedError` when
   the gas estimate shows the constructor reverting, and
   `TransactionFailedError` (`stage`, the node's `code` and `log`, `hash`) when
@@ -144,7 +217,9 @@ entries below name the packages they apply to.
   `innerError` are gone.
   - A node's JSON-RPC error is an `RpcRequestError` with the node's `code`
     (-32602, -32603, ...) and `data`, over HTTP and WebSocket alike (#71).
-    It replaces `ResponseError`, whose `code` was always 100.
+    It replaces `ResponseError`, whose `code` was always 100, and over
+    WebSocket an `Error` whose message was the JSON-RPC error serialised to a
+    string; code that parsed that message reads `data` instead.
   - An HTTP request that fails without a JSON-RPC answer (no connection, a
     non-2xx status with another body, a body that is not JSON) is an
     `HttpRequestError` with `status` and `url`. The HTTP provider used to
@@ -152,8 +227,7 @@ entries below name the packages they apply to.
     parse error.
   - An answer with neither a result nor an error is an `InvalidResponseError`
     with the `response`.
-  - `OperationTimeoutError` is `TimeoutError`; `waitForTx` puts the node's
-    last answer in `cause` (was `innerError`).
+  - `OperationTimeoutError` is `TimeoutError`.
   - The eleven `Invalid*Error` classes inherited from web3.js
     (`InvalidBytesError`, `InvalidNumberError`, `InvalidAddressError`, ...),
     `HexProcessingError`, `NibbleWidthError` and `FormatterError` are one
@@ -170,23 +244,6 @@ entries below name the packages they apply to.
     that is the next part of #100 (#101).
   - `@beatoz/web3-errors` no longer depends on `@beatoz/web3-types`, so every
     package can throw its errors.
-
-- `@beatoz/web3-contract`, `@beatoz/web3-methods`: **BREAKING:** Deploying
-  takes one call and resolves with the contract's address (#42):
-  `contract.deploy({ bytecode, args }).send({ from })` returns `{ address,
-  contract, hash, height }`, where `contract` is a `Contract` at the new
-  address on the same provider and wallet. The account of `from` comes from
-  the wallet and the chain id is filled in; the gas is the node's
-  `vm_estimate_gas` for the deploy and the gas price the chain's unless given.
-  `args` is typed from the ABI's constructor, as methods' arguments are. A
-  deploy the node rejects or that fails throws `Web3ContractError` with the
-  node's log, as does one the estimate says would fail. The address is
-  computed from the sender and the nonce, as the node does, so it needs no
-  lookup of the transaction and no wait for it to be indexed.
-  `deploy(bytecode, args, account, chainId, gas)`, which returned the commit
-  response, is gone, as are `sendDeploy` and `web3.beatoz.contractAddrFromTx`:
-  the latter took the last `contractAddress` in the transaction's events,
-  which is another contract's when the constructor calls one that logs.
 
 - `@beatoz/web3-contract`: **BREAKING:** Contract methods are typed from the ABI
   with abitype, the library viem uses. The inherited types turned an `address`
@@ -219,46 +276,12 @@ entries below name the packages they apply to.
   with or without `0x` (it cut two characters whatever they were), and no longer
   returns constructor data as it was.
 
-- All packages: **BREAKING:** The minimum TypeScript version is 5.8, raised from
-  5.7. The packages are ES modules only, and on 5.7 a CommonJS project that
-  resolves them with `module`/`moduleResolution` `nodenext` cannot import them
-  (`error TS1479`); from 5.8 it can, as Node 22.12 and later can `require` them.
-  ES module projects and `moduleResolution` `node` or `bundler` worked on 5.7,
-  but one floor that holds for every project is simpler to state. A project on
-  TypeScript 5.7 or older upgrades TypeScript; nothing else changes.
-
 - `@beatoz/web3-types`: **BREAKING:** `Evidence`, the type of `Block.evidence`,
   is `unknown` instead of `any`. It holds Tendermint's `DuplicateVoteEvidence`
   or `LightClientAttackEvidence` as the node sends it, which only exists after a
   validator misbehaves, so its shape could not be checked against a node; a
   precise type can follow without breaking anyone. Code reading its fields
   checks them first. Slashing is also reported as events in the block results.
-
-- All packages: **BREAKING:** The minimum supported Node.js version is now
-  22.22.2, raised from 22.13. lerna 10, which builds and tests this repository,
-  does not install below it, and the packages keep the repository's floor so
-  that there is one number (guides/release.md, Environment). 22.22.2 is a security
-  release of Node 22. A user on Node 22 below it upgrades Node; nothing else
-  changes.
-
-- `@beatoz/web3-providers-ws`: **BREAKING:** A node error is thrown as a
-  `ResponseError`, as the HTTP provider and the request manager throw it,
-  instead of an `Error` whose message was the JSON-RPC error serialised to a
-  string. The node's own answer, such as `tx (...) not found`, is in `data`,
-  and the message reads `Returned error: Internal error`, over either provider.
-  Code that parsed the old message reads `data` instead. `@beatoz/web3-errors`
-  is now a dependency.
-
-- `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3-rpc`:
-  **BREAKING:** `BytesUint8Array.fromHex` accepts only hex digits, two per
-  byte, with or without a `0x` prefix, and throws on anything else: `invalid
-  hex: "zz"`, `hex must have an even number of digits: "0xabc"`. It never
-  failed before. A non-hex digit became 0 (`'zz'` read as `00`) and an odd
-  length gained a leading zero (`'0xabc'` read as `0abc`). The transaction
-  builders read `from`, `to`, the unstaking hash and contract data with it, so
-  a recipient address with one mistyped or dropped digit was signed as a
-  different 20-byte address, which the node accepts. Callers passing
-  well-formed hex are unaffected.
 
 - `@beatoz/web3-accounts`: **BREAKING:** Transaction payloads are typed per
   transaction type. `Transaction<T>` declared `payload?: object | T`, so any
@@ -294,11 +317,6 @@ entries below name the packages they apply to.
   at the values web3.js gives them. The converters are `fromWei` and `toWei`.
   Units from one BEATOZ up are unchanged. Any other unit name fails as `invalid
   unit`.
-
-- Every package's `homepage` now points to
-  [beatoz/beatoz-sdk-js-v2](https://github.com/beatoz/beatoz-sdk-js-v2), where v2
-  is developed and released. v1 stays in beatoz/beatoz-sdk-js. See `guides/release.md`
-  for which repository publishes which versions.
 
 - `@beatoz/web3-accounts`: **BREAKING:** Every transaction builder now requires
   `amount` and `gasPrice` to be decimal strings of digits, and encodes them the
@@ -364,8 +382,6 @@ entries below name the packages they apply to.
   transfer. Passing one no longer compiles, and one passed anyway fails before
   anything is built: `type is not a builder input; each builder sets its own`.
   Remove them from builder calls; the result is unchanged.
-- `@beatoz/web3-accounts`: `buildTransferTrxProto` uses the `time` it is given,
-  as the other builders do. It always used the current time before.
 
 - `@beatoz/web3-accounts`: **BREAKING:** `decodeTransaction` returns each
   payload in the shape its builder takes, so a decoded transaction builds the
@@ -399,6 +415,111 @@ entries below name the packages they apply to.
   `vmErr`, which the node sends. Code that decoded base64 from `vmCall` reads
   hex instead; a contract call returns the same as before.
 
+- **BREAKING:** `@beatoz/web3-types`: `TrxProto` gains `payer` and `payerSig`,
+  the fee delegation fields the chain added in June 2025. Code that builds a
+  `TrxProto` literal must set them; empty values mean "sender pays" and are
+  omitted from the wire, so encoded bytes are unchanged.
+
+- **BREAKING:** Every package now has an `exports` map, so only the package
+  root and its `package.json` can be imported. Deep paths such as
+  `@beatoz/web3-types/lib/commonjs/integers` now fail with
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Everything under `lib/` used to be
+  reachable, which meant the whole build output was public API and no internal
+  file could be moved or renamed without risk. Nothing in this repository or in
+  the four internal consumers imported a deep path.
+
+  `./package.json` stays reachable because build tools read it.
+
+- **BREAKING:** Package versions are no longer locked to a single number.
+  `lerna.json` is set to `independent`, so each package can carry its own
+  version. Under the previous scheme every package was republished whenever any
+  package changed, so a version number did not indicate whether that package had
+  changed.
+
+  This release still moves all thirteen packages to the same number, because
+  every one of them has a breaking change in it. What changes is what happens
+  afterwards: a fix to `@beatoz/web3-utils` moves that package alone, and the
+  other twelve keep the number they were released at. Internal dependencies use
+  caret ranges, so a dependent accepts the new patch without being republished.
+  See [guides/release.md](./guides/release.md) for the operating rule.
+
+- `@beatoz/web3-accounts`: No longer depends on `ethereumjs-util` (#192), a 2019 release no longer
+  maintained, which brought `pbkdf2` (a moderate advisory) and `elliptic`
+  into every install for two calls. The signed RLP is encoded with
+  `@ethereumjs/rlp`, and `getContractAddress` hashes with `ethereum-cryptography`.
+  The bytes are the same for every transaction, checked over 814 cases of all
+  eight types, except the one below.
+
+- `@beatoz/web3-methods`, `@beatoz/web3-rpc`: `web3.beatoz.vmEstimateGas` and
+  `web3.beatoz.blockSearch` (#48). **BREAKING** in `@beatoz/web3-rpc`:
+  `blockSearch` returns the decoded `BlockSearchResponse` instead of the raw
+  JSON-RPC response.
+
+- `@beatoz/web3-providers-ws`, `@beatoz/web3-core`: **BREAKING:**
+  `WebsocketProvider.listen` and `Web3RequestManager.subscribe` take the
+  subscribe request the node reads, `{ method: 'subscribe', params: { query
+  } }` (`JsonRpcSubscribeRequest` in `@beatoz/web3-types`) (#146). `listen`
+  was typed with positional `params`: a correct request needed a cast and a
+  wrong one compiled.
+
+- `@beatoz/web3-accounts`, `@beatoz/web3-types`, `@beatoz/web3-utils`:
+  `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
+
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `validators()` takes the height
+  as optional, as `block()` does (#144). With no height the node answers for
+  the latest one, so reading the current validator set no longer takes a
+  height lookup first.
+
+- `@beatoz/web3-contract`, `@beatoz/web3-types`: **BREAKING:** Contract method
+  options take the builder's types (#6). `broadcast()` takes `gas` and
+  `nonce` as numbers and `gasPrice` as a decimal string, passed through
+  unchanged instead of through `Number()` (10^21 became `1e+21`, values past
+  2^53 were rounded). A payable method's `broadcast()` sends `value`; it
+  always sent zero. `call()` and `estimateGas()` take only `from`. `gas` is
+  required by `broadcast()` and `deploy().send()` (#127): the default was
+  below the EVM's intrinsic gas, and the node's estimate is not a limit.
+  `maxFeePerGas`, `maxPriorityFeePerGas` and `type` are gone, and so are
+  `NonPayableCallOptions`, `PayableCallOptions` and `ContractInitOptions`
+  from `@beatoz/web3-types`.
+
+- `@beatoz/web3-contract`, `@beatoz/web3-methods`: **BREAKING:** Deploying
+  takes one call and resolves with the contract's address (#42):
+  `contract.deploy({ bytecode, args }).send({ from })` returns `{ address,
+  contract, hash, height }`, where `contract` is a `Contract` at the new
+  address on the same provider and wallet. The account of `from` comes from
+  the wallet and the chain id is filled in; the gas is the node's
+  `vm_estimate_gas` for the deploy and the gas price the chain's unless given.
+  `args` is typed from the ABI's constructor, as methods' arguments are. A
+  deploy the node rejects or that fails throws `Web3ContractError` with the
+  node's log, as does one the estimate says would fail. The address is
+  computed from the sender and the nonce, as the node does, so it needs no
+  lookup of the transaction and no wait for it to be indexed.
+  `deploy(bytecode, args, account, chainId, gas)`, which returned the commit
+  response, is gone, as are `sendDeploy` and `web3.beatoz.contractAddrFromTx`:
+  the latter took the last `contractAddress` in the transaction's events,
+  which is another contract's when the constructor calls one that logs.
+
+- `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3-rpc`:
+  **BREAKING:** `BytesUint8Array.fromHex` accepts only hex digits, two per
+  byte, with or without a `0x` prefix, and throws on anything else: `invalid
+  hex: "zz"`, `hex must have an even number of digits: "0xabc"`. It never
+  failed before. A non-hex digit became 0 (`'zz'` read as `00`) and an odd
+  length gained a leading zero (`'0xabc'` read as `0abc`). The transaction
+  builders read `from`, `to`, the unstaking hash and contract data with it, so
+  a recipient address with one mistyped or dropped digit was signed as a
+  different 20-byte address, which the node accepts. Callers passing
+  well-formed hex are unaffected.
+
+- Every package's `homepage` now points to
+  [beatoz/beatoz-sdk-js-v2](https://github.com/beatoz/beatoz-sdk-js-v2), where v2
+  is developed and released. v1 stays in beatoz/beatoz-sdk-js. See `guides/release.md`
+  for which repository publishes which versions.
+
+- `@beatoz/web3-accounts`: `buildTransferTrxProto` uses the `time` it is given,
+  as the other builders do. It always used the current time before.
+
 - `@beatoz/web3-types`, `@beatoz/web3-rpc`, `@beatoz/web3-methods`:
   **BREAKING:** `SubscriptionEvent.data.value` is no longer `any`.
   `SubscriptionEvent<Type, Value>` takes the event's `data.type` and
@@ -416,116 +537,18 @@ entries below name the packages they apply to.
   `subscribeNewBlock`, `subscribeNewBlockHeader` and `subscribeTx` return
   streams of those three types; `subscribe(query)` returns `SubscriptionEvent`.
 
-### Security
+- The `npm` range is gone from `engines` in the published packages. They are
+  installed with whatever the consumer uses, and a constraint on one package
+  manager says nothing about the others. The root keeps its `npm` range, since
+  it describes the machine that builds this repository.
 
-- `@beatoz/web3-accounts`: `protobufjs` is now `^7.6.6`, up from an exact
-  `7.2.5`. 7.2.5 is inside the affected range of eleven advisories, one
-  critical. Most concern loading schemas or JSON descriptors at runtime, which
-  this package never does: it ships code generated by ts-proto and uses only
-  `protobufjs/minimal`. Two reach that path - GHSA-q6x5-8v7m-xcrf (overlong
-  UTF-8 accepted by the fallback decoder used outside Node, so in browsers) and
-  GHSA-685m-2w69-288q (no depth limit when skipping unknown group fields while
-  decoding).
+- `@beatoz/web3-accounts`: `src/tx/trx_pb.proto` is now a verbatim copy of the
+  chain's `protos/trx.proto`. The copy here had been edited after generation -
+  proposal field numbers renumbered, fee delegation fields missing - while the
+  generated code carried the chain's numbers.
 
-  The range is no longer pinned, so later 7.x security releases reach consumers
-  without a release of this package.
-
-  The bytes on the wire do not change. Every message type in `trx_pb.proto`,
-  across 156 cases including int64 extremes and multi-byte strings, encodes to
-  the same bytes under 7.2.5 and 7.6.6, so signatures over them are unchanged.
-  Against the official node, CheckTx decoded one transaction of each of the
-  eight types beatoz-go accepts, and the integration suites pass.
-
-### Added
-
-- All packages: `package.json` has `description`, `repository` (with this package's
-  directory) and `bugs` (#196), so the npm page shows what the package is and
-  links to the source and the issue tracker. The README is rewritten for the
-  package (#197); it was the web3.js template.
-
-- `@beatoz/web3-rpc`, `@beatoz/web3-methods`: `getAccount`, `delegatee`,
-  `stakes`, `reward` and `rule` take an optional `height`, to read the state
-  at an earlier block (#47). `@beatoz/web3-types`: `AccountResponse.height`.
-
-- `@beatoz/web3`, `@beatoz/web3-validator`: the packages carry their browser
-  bundles, `dist/web3.min.js` and `dist/web3-validator.min.js`, built with
-  the package (#154). Each sets one global holding the package's exports:
-  `BeatozWeb3` (`BeatozWeb3.Web3`, `BeatozWeb3.TrxProtoBuilder`, ...) and
-  `BeatozWeb3Validator`. `unpkg` and `jsdelivr` point at them. Before, the
-  bundles were not published, and they failed as they loaded in a browser
-  (`process is not defined`, then `Buffer is not defined`); `BeatozWeb3`
-  was `rWeb3` and held only the `Web3` class, and the validator's global was
-  `undefined`.
-
-- `@beatoz/web3-accounts`: `signTransactionAsPayer(trxProto, privateKey, chainId)` and
-  `Web3Account.signTransactionAsPayer(trxProto, chainId)`: fee delegation
-  (#3). After the sender signs, another account signs as the payer, which sets
-  `payer` and `payerSig`; the chain then charges the fee to the payer, so the
-  sender needs only the amount it sends. The sender's signature does not cover
-  the payer, so the payer can sign elsewhere (a server paying its users' fees).
-  The payer signs the node's v0 preimage with the sender's signature in it, as
-  beatoz-go's `SignerV0` verifies it; moving both signatures to v1 is #119. It
-  throws if the sender has not signed or the payer is the sender.
-  `decodeTransaction` returns `payer` and `payerSig` when they are set.
-
-- `@beatoz/web3-accounts`: `getContractAddress(from, nonce)`, the address of
-  the contract a deploy transaction from `from` with `nonce` creates (#42).
-
-- `@beatoz/web3-methods`, `@beatoz/web3`:
-  `web3.beatoz.waitForTx(hash, { timeoutMs, intervalMs })` waits until the
-  node has indexed a transaction and returns it. A broadcast, the commit
-  reply included, can answer before the transaction is indexed, so looking it
-  up straight away can fail as `tx (...) not found`; callers wrote their own
-  polling for it. It retries only on that answer - any other error, such as a
-  node with indexing disabled, is thrown at once. After `timeoutMs` (default
-  30000, looking every `intervalMs`, default 500) it throws an
-  `OperationTimeoutError` holding the node's last answer, also when a lookup is
-  still unanswered then. Being indexed is not success: check
-  `tx_result.code`.
-
-- `@beatoz/web3-accounts`: `TrxProtoBuilder.buildWithdrawTrx` builds a withdraw
-  transaction (type 8), which moves part of the sender's accumulated staking
-  reward into its balance. The chain accepted these all along; the SDK could
-  decode one but not build it. The value goes in `payload.reqAmt`; `amount` must
-  be zero, as the chain requires. A zero `reqAmt` is refused before anything is
-  sent: the chain would accept it, but it moves nothing and only pays the fee.
-
-  `reqAmt`, `amount` and `gasPrice` must be decimal strings of digits. `reqAmt`
-  and `gasPrice` are encoded the way beatoz-go's `uint256.Int.Bytes()` encodes
-  them - minimal, and empty for zero - because the node re-encodes them that way
-  to check the signature; any other form of the same number fails as `invalid
-  signature`.
-
-  Against the regular test node it reaches the reward check (`not found result`
-  for an account with no reward), so the node decoded it and accepted the
-  signature. The payout is tested against a second node from the same image
-  whose genesis lowers inflationCycleBlocks to 20 (`yarn node:start:reward`,
-  `yarn test:reward`): delegate, wait for a reward, withdraw exactly what
-  accumulated, and the balance rises by the reward less the fee; a request above
-  the reward is refused as `insufficient reward`.
-
-- `@beatoz/web3-methods`, `@beatoz/web3-rpc`, `@beatoz/web3-types`:
-  `web3.beatoz.reward(addr)` returns an account's reward ledger. `cumulated` is
-  the amount a withdraw transaction can take; `issued`, `withdrawn` and
-  `slashed` describe only the last block that changed the ledger.
-
-- Every package now has a `files` field, so a published package carries
-  `lib/`, `src/`, `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`,
-  and nothing else. Build leftovers no longer ship: `tsconfig.types.json`,
-  `tsdoc.json` - which extended a file that was never published, so it could
-  not be read where it landed - and the `.tsbuildinfo` incremental build
-  caches, which record absolute paths from the machine that built them.
-
-- Every package now ships `src/`. The source maps have always pointed at
-  `../../src/*.ts`, but those files were not published, so a debugger could not
-  open the line a stack trace named. A stack trace already reported the right
-  `.ts` file and line without this, under `--enable-source-maps`; what `src/`
-  adds is being able to read that line, and having "Go to Definition" land on
-  the implementation instead of stopping at the `.d.ts`. v2 is still moving
-  quickly and reading the source is part of using it.
-
-- Every package now ships `LICENSE`. All thirteen declared `Apache-2.0` while
-  publishing no copy of the license text.
+- Every package now declares `types`. Type resolution previously relied on
+  `index.d.ts` happening to sit next to the file named by `main`.
 
 ### Removed
 
@@ -562,22 +585,9 @@ entries below name the packages they apply to.
   every install printed its warning. Use `fromHex`/`toHex`, or convert with
   `crypto-js` directly if you hold its word arrays.
 
-- Repository: `documents/`, the 1.x usage guide in English and Korean (#21).
-  It was never checked against 2.0 and described APIs that are gone or changed
-  (CommonJS, the old subscriptions, builder inputs). The API is documented in
-  TSDoc and the package CHANGELOGs; the README says the GitBook covers 1.x. No
-  package shipped it.
-
 - `@beatoz/web3-rpc`, `@beatoz/web3-methods`: **BREAKING:**
   `broadcastEvidence` is removed (#179). Submitting evidence of validator
   misbehaviour is for validators and node operators, not SDK users.
-
-- `@beatoz/web3-rpc`, `@beatoz/web3-methods`, `@beatoz/web3-types`:
-  **BREAKING:** `proposals()` and `ProposalResponse` are removed (#148). The
-  method never returned a proposal: the node answered every call with
-  `invalid query path`, and the hash was sent as text. Proposals are made and
-  voted on by validators, with their wallet, not through this SDK (as for the
-  builders removed in #95).
 
 - `@beatoz/web3-types`: **BREAKING:** The ABI type computation inherited from web3.js is gone (#134):
   `MatchPrimitiveType`, `PrimitiveStringType`, `PrimitiveBooleanType`,
@@ -589,52 +599,6 @@ entries below name the packages they apply to.
   `FixedSizeArray` and `GrowToSize`, which only they used. Contract method
   types have come from abitype since #36 and nothing used these. To type an
   ABI's arguments or results, use abitype (`AbiParametersToPrimitiveTypes`).
-
-- `@beatoz/web3-types`, `@beatoz/web3-core`, `@beatoz/web3-providers-http`,
-  `@beatoz/web3-providers-ws`, `@beatoz/web3-methods`, `@beatoz/web3-contract`:
-  **BREAKING:** The API spec types are gone (#37): `BeatozExecutionAPI`,
-  `EthExecutionAPI` with the Ethereum `*API` types it used, `Web3APISpec`,
-  `Web3APIMethod`, `Web3APIParams`, `Web3APIReturnType`, and the `API` type
-  parameter of `Web3RequestManager`, `Web3Context`, `Web3ContextObject`,
-  `HttpProvider` and `WebsocketProvider`. The spec checked nothing: a bug made
-  every string a method name, and it listed methods the node does not have
-  (`vmCall`, `proposal`) in place of the ones the SDK sends (`vm_call`,
-  `vm_estimate_gas`, `proposals`). Its result types were the decoded responses,
-  while `send()` returns the node's result before decoding. `send()` and the
-  providers' `request()` now take a method name and return the node's result
-  as `unknown`, and the `ResponsesDecoder` methods take it as such; the rpc
-  methods decode it and return what they did. Gone with the spec, unused and
-  typed by it: `Web3BaseProvider`, `SupportedProviders`, `EIP1193Provider`,
-  `SimpleProvider`, `LegacyRequestProvider`, `LegacySendProvider`,
-  `LegacySendAsyncProvider`, `SocketRequestItem`, the `Provider*` and
-  `Web3Provider*` event types, `ContractInitOptions.provider`, and
-  `@beatoz/web3-core`'s `isWeb3Provider`, `isEIP1193Provider`,
-  `isLegacyRequestProvider`, `isLegacySendProvider`,
-  `isLegacySendAsyncProvider` and `isSupportedProvider`.
-  `@beatoz/web3-utils`' `jsonRpc.toPayload` is typed as the one
-  `JsonRpcRequest` it returns rather than a request or a batch.
-
-- `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3`: **BREAKING:**
-  The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save` and `load`,
-  `web3.accounts.decrypt`, the matching abstract methods of `Web3BaseWallet`,
-  `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`, `CipherOptions`,
-  `ScryptParams` and `PBKDF2SHA256Params` types. Every one of them only threw
-  `not implemented` or `Not supported yet`; they came with the web3.js fork.
-  Nothing changes for a caller that did not call them.
-
-- `@beatoz/web3-errors`, `@beatoz/web3-core`, `@beatoz/web3-utils`:
-  **BREAKING:** `RpcError`, its twelve subclasses (`ParseError`,
-  `InvalidRequestError`, `MethodNotFoundError`, `InvalidParamsError`,
-  `InternalError`, `InvalidInputError`, `MethodNotSupported`,
-  `ResourceUnavailableError`, `ResourcesNotFoundError`,
-  `VersionNotSupportedError`, `TransactionRejectedError`, `LimitExceededError`),
-  `rpcErrorsMap` and the `ERR_RPC_*` codes are gone. They came with the web3.js
-  fork, many for EIP-1474 codes Tendermint does not use, and were thrown only
-  when `Web3RequestManager` was built with `useRpcCallSpecification`, which
-  nothing did. A node error is a `ResponseError` (`InvalidResponseError`), as it
-  always was; the SDK's error design is #100. `Web3RequestManager`'s
-  `useRpcCallSpecification` argument and `isResponseRpcError`, which only served
-  them, are gone too.
 
 - `@beatoz/web3-types`, `@beatoz/web3-core`: **BREAKING:**
   `JsonRpcSuccessResponse`, the `Responses` interface and the `Response` union
@@ -761,25 +725,13 @@ entries below name the packages they apply to.
   own; and the `*-browserify` packages are webpack polyfills resolved by this
   repository's browser build, so they move to the root rather than disappearing.
 
-- `ts-proto` moved from `dependencies` to `devDependencies` in
-  `@beatoz/web3-accounts`. It provides the `protoc-gen-ts_proto` binary that
-  regenerates `trx_pb.ts`; consumers never regenerate protobuf code.
-
-- `.npmignore` is gone, from every package and from the repository root.
-  `files` takes precedence over it, so keeping both would leave fourteen files
-  that look like they decide what ships but no longer do. The root one had also
-  been reaching into the workspace packages: it listed `src/`, which is why no
-  package published its sources even though no package's own `.npmignore`
-  excluded them.
-
 - **BREAKING:** The CommonJS build is gone. `lib/commonjs` is no longer built
   or published, and every package ships ESM only. This halves what is
   published: `@beatoz/web3-types` goes from 214 files and 588 kB unpacked to
   124 files and 347 kB.
 
-  Node 22.12 and later can `require()` an ES module, which is why the minimum
-  supported Node moves from 22.0 to 22.12. A CommonJS consumer on a supported
-  Node keeps working without source changes:
+  Node 22.12 and later can `require()` an ES module, so a CommonJS consumer on a
+  supported Node keeps working without source changes:
 
   ```js
   require('@beatoz/web3')   // still resolves, via require(esm)
@@ -799,82 +751,74 @@ entries below name the packages they apply to.
 - **BREAKING:** The `module` field is gone and `main` now points at the ESM
   entry. Both described the same build.
 
-### Changed
+- Repository: `documents/`, the 1.x usage guide in English and Korean (#21).
+  It was never checked against 2.0 and described APIs that are gone or changed
+  (CommonJS, the old subscriptions, builder inputs). The API is documented in
+  TSDoc and the package CHANGELOGs; the README says the GitBook covers 1.x. No
+  package shipped it.
 
-- **BREAKING:** The minimum supported Node.js version is now 22.13, across all
-  packages and the repository root. It was 16.19, which had not been accurate for
-  some time: several dependencies already required Node 18 or later, so installs
-  on Node 16 were already failing in ways the declared range did not explain.
+- `@beatoz/web3-rpc`, `@beatoz/web3-methods`, `@beatoz/web3-types`:
+  **BREAKING:** `proposals()` and `ProposalResponse` are removed (#148). The
+  method never returned a proposal: the node answered every call with
+  `invalid query path`, and the hash was sent as text. Proposals are made and
+  voted on by validators, with their wallet, not through this SDK (as for the
+  builders removed in #95).
 
-  Two things set the floor and the higher one wins. `require(esm)` - the reason
-  these packages can ship ESM only - landed in **22.12**. ESLint 10, which this
-  repository is linted with, declares `^20.19.0 || ^22.13.0 || >=24` and so
-  starts at **22.13**. Holding the packages to 22.12 left the repository unable
-  to satisfy its own toolchain at its own floor; the window that resolves it,
-  22.12.0 through 22.12.x, ran from December 2024 to January 2025.
+- `@beatoz/web3-types`, `@beatoz/web3-core`, `@beatoz/web3-providers-http`,
+  `@beatoz/web3-providers-ws`, `@beatoz/web3-methods`, `@beatoz/web3-contract`:
+  **BREAKING:** The API spec types are gone (#37): `BeatozExecutionAPI`,
+  `EthExecutionAPI` with the Ethereum `*API` types it used, `Web3APISpec`,
+  `Web3APIMethod`, `Web3APIParams`, `Web3APIReturnType`, and the `API` type
+  parameter of `Web3RequestManager`, `Web3Context`, `Web3ContextObject`,
+  `HttpProvider` and `WebsocketProvider`. The spec checked nothing: a bug made
+  every string a method name, and it listed methods the node does not have
+  (`vmCall`, `proposal`) in place of the ones the SDK sends (`vm_call`,
+  `vm_estimate_gas`, `proposals`). Its result types were the decoded responses,
+  while `send()` returns the node's result before decoding. `send()` and the
+  providers' `request()` now take a method name and return the node's result
+  as `unknown`, and the `ResponsesDecoder` methods take it as such; the rpc
+  methods decode it and return what they did. Gone with the spec, unused and
+  typed by it: `Web3BaseProvider`, `SupportedProviders`, `EIP1193Provider`,
+  `SimpleProvider`, `LegacyRequestProvider`, `LegacySendProvider`,
+  `LegacySendAsyncProvider`, `SocketRequestItem`, the `Provider*` and
+  `Web3Provider*` event types, `ContractInitOptions.provider`, and
+  `@beatoz/web3-core`'s `isWeb3Provider`, `isEIP1193Provider`,
+  `isLegacyRequestProvider`, `isLegacySendProvider`,
+  `isLegacySendAsyncProvider` and `isSupportedProvider`.
+  `@beatoz/web3-utils`' `jsonRpc.toPayload` is typed as the one
+  `JsonRpcRequest` it returns rather than a request or a batch.
 
-- The `npm` range is gone from `engines` in the published packages. They are
-  installed with whatever the consumer uses, and a constraint on one package
-  manager says nothing about the others. The root keeps its `npm` range, since
-  it describes the machine that builds this repository.
+- `@beatoz/web3-types`, `@beatoz/web3-accounts`, `@beatoz/web3`: **BREAKING:**
+  The keystore stubs are gone: `Wallet.encrypt`, `decrypt`, `save` and `load`,
+  `web3.accounts.decrypt`, the matching abstract methods of `Web3BaseWallet`,
+  `Web3AccountProvider.decrypt`, and the `KeyStore`, `Cipher`, `CipherOptions`,
+  `ScryptParams` and `PBKDF2SHA256Params` types. Every one of them only threw
+  `not implemented` or `Not supported yet`; they came with the web3.js fork.
+  Nothing changes for a caller that did not call them.
 
-- **BREAKING:** `@beatoz/web3-types`: `TrxProto` gains `payer` and `payerSig`,
-  the fee delegation fields the chain added in June 2025. Code that builds a
-  `TrxProto` literal must set them; empty values mean "sender pays" and are
-  omitted from the wire, so encoded bytes are unchanged.
+- `@beatoz/web3-errors`, `@beatoz/web3-core`, `@beatoz/web3-utils`:
+  **BREAKING:** `RpcError`, its twelve subclasses (`ParseError`,
+  `InvalidRequestError`, `MethodNotFoundError`, `InvalidParamsError`,
+  `InternalError`, `InvalidInputError`, `MethodNotSupported`,
+  `ResourceUnavailableError`, `ResourcesNotFoundError`,
+  `VersionNotSupportedError`, `TransactionRejectedError`, `LimitExceededError`),
+  `rpcErrorsMap` and the `ERR_RPC_*` codes are gone. They came with the web3.js
+  fork, many for EIP-1474 codes Tendermint does not use, and were thrown only
+  when `Web3RequestManager` was built with `useRpcCallSpecification`, which
+  nothing did. A node error is thrown as `RpcRequestError` (#100). `Web3RequestManager`'s
+  `useRpcCallSpecification` argument and `isResponseRpcError`, which only served
+  them, are gone too.
 
-- `@beatoz/web3-accounts`: `src/tx/trx_pb.proto` is now a verbatim copy of the
-  chain's `protos/trx.proto`. The copy here had been edited after generation -
-  proposal field numbers renumbered, fee delegation fields missing - while the
-  generated code carried the chain's numbers.
+- `ts-proto` moved from `dependencies` to `devDependencies` in
+  `@beatoz/web3-accounts`. It provides the `protoc-gen-ts_proto` binary that
+  regenerates `trx_pb.ts`; consumers never regenerate protobuf code.
 
-- **BREAKING:** Every package now has an `exports` map, so only the package
-  root and its `package.json` can be imported. Deep paths such as
-  `@beatoz/web3-types/lib/commonjs/integers` now fail with
-  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Everything under `lib/` used to be
-  reachable, which meant the whole build output was public API and no internal
-  file could be moved or renamed without risk. Nothing in this repository or in
-  the four internal consumers imported a deep path.
-
-  `./package.json` stays reachable because build tools read it.
-
-- Every package now declares `types`. Type resolution previously relied on
-  `index.d.ts` happening to sit next to the file named by `main`.
-
-- **BREAKING:** Package versions are no longer locked to a single number.
-  `lerna.json` is set to `independent`, so each package can carry its own
-  version. Under the previous scheme every package was republished whenever any
-  package changed, so a version number did not indicate whether that package had
-  changed.
-
-  This release still moves all thirteen packages to the same number, because
-  every one of them has a breaking change in it. What changes is what happens
-  afterwards: a fix to `@beatoz/web3-utils` moves that package alone, and the
-  other twelve keep the number they were released at. Internal dependencies use
-  caret ranges, so a dependent accepts the new patch without being republished.
-  See [guides/release.md](./guides/release.md) for the operating rule.
-
-### Added
-
-- Every package now declares `typescript: ">=5.7"` as an optional peer
-  dependency. Nothing declared a supported compiler range before. It is
-  optional so a JavaScript consumer is not asked to install TypeScript.
-
-  The number started at 5.4 and was raised once it was measured. These packages
-  are built with TypeScript 6.0.3, and the emitted declarations use
-  `Uint8Array<ArrayBufferLike>` - a generic form that only exists from 5.7 - so a
-  consumer on 5.4 hit `error TS2315: Type 'Uint8Array' is not generic`. 5.4 was
-  a claim nothing had checked.
-
-  It went unnoticed because `skipLibCheck: true` - the setting most projects
-  carry, and all four of ours - skips type-checking declarations in
-  `node_modules` entirely. The floor only mattered to consumers who check them,
-  and npm now refuses to install an older compiler against these packages.
-
-- `@beatoz/web3-accounts`: `privateKeyToAccount`, `privateKeyToPrvKey` and
-  `sign` accept a `Uint8Array` private key. They previously declared
-  `HexString | ArrayBufferLike`, which excluded the most common way to hold key
-  bytes.
+- `.npmignore` is gone, from every package and from the repository root.
+  `files` takes precedence over it, so keeping both would leave fourteen files
+  that look like they decide what ships but no longer do. The root one had also
+  been reaching into the workspace packages: it listed `src/`, which is why no
+  package published its sources even though no package's own `.npmignore`
+  excluded them.
 
 ### Fixed
 
@@ -1013,16 +957,21 @@ the version jump.
 
 - Build toolchain moved to TypeScript 6.0.3 from 4.9.5, with
   `moduleResolution: bundler`. The published output is unchanged.
+
 - Lint toolchain moved to ESLint 10 flat config. The previous configuration
   never extended `js.configs.recommended` and never registered the import
   plugin, so circular-import checking had never run.
+
 - Dependency baseline pinned (`@types/minimatch`, `webpack`) and `yarn.lock`
   brought under version control.
+
 - `lerna bootstrap` removed; it duplicated Yarn workspaces and was dropped
   upstream in Lerna 7.
+
 - Tests split into `test/unit` and `test/integration`. The unit layer runs
   without a node. Integration configuration moved to environment variables;
   the two gitignored JSON files it used to import are gone.
+
 - `typescript`, `jest`, `@types/jest`, `jest-extended` and `prettier` are
   declared once at the repository root instead of in all thirteen packages.
   That was 60 lines pinning versions that decided nothing: Yarn hoists a single
@@ -1033,3 +982,23 @@ the version jump.
   `crypto-browserify` is doing in `web3-accounts` and `web3-utils` today.
   Package-specific tools such as `@bufbuild/buf` and the `@types/*` packages
   stay where they are, since they record what that package needs.
+
+### Security
+
+- `@beatoz/web3-accounts`: `protobufjs` is now `^7.6.6`, up from an exact
+  `7.2.5`. 7.2.5 is inside the affected range of eleven advisories, one
+  critical. Most concern loading schemas or JSON descriptors at runtime, which
+  this package never does: it ships code generated by ts-proto and uses only
+  `protobufjs/minimal`. Two reach that path - GHSA-q6x5-8v7m-xcrf (overlong
+  UTF-8 accepted by the fallback decoder used outside Node, so in browsers) and
+  GHSA-685m-2w69-288q (no depth limit when skipping unknown group fields while
+  decoding).
+
+  The range is no longer pinned, so later 7.x security releases reach consumers
+  without a release of this package.
+
+  The bytes on the wire do not change. Every message type in `trx_pb.proto`,
+  across 156 cases including int64 extremes and multi-byte strings, encodes to
+  the same bytes under 7.2.5 and 7.6.6, so signatures over them are unchanged.
+  Against the official node, CheckTx decoded one transaction of each of the
+  eight types beatoz-go accepts, and the integration suites pass.

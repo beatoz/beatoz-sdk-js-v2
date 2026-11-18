@@ -34,14 +34,39 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   and `slashed` describe only the last block that changed the ledger, not
   totals; `cumulated` is what a withdraw can take.
 
-### Fixed
+- Adds a `files` field, so the published package carries `lib/`, `src/`,
+  `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
+  Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which
+  extended a file that was never published) and the `.tsbuildinfo` incremental
+  build caches.
 
-- `crypto-js` and `base64-js` are imported as default rather than as
-  namespaces. Both are CommonJS with no `exports` map, so `import * as` gave a
-  namespace holding nothing but `default` and every member access returned
-  `undefined` in the ESM build.
+- Ships `src/`. The source maps have always pointed at `../../src/*.ts`, but
+  those files were not published, so a debugger could not open the line a stack
+  trace named. v2 is still moving quickly, and reading the source is part of
+  using it.
+
+- Ships `LICENSE`. Every package declared `Apache-2.0` while publishing no copy
+  of the license text.
 
 ### Changed
+
+- **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
+  had not been accurate for some time: several dependencies already required
+  Node 18 or later. Three things set the floor, and the highest wins:
+  `require(esm)`, which lets these packages ship ES modules only, landed in
+  22.12; ESLint 10, which lints this repository, declares
+  `^20.19.0 || ^22.13.0 || >=24`; and lerna 10, which builds and tests it, does
+  not install below 22.22.2. The packages keep the repository's floor so that
+  there is one number, and 22.22.2 is a security release of Node 22.
+
+- **BREAKING:** Declares `typescript: ">=5.8"` as an optional peer dependency;
+  no supported compiler was declared before. The emitted declarations use
+  `Uint8Array<ArrayBufferLike>`, a generic form TypeScript has from 5.7
+  (`error TS2315: Type 'Uint8Array' is not generic` below it), and a CommonJS
+  project that resolves these ES-module-only packages with
+  `module`/`moduleResolution` `nodenext` can import them from 5.8
+  (`error TS1479` on 5.7). A project on TypeScript 5.7 or older upgrades
+  TypeScript; nothing else changes.
 
 - **BREAKING:** `ResponsesDecoder.decodeConsensusParams` decodes the
   response instead of casting it (#38). The node sends `block_height` and
@@ -49,14 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   numbers; they are now numbers, as `blockResults` already decoded its
   `consensus_param_updates`. A value beyond a safe integer throws
   `InvalidResponseError`.
-
-- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
-  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
-  encoded transactions are byte for byte the same.
-
-- `LastCommitInfo.peer_maj_23s` is `Record<string, BlockId>`, the block each
-  peer claims +2/3 for keyed by peer id, as the node encodes it; it was `{}`
-  (#33).
 
 - **BREAKING:** `StakesValue` and `DelegateeValue` describe what the node's
   `stakes` and `delegatee` queries send (#128). `StakesValue` loses `amount`,
@@ -80,19 +97,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   `InvalidInputError`, instead of `Error`, with messages that name what was
   expected and what was given (#100). Unused internal helpers are removed
   (`Uint32`, `Uint53`, `Uint64`, the amino encoders, `apiToBigInt`,
-  `smallIntToApi`, `assert.ts`, `base64.ts`) with the `bn.js` and `base64-js`
-  dependencies.
+  `smallIntToApi`, `assert.ts`, `base64.ts`) with the `base64-js`
+  dependency.
 
 - **BREAKING:** The `Web3Error` interface is gone; SDK errors extend
   `BaseError` from `@beatoz/web3-errors` (#100).
-
-- **BREAKING:** The minimum TypeScript version is 5.8, raised from 5.7. The
-  packages are ES modules only, and on 5.7 a CommonJS project that resolves them
-  with `module`/`moduleResolution` `nodenext` cannot import them (`error
-  TS1479`); from 5.8 it can, as Node 22.12 and later can `require` them. ES
-  module projects and `moduleResolution` `node` or `bundler` worked on 5.7, but
-  one floor that holds for every project is simpler to state. A project on
-  TypeScript 5.7 or older upgrades TypeScript; nothing else changes.
 
 - **BREAKING:** `Evidence`, the type of `Block.evidence`, is `unknown` instead
   of `any`. It holds Tendermint's `DuplicateVoteEvidence` or
@@ -138,12 +147,6 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   in `value` untyped. Code reading a removed name gets a compile error; it was
   `undefined` before.
 
-- **BREAKING:** The minimum Node version is 22.22.2, raised from 22.13. lerna 10,
-  which builds and tests the repository, does not install below it, and the
-  packages keep the repository's floor so that there is one number. 22.22.2 is a
-  security release of Node 22. A user on Node 22 below it upgrades Node; nothing
-  else changes.
-
 - **BREAKING:** `BytesUint8Array.fromHex` accepts only hex digits, two per
   byte, with or without a `0x` prefix, and throws on anything else: `invalid
   hex: "zz"`, `hex must have an even number of digits: "0xabc"`. It never
@@ -154,44 +157,27 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   different 20-byte address, which the node accepts. Callers passing
   well-formed hex are unaffected.
 
-- **BREAKING:** The minimum Node version is 22.13, raised from 22.12. Two things
-  set the floor and the higher one now wins: `require(esm)` - the reason these
-  packages can ship ESM only - landed in 22.12, while ESLint 10, which this
-  repository is linted with, declares `^20.19.0 || ^22.13.0 || >=24`. Holding the
-  packages to 22.12 left the repository unable to satisfy its own toolchain at
-  its own floor. The window given up, 22.12.0 through 22.12.x, ran from December
-  2024 to January 2025.
+- **BREAKING:** Adds an `exports` map, so only the package root and its
+  `package.json` can be imported. Deep paths such as
+  `@beatoz/web3-types/lib/commonjs/index` now fail with
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Everything under `lib/` used to be
+  reachable, which meant the whole build output was public API.
+
+- **BREAKING:** `TrxProto` gains `payer` and `payerSig`, the fee delegation
+  fields the chain added in June 2025. Code that builds a `TrxProto` literal
+  must set them; empty `Uint8Array`s mean "sender pays" and are omitted from
+  the wire, so encoded bytes are unchanged.
+
+- `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
+  ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
+  encoded transactions are byte for byte the same.
 
 - The `npm` range is gone from `engines`. These packages are installed with
   whatever the consumer uses, and a constraint on one package manager says
   nothing about the others.
 
-### Changed
-
-- **BREAKING:** The declared TypeScript floor is now 5.7, raised from 5.4. 5.4
-  was never true: this package is built with TypeScript 6.0.3, and the emitted
-  declarations use `Uint8Array<ArrayBufferLike>`, a generic form that only exists
-  from 5.7. A consumer on 5.4 reading these declarations hit
-  `error TS2315: Type 'Uint8Array' is not generic`.
-
-  It went unnoticed because `skipLibCheck: true` - the setting most projects
-  carry, and all four of ours - skips type-checking declarations in
-  `node_modules` entirely. The claim only failed for consumers who check them.
-
-### Fixed
-
-- The published type declarations now follow ES module rules. `lib/types/` gets
-  a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`
-  files as ES modules rather than CommonJS. Without it the runtime half of the
-  package was ESM while its types were interpreted as CommonJS, which made a
-  default import ambiguous.
-
-- Relative imports in the sources now carry their `.js` extension. ES modules do
-  not guess extensions, and 9 of 245 relative imports were missing theirs. They
-  were type-only imports, so `tsc` erased them from the emitted `.js` and the
-  runtime never noticed - but they survive in the emitted `.d.ts`, where a
-  consumer using `moduleResolution: node16` or `nodenext` hit
-  `error TS2834: Relative import paths need explicit file extensions`.
+- Adds a `types` field. Type resolution previously relied on `index.d.ts`
+  happening to sit next to the file named by `main`.
 
 ### Removed
 
@@ -294,36 +280,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   the signature of web3.js's IPC provider, and this SDK has no IPC provider.
   Nothing in this repository or in the four internal consumers referenced it.
 
-### Added
-
-- Adds a `files` field, so the published package carries `lib/`, `src/`,
-  `CHANGELOG.md`, `README.md`, `LICENSE` and `package.json`, and nothing else.
-  Build leftovers no longer ship: `tsconfig.types.json`, `tsdoc.json` (which
-  extended a file that was never published) and the `.tsbuildinfo` incremental
-  build caches.
-
-- Ships `src/`. The source maps have always pointed at `../../src/*.ts`, but
-  those files were not published, so a debugger could not open the line a stack
-  trace named. v2 is still moving quickly, and reading the source is part of
-  using it.
-
-- Ships `LICENSE`. Every package declared `Apache-2.0` while publishing no copy
-  of the license text.
-
-### Removed
-
-- `.npmignore` is gone, from this package and from the repository root. `files`
-  takes precedence over it, so keeping both would leave a file that looks like
-  it decides what ships but does not. The root one had been reaching into the
-  workspace packages and excluding `src/` from all of them.
-
-### Removed
-
 - **BREAKING:** The CommonJS build is gone. `lib/commonjs` is no longer built
   or published, and the package ships ESM only.
 
-  Node 22.12 and later can `require()` an ES module, and the minimum supported
-  Node is now 22.12 for that reason, raised from 22.0. A CommonJS consumer on a
+  Node 22.12 and later can `require()` an ES module, so a CommonJS consumer on a
   supported Node keeps working without source changes:
 
   ```js
@@ -337,44 +297,23 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 - **BREAKING:** `main` now points at the ESM entry and the `module` field is
   gone; both described the same build before.
 
-### Changed
-
-- **BREAKING:** Adds an `exports` map, so only the package root and its
-  `package.json` can be imported. Deep paths such as
-  `@beatoz/web3-types/lib/commonjs/index` now fail with
-  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Everything under `lib/` used to be
-  reachable, which meant the whole build output was public API.
-
-- Adds a `types` field. Type resolution previously relied on `index.d.ts`
-  happening to sit next to the file named by `main`.
+- `.npmignore` is gone, from this package and from the repository root. `files`
+  takes precedence over it, so keeping both would leave a file that looks like
+  it decides what ships but does not. The root one had been reaching into the
+  workspace packages and excluding `src/` from all of them.
 
 ### Fixed
 
-- Declares `bn.js`, which it imports but did not list. Installing this package
-  into an empty project and requiring it raised `Cannot find module 'bn.js'`.
+- The published type declarations now follow ES module rules. `lib/types/` gets
+  a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`
+  files as ES modules rather than CommonJS. Without it the runtime half of the
+  package was ESM while its types were interpreted as CommonJS, which made a
+  default import ambiguous.
 
-- Now resolves `bn.js` 5.x, the version its sibling packages already declared.
-  While the dependency was undeclared it resolved to the hoisted 4.12.5 that
-  `ethereumjs-util` pulls in. `BN` does not appear in this package's public
-  declarations, so no API changes.
+- Relative imports in the sources now carry their `.js` extension. ES modules do
+  not guess extensions, and 9 of 245 relative imports were missing theirs. They
+  were type-only imports, so `tsc` erased them from the emitted `.js` and the
+  runtime never noticed - but they survive in the emitted `.d.ts`, where a
+  consumer using `moduleResolution: node16` or `nodenext` hit
+  `error TS2834: Relative import paths need explicit file extensions`.
 
-  This was hidden by the monorepo: every dependency was hoisted to one
-  `node_modules`, so these imports resolved here and only here.
-
-### Changed
-
-- **BREAKING:** The minimum supported Node.js version is now 22. It was 16.19,
-  which had not been accurate for some time: several dependencies already
-  required Node 18 or later.
-
-### Added
-
-- Declares `typescript: ">=5.4"` as an optional peer dependency. No supported
-  compiler range was declared before.
-
-### Changed
-
-- **BREAKING:** `TrxProto` gains `payer` and `payerSig`, the fee delegation
-  fields the chain added in June 2025. Code that builds a `TrxProto` literal
-  must set them; empty `Uint8Array`s mean "sender pays" and are omitted from
-  the wire, so encoded bytes are unchanged.
