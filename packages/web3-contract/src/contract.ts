@@ -24,8 +24,6 @@ import {
     BroadcastTxSyncResponse,
     BroadcastTxCommitResponse,
     ContractAbi,
-    DataFormat,
-    DEFAULT_RETURN_FORMAT,
     HexString,
     Mutable,
     VmCallResponse,
@@ -44,7 +42,7 @@ import {
     PayableTxOptions,
 } from './types.js';
 import { ContractMethodsInterface, DeployParams } from './method_types.js';
-import { bytesToHex, format, isNullish, toChecksumAddress } from '@beatoz/web3-utils';
+import { bytesToHex, isNullish } from '@beatoz/web3-utils';
 import {
     encodeFunctionSignature,
     encodeParameters,
@@ -127,7 +125,6 @@ type ContractBoundMethod = (
 
 export class Contract<Abi extends ContractAbi> extends Web3Context {
     public readonly options: ContractOptions;
-    private _address?: Address;
 
     private _functions: Record<
         string,
@@ -152,7 +149,6 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
         this._parseAndSetJsonInterface(jsonInterface);
 
-        // TODO: Address CheckSum Settings
         const address =
             typeof addressOrOptionsOrContext === 'string' ? addressOrOptionsOrContext : undefined;
         this.options = {
@@ -251,8 +247,8 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             if (abis.length === 1 || arrayOfAbis.length === 0) {
                 abiParams = this._getAbiParams(methodAbi, params);
 
-                // TODO : need validate check
-                // validator.validate(abi.inputs ?? [], abiParams);
+                // No separate validation: the ABI coder refuses a value that
+                // does not fit its type with AbiError when the call is encoded.
             } else {
                 const errors: Web3ValidationErrorObject[] = [];
 
@@ -472,12 +468,6 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
 
     public set provider(provider: string | HttpProvider | WebsocketProvider | undefined) {
         this.requestManager.setProvider(provider);
-    }
-
-    private _parseAndSetAddress(value?: Address, returnFormat: DataFormat = DEFAULT_RETURN_FORMAT) {
-        this._address = value
-            ? toChecksumAddress(format({ format: 'address' }, value, returnFormat))
-            : value;
     }
 
     public get methods() {
