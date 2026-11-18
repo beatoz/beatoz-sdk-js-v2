@@ -34,7 +34,6 @@ export abstract class Web3Config {
     }
 
     public setConfig(options: Partial<Web3ConfigOptions>) {
-        // TODO: Improve and add key check
         Object.assign(this.config, options);
     }
 }
