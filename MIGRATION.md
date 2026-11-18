@@ -122,6 +122,11 @@ required by `send()` and `broadcast()`; `gasPrice` is a decimal string;
 `nonce` is a number. A payable method's `value` is sent (1.x always sent 0).
 `maxFeePerGas`, `maxPriorityFeePerGas` and `type` are gone.
 
+**A failed send throws.** `send()` and `broadcast()` throw
+`TransactionFailedError` when the node refuses the transaction or it fails in
+the block, as `deploy().send()` and `web3.beatoz.transfer` do. 1.x returned the
+node's answer, and a failure went unnoticed unless the caller read its codes.
+
 **Arguments are checked.** A `bool` argument takes only `true` or `false`, and
 a `string` argument only a string; anything else throws `AbiError`. In 1.x the
 string `'false'` was sent as `true`. Numbers may still be given as numbers,

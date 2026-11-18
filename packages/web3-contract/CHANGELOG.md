@@ -38,6 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** A contract method's `send()` and `broadcast()` throw
+  `TransactionFailedError` (`stage`, the node's `code` and `log`, `hash`) when
+  the node refuses the transaction or it fails in the block, as
+  `deploy().send()` and `web3.beatoz.transfer` do. They returned the node's
+  answer, so a failure such as `out of gas` went unnoticed unless the caller
+  read its codes. An `async` send still returns before either is known.
+
 - **BREAKING:** Method arguments are checked as `@beatoz/web3-abi` now
   checks them (#213): a `bool` argument takes only `true` or `false`, and a
   `string` argument only a string.

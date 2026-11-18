@@ -15,7 +15,7 @@
 */
 import vaultJson from '../../fixtures/Vault.json';
 import { assertCommitted, closeProvider, DEPLOY_GAS, netInfo } from '../contract_fixtures';
-import { Web3 } from '../../../src';
+import { TransactionFailedError, Web3 } from '../../../src';
 import { BroadcastTxCommitResponse } from '@beatoz/web3-types';
 
 describe('broadcast options', () => {
@@ -52,12 +52,12 @@ describe('broadcast options', () => {
     it('passes a large gas price through unchanged', async () => {
         const contract = new web3.beatoz.Contract(vaultJson.abi, vault);
 
-        const res = (await contract.methods.deposit().broadcast({
-            from,
-            gas,
-            gasPrice: '1000000000000000000000',
-        })) as BroadcastTxCommitResponse;
+        const error = await contract.methods
+            .deposit()
+            .broadcast({ from, gas, gasPrice: '1000000000000000000000' })
+            .catch((e: unknown) => e);
 
-        expect(res.check_tx.code).not.toEqual(0);
+        expect(error).toBeInstanceOf(TransactionFailedError);
+        expect((error as TransactionFailedError).stage).toBe('check_tx');
     });
 });

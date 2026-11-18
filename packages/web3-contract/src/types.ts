@@ -133,10 +133,22 @@ export interface NonPayableMethodObject<Inputs = unknown[], Outputs = unknown[]>
     /** Runs the function without a transaction and returns its decoded result. */
     call(tx?: CallOptions, block?: BlockNumberOrTag): Promise<Outputs>;
 
+    /**
+     * Sends the call as a transaction, signed by `from`'s account in the
+     * wallet. Throws `TransactionFailedError` (the node's `code` and `log`)
+     * when the node refuses the transaction or it fails in the block; an
+     * `async` send returns before either is known.
+     */
     send(
         tx: NonPayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
+    /**
+     * Sends the call as a transaction, signed by `from`'s account in the
+     * wallet. Throws `TransactionFailedError` (the node's `code` and `log`)
+     * when the node refuses the transaction or it fails in the block; an
+     * `async` send returns before either is known.
+     */
     broadcast(
         tx: NonPayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
@@ -162,10 +174,22 @@ export interface PayableMethodObject<Inputs = unknown[], Outputs = unknown[]> {
     /** Runs the function without a transaction and returns its decoded result. */
     call(tx?: CallOptions, block?: BlockNumberOrTag): Promise<Outputs>;
 
+    /**
+     * Sends the call as a transaction, signed by `from`'s account in the
+     * wallet. Throws `TransactionFailedError` (the node's `code` and `log`)
+     * when the node refuses the transaction or it fails in the block; an
+     * `async` send returns before either is known.
+     */
     send(
         tx: PayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;
 
+    /**
+     * Sends the call as a transaction, signed by `from`'s account in the
+     * wallet. Throws `TransactionFailedError` (the node's `code` and `log`)
+     * when the node refuses the transaction or it fails in the block; an
+     * `async` send returns before either is known.
+     */
     broadcast(
         tx: PayableTxOptions & BroadcastTxOptions,
     ): Promise<BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse>;

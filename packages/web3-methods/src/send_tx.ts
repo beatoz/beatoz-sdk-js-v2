@@ -190,9 +190,12 @@ async function sendNative<M extends SendMode>(
     return res;
 }
 
-// Throws for a transaction the node refused or failed. An async send has no
-// result to look at.
-function assertAccepted(
+/**
+ * Throws `TransactionFailedError` for a transaction the node refused
+ * (`check_tx`) or failed in the block (`deliver_tx`). An async send has no
+ * result to look at, and passes.
+ */
+export function assertAccepted(
     res: BroadcastTxAsyncResponse | BroadcastTxSyncResponse | BroadcastTxCommitResponse,
     sendMode?: SendMode,
 ) {

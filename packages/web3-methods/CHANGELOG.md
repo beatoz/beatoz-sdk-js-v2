@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `assertAccepted(response, sendMode)` throws `TransactionFailedError` for a
+  refused or failed broadcast; the contract package uses it.
+
 - `SendTxOptions.scheme` picks the signature scheme of `transfer`,
   `delegate`, `undelegate` and `withdrawReward`, `v0` by default (#119).
 
