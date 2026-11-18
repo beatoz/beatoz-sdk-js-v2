@@ -1,6 +1,7 @@
 {
     "name": "@beatoz/web3",
     "version": "1.6.5",
+    "description": "JavaScript SDK for the BEATOZ blockchain: query a node, sign and send transactions, call contracts.",
     "main": "./lib/esm/index.js",
     "unpkg": "./dist/web3.min.js",
     "jsdelivr": "./dist/web3.min.js",
@@ -20,6 +21,14 @@
         "dapp"
     ],
     "homepage": "https://github.com/beatoz/beatoz-sdk-js-v2",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/beatoz/beatoz-sdk-js-v2.git",
+        "directory": "packages/web3"
+    },
+    "bugs": {
+        "url": "https://github.com/beatoz/beatoz-sdk-js-v2/issues"
+    },
     "author": {
         "name": "BEATOZ Team",
         "email": "dev@beatoz.io",

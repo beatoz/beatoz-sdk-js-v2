@@ -1,6 +1,7 @@
 {
     "name": "@beatoz/web3-types",
     "version": "1.6.5",
+    "description": "Types, response decoders and byte helpers shared by the BEATOZ SDK.",
     "main": "./lib/esm/index.js",
     "types": "./lib/types/index.d.ts",
     "exports": {
@@ -18,6 +19,14 @@
         "dapp"
     ],
     "homepage": "https://github.com/beatoz/beatoz-sdk-js-v2",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/beatoz/beatoz-sdk-js-v2.git",
+        "directory": "packages/web3-types"
+    },
+    "bugs": {
+        "url": "https://github.com/beatoz/beatoz-sdk-js-v2/issues"
+    },
     "author": {
         "name": "BEATOZ Team",
         "email": "dev@beatoz.io",
