@@ -33,7 +33,7 @@ const { contract: token } = await new web3.beatoz.Contract(abi)
 console.log(await token.methods.balanceOf(sender.address).call());
 await token.methods
     .transfer('0x0000000000000000000000000000000000000001', '1')
-    .send({ from: sender.address, gas: 100_000 });
+    .send({ from: sender.address, gas: 200_000 });
 ```
 
 `web3.beatoz` also sends `delegate`, `undelegate` and `withdrawReward`, reads
