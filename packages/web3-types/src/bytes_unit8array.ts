@@ -15,7 +15,6 @@
 */
 
 import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
-import cryptojs from 'crypto-js';
 
 export class BytesUint8Array extends Uint8Array {
     /**
@@ -45,14 +44,6 @@ export class BytesUint8Array extends Uint8Array {
         return ret;
     }
 
-    static fromWords(w: cryptojs.lib.WordArray): BytesUint8Array {
-        const hexBytes = new BytesUint8Array(w.sigBytes);
-        for (let i = 0; i < w.sigBytes; i++) {
-            hexBytes[i] = (w.words[i >>> 0x2] >>> (0x18 - (i % 0x4) * 0x8)) & 0xff;
-        }
-        return hexBytes;
-    }
-
     toHex(): string {
         let ret = '';
         for (let i = 0; i < this.length; i++) {
@@ -63,17 +54,6 @@ export class BytesUint8Array extends Uint8Array {
             ret += digits;
         }
         return ret.toLowerCase();
-    }
-
-    toWords(): cryptojs.lib.WordArray {
-        const wordCount = Math.ceil(this.length / 4);
-        const words: number[] = new Array(wordCount).fill(0);
-
-        for (let i = 0; i < this.length; i++) {
-            words[i >>> 2] |= this[i] << (24 - (i % 4) * 8);
-        }
-
-        return cryptojs.lib.WordArray.create(words, this.length);
     }
 
     isEqual(o: BytesUint8Array): boolean {

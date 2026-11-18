@@ -524,6 +524,13 @@ entries below name the packages they apply to.
 
 ### Removed
 
+- `@beatoz/web3-types`: **BREAKING:** `BytesUint8Array.fromWords` and `toWords` are removed, and
+  with them the dependencies on `crypto-js` and `@types/crypto-js` (#193).
+  They converted to and from `crypto-js` word arrays, which nothing in the SDK
+  used, and `crypto-js` is no longer developed (npm marks it deprecated), so
+  every install printed its warning. Use `fromHex`/`toHex`, or convert with
+  `crypto-js` directly if you hold its word arrays.
+
 - Repository: `documents/`, the 1.x usage guide in English and Korean (#21).
   It was never checked against 2.0 and described APIs that are gone or changed
   (CommonJS, the old subscriptions, builder inputs). The API is documented in
@@ -620,7 +627,7 @@ entries below name the packages they apply to.
 - `@beatoz/web3-types`: **BREAKING:** `BytesUint8Array.parse(d, enc)` is gone.
   It took `any` and an encoding name and only called `fromHex` or `fromWords`,
   so a wrong input compiled and failed at run time. Call
-  `BytesUint8Array.fromHex(hex)` or `BytesUint8Array.fromWords(words)` instead.
+  `BytesUint8Array.fromHex(hex)` instead; `fromWords` is gone too (#193).
 
 - `@beatoz/web3-accounts`: **BREAKING:** `buildProposalTrx`, `buildVotingTrx`
   and their input types `TransactionPayloadProposal` and

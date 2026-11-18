@@ -14,7 +14,6 @@
     limitations under the License.
 */
 import { BytesUint8Array } from '../../src';
-import cryptojs from 'crypto-js';
 
 describe('BytesUint8Array class tests', () => {
     test('fromHex', () => {
@@ -59,14 +58,8 @@ describe('BytesUint8Array class tests', () => {
         );
     });
 
-    test('fromWords', () => {
-        const wordArray = cryptojs.enc.Hex.parse('123abc');
-        const bytes = BytesUint8Array.fromWords(wordArray);
-        expect(bytes.toHex()).toBe(wordArray.toString());
-    });
-
     // parse(d: any, enc: string) only dispatched to fromHex and fromWords, and
-    // took any input for either; call those directly.
+    // took any input for either; call fromHex directly.
     test('has no parse', () => {
         expect((BytesUint8Array as unknown as Record<string, unknown>).parse).toBeUndefined();
     });
@@ -77,10 +70,13 @@ describe('BytesUint8Array class tests', () => {
         expect(bytes.toHex()).toBe(hex);
     });
 
-    test('toWords', () => {
-        const wordArray = cryptojs.enc.Hex.parse('123abc');
-        const bytes = BytesUint8Array.fromWords(wordArray);
-        expect(bytes.toWords().toString()).toBe(wordArray.toString());
+    // They converted to and from crypto-js word arrays, a library the SDK
+    // no longer depends on (#193).
+    test('has no fromWords or toWords', () => {
+        expect((BytesUint8Array as unknown as Record<string, unknown>).fromWords).toBeUndefined();
+        expect(
+            (BytesUint8Array.prototype as unknown as Record<string, unknown>).toWords,
+        ).toBeUndefined();
     });
 
     test('isEqual', () => {
