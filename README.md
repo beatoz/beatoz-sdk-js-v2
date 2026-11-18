@@ -1,50 +1,47 @@
-# Javascript(Typescript) SDK for BEATOZ
+# BEATOZ JavaScript SDK
 
-`beatoz-sdk-js` is Javascript(Typescript) SDK for BEATOZ blockhcain network.
-
-## Prerequisite
-
-To build use typescript compiler,
-
-```bash
-npm install yarn -g
-```
-
-To generate typescript sources for protobuf messages,
-
-```bash
-brew install protobuf
-```
-
-To compile typescript sources,
-
-```bash
-node -v
-v19.5.0
-```
-
-```bash
-npm -v
-9.4.1
-```
-
-## Usages
-
-### Install SDK
+JavaScript and TypeScript SDK for the BEATOZ blockchain: query a node, sign and
+send transactions, deploy and call contracts, and subscribe to blocks.
 
 ```bash
 npm install @beatoz/web3
 ```
 
-### Build sources
+## Usage
 
-```bash
-git clone https://github.com/beatoz/beatoz-sdk-js-v2.git
-cd beatoz-sdk-js-v2
-npm install
+```js
+import { Web3, utils } from '@beatoz/web3';
 
-npm run build 
+const web3 = new Web3('https://rpc-testnet0.beatoz.io');
+
+// Read the chain
+const { value } = await web3.beatoz.getAccount('0x0000000000000000000000000000000000000001');
+console.log(utils.fromWei(value.balance, 'beatoz'));
+
+// Send: the sender's key goes in the wallet; the nonce, gas and gas price
+// are filled in from the chain.
+const sender = web3.beatoz.accounts.wallet.add(process.env.PRIVATE_KEY).get(0);
+await web3.beatoz.transfer({
+    from: sender.address,
+    to: '0x0000000000000000000000000000000000000001',
+    amount: utils.toWei('1', 'beatoz'),
+});
+
+// Contracts
+const { contract: token } = await new web3.beatoz.Contract(abi)
+    .deploy({ bytecode, args: ['Token', 'TKN'] })
+    .send({ from: sender.address, gas: 10_000_000 });
+console.log(await token.methods.balanceOf(sender.address).call());
+await token.methods
+    .transfer('0x0000000000000000000000000000000000000001', '1')
+    .send({ from: sender.address, gas: 100_000 });
 ```
+
+`web3.beatoz` also sends `delegate`, `undelegate` and `withdrawReward`, reads
+blocks, transactions and chain values, and subscribes to new blocks and
+transactions over a `ws://` URL. The methods are documented in the sources
+(TSDoc), which your editor shows, and each package's `CHANGELOG.md` records
+what changed and how to move from 1.x.
 
 ### In a browser
 
@@ -52,34 +49,66 @@ npm run build
 same names an `import` from the package gives:
 
 ```html
-<script src="https://unpkg.com/@beatoz/web3/dist/web3.min.js"></script>
+<script src="https://unpkg.com/@beatoz/web3@2/dist/web3.min.js"></script>
 <script>
-    // As `import { Web3, TrxProtoBuilder } from '@beatoz/web3'`
-    const { Web3, TrxProtoBuilder } = BeatozWeb3;
-    const web3 = new Web3('https://rpc1.testnet.beatoz.io');
+    const { Web3 } = BeatozWeb3;
+    const web3 = new Web3('https://rpc-testnet0.beatoz.io');
 </script>
 ```
 
-Pin a version in production (`@beatoz/web3@2.0.0`). `@beatoz/web3-validator`
-ships `dist/web3-validator.min.js` the same way, as `BeatozWeb3Validator`. A
-build of the repository writes both to each package's `dist/`.
+Pin an exact version in production (`@beatoz/web3@2.0.0`).
+`@beatoz/web3-validator` ships `dist/web3-validator.min.js` the same way, as
+`BeatozWeb3Validator`.
 
----
+## Requirements
 
-### Documentation / API-Document 
+- Node.js 22.22.2 or later. The packages are ES modules; `require()` works too,
+  as Node 22.12 and later can load ES modules.
+- TypeScript 5.8 or later, if you use TypeScript.
 
-The API is documented in the sources (TSDoc), which ship with each package and
-show in an editor, and each package's `CHANGELOG.md` records what changed and
-how to move from 1.x.
+## Packages
 
-The [GitBook](https://beatoz.gitbook.io/beatoz-sdk-js/docs-en) documents 1.x, from
-[beatoz-sdk-js](https://github.com/beatoz/beatoz-sdk-js), and does not match 2.0.
+`@beatoz/web3` includes the others; install one on its own only to use it
+without the rest.
+
+| Package                                                       |                                                    |
+| ------------------------------------------------------------- | -------------------------------------------------- |
+| [`@beatoz/web3`](packages/web3)                               | The SDK: `new Web3(url)` and `web3.beatoz`         |
+| [`@beatoz/web3-methods`](packages/web3-methods)               | The `web3.beatoz` methods                          |
+| [`@beatoz/web3-rpc`](packages/web3-rpc)                       | Typed requests for the node's JSON-RPC routes      |
+| [`@beatoz/web3-contract`](packages/web3-contract)             | Contract deploy, call and send                     |
+| [`@beatoz/web3-accounts`](packages/web3-accounts)             | Accounts, wallet, transaction builders and signing |
+| [`@beatoz/web3-abi`](packages/web3-abi)                       | ABI encoding and decoding                          |
+| [`@beatoz/web3-core`](packages/web3-core)                     | Context and request manager                        |
+| [`@beatoz/web3-providers-http`](packages/web3-providers-http) | HTTP provider                                      |
+| [`@beatoz/web3-providers-ws`](packages/web3-providers-ws)     | WebSocket provider, with subscriptions             |
+| [`@beatoz/web3-types`](packages/web3-types)                   | Types and response decoders                        |
+| [`@beatoz/web3-utils`](packages/web3-utils)                   | Units, hashing and hex helpers                     |
+| [`@beatoz/web3-validator`](packages/web3-validator)           | Validation against ABI types                       |
+| [`@beatoz/web3-errors`](packages/web3-errors)                 | Error classes                                      |
+
+## Building from source
+
+```bash
+git clone https://github.com/beatoz/beatoz-sdk-js-v2.git
+cd beatoz-sdk-js-v2
+yarn install --frozen-lockfile
+yarn build
+```
+
+Node.js 22.22.2 or later and Yarn 1. [`guides/development.md`](guides/development.md)
+covers tests, the local test node and regenerating the transaction proto.
+
+Version 1.x is developed in [beatoz-sdk-js](https://github.com/beatoz/beatoz-sdk-js);
+its [GitBook](https://beatoz.gitbook.io/beatoz-sdk-js/docs-en) documents 1.x and
+does not match 2.0.
 
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) and [`guides/`](./guides) for development, commit, issue and pull request rules, [the release policy](./guides/release.md) for versioning, and [SECURITY.md](./SECURITY.md) for reporting a vulnerability.
 
 ## License
+
 ```
 Copyright 2023 All BEATOZ Developers
 
