@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- Signing takes `{ scheme: 'v0' | 'v1' }` (#119): `signTransaction`,
+  `signTransactionAsPayer` and `TrxProtoBuilder.signTrxProto`. The node takes
+  both and tells them apart by the signature's last byte (beatoz-go
+  `ctrlers/types/signer.go`): `v0` signs a text prefix and the RLP (`v` 0/1),
+  `v1` the RLP followed by the chain id's bytes (`v` 27/28), accepted from
+  node v1.10.0. The default stays `v0`, which every node accepts. The sender
+  and a payer may each use either. `verifyTrxProto` checks a signature by the
+  scheme its last byte names.
+
 - `package.json` has `description`, `repository` (with this package's
   directory) and `bugs` (#196), so the npm page shows what the package is and
   links to the source and the issue tracker. The README is rewritten for the

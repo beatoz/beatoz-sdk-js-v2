@@ -17,6 +17,21 @@
 import { BytesUint8Array } from './bytes_unit8array.js';
 import { TrxProto } from './trx_proto.js';
 
+/**
+ * How a transaction is signed. The node takes both and tells them apart by
+ * the signature's last byte (beatoz-go `ctrlers/types/signer.go`):
+ * - `v0`: a text prefix and the transaction's RLP; `v` is 0 or 1. The node
+ *   marks it deprecated, but every node version accepts it.
+ * - `v1`: the RLP followed by the chain id's bytes; `v` is 27 or 28. Nodes
+ *   from v1.10.0 accept it.
+ */
+export type SignScheme = 'v0' | 'v1';
+
+export interface SignOptions {
+    /** Default `v0`. */
+    scheme?: SignScheme;
+}
+
 export interface Web3BaseWalletAccount {
     [key: string]: unknown;
 
@@ -28,6 +43,7 @@ export interface Web3BaseWalletAccount {
     signTransaction(
         trxProto: TrxProto,
         chainId: string,
+        options?: SignOptions,
     ): {
         rawTransaction: string;
         transactionHash: string;

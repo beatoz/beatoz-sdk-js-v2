@@ -447,7 +447,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
             }),
         );
 
-        fromAcct.signTransaction(txProto, chainId);
+        fromAcct.signTransaction(txProto, chainId, { scheme: options.scheme });
 
         const sendMode =
             options.sendMode === 'sync' || options.sendMode === 'async'
@@ -544,7 +544,7 @@ export class Contract<Abi extends ContractAbi> extends Web3Context {
                 payload: { data },
             }),
         );
-        account.signTransaction(tx, chainId);
+        account.signTransaction(tx, chainId, { scheme: options.scheme });
         const res = await broadcastSigned(this, tx, account.address);
         if (res.check_tx.code !== 0) {
             throw new TransactionFailedError({

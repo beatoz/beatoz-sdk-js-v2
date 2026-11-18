@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-import { TrxProto, Web3BaseWalletAccount } from '@beatoz/web3-types';
+import { SignOptions, TrxProto, Web3BaseWalletAccount } from '@beatoz/web3-types';
 import { PrvKey, PubKey } from './tx/tx_types.js';
 
 export type SignTransactionResult = {
@@ -27,5 +27,9 @@ export interface Web3Account extends Web3BaseWalletAccount {
     prvKey: PrvKey;
     pubKey: PubKey;
     /** Pays the fee of a transaction its sender has signed; see `signTransactionAsPayer`. */
-    signTransactionAsPayer(trxProto: TrxProto, chainId: string): SignTransactionResult;
+    signTransactionAsPayer(
+        trxProto: TrxProto,
+        chainId: string,
+        options?: SignOptions,
+    ): SignTransactionResult;
 }

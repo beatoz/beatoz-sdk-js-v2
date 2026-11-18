@@ -17,9 +17,9 @@
 import { InvalidInputError } from '@beatoz/web3-errors';
 import { Web3Account, SignTransactionResult } from './types.js';
 import { PrvKey, PubKey } from './tx/tx_types.js';
-import { HexString, TrxProto, BytesUint8Array } from '@beatoz/web3-types';
+import { HexString, TrxProto, BytesUint8Array, SignOptions } from '@beatoz/web3-types';
 import { TrxProtoUtils } from './tx/trx_pb.js';
-import { RlpUtils } from './tx/trx_rlp.js';
+import { checkScheme, signingPreimage, withSchemeV } from './tx/sign_scheme.js';
 import { createHash } from 'crypto';
 
 export const create = (): Web3Account => {
@@ -49,10 +49,10 @@ export const prvKeyToAccount = (prvKey: PrvKey): Web3Account => {
         pubKey: pubKey,
         privateKey: prvKey.exportKey().toHex(),
         sign: (msg: Uint8Array) => sign(msg, prvKey.exportKey().toHex()),
-        signTransaction: (trxProto: TrxProto, chainId) =>
-            signTransaction(trxProto, prvKey.exportKey().toHex(), chainId),
-        signTransactionAsPayer: (trxProto: TrxProto, chainId: string) =>
-            signTransactionAsPayer(trxProto, prvKey.exportKey().toHex(), chainId),
+        signTransaction: (trxProto: TrxProto, chainId: string, options?: SignOptions) =>
+            signTransaction(trxProto, prvKey.exportKey().toHex(), chainId, options),
+        signTransactionAsPayer: (trxProto: TrxProto, chainId: string, options?: SignOptions) =>
+            signTransactionAsPayer(trxProto, prvKey.exportKey().toHex(), chainId, options),
     };
 };
 
@@ -64,15 +64,22 @@ export const sign = (
     return new BytesUint8Array([...signObj.signature, signObj.recid & 0xff]);
 };
 
+/**
+ * Signs `trxProto` as its sender and sets `sig`. `options.scheme` picks the
+ * node's signature scheme, `v0` by default; see `SignScheme`.
+ */
 export const signTransaction = (
     trxProto: TrxProto,
     privateKey: HexString,
     chainId: string,
+    options?: SignOptions,
 ): SignTransactionResult => {
+    const scheme = checkScheme(options?.scheme);
     // The node leaves the sender's own signature out of what it signs, so a
     // transaction signed before is signed again over the same bytes.
     trxProto.sig = new Uint8Array();
-    trxProto.sig = sign(preimage(trxProto, chainId), privateKey);
+    const sig = sign(signingPreimage(trxProto, chainId, scheme), privateKey);
+    trxProto.sig = withSchemeV(sig, scheme);
     return signedResult(trxProto);
 };
 
@@ -83,14 +90,18 @@ export const signTransaction = (
  * not cover the payer, so the payer can be added after the sender signs.
  *
  * The payer signs the sender's signature too (beatoz-go
- * `ctrlers/types/signer_v0.go` `getPreimage`), so signing the transaction
- * again as the sender afterwards invalidates this signature.
+ * `ctrlers/types/signer_v0.go` and `signer_v1.go` `getPreimage`), so signing
+ * the transaction again as the sender afterwards invalidates this signature.
+ * `options.scheme` picks the payer's scheme, `v0` by default; the node checks
+ * the sender's and the payer's signatures each by its own scheme.
  */
 export const signTransactionAsPayer = (
     trxProto: TrxProto,
     privateKey: HexString,
     chainId: string,
+    options?: SignOptions,
 ): SignTransactionResult => {
+    const scheme = checkScheme(options?.scheme);
     if (trxProto.sig.length !== 65) {
         throw new InvalidInputError(
             'the transaction must be signed by its sender before its payer signs it',
@@ -103,18 +114,12 @@ export const signTransactionAsPayer = (
         );
     }
     trxProto.payer = new Uint8Array(payer);
-    trxProto.payerSig = sign(preimage(trxProto, chainId), privateKey);
+    trxProto.payerSig = withSchemeV(
+        sign(signingPreimage(trxProto, chainId, scheme), privateKey),
+        scheme,
+    );
     return signedResult(trxProto);
 };
-
-// The node's v0 preimage (beatoz-go ctrlers/types/signer_v0.go): a text
-// prefix and the RLP of the transaction, which leaves out the payer fields.
-// The sender signs with sig empty, the payer with the sender's sig in it.
-function preimage(trxProto: TrxProto, chainId: string): BytesUint8Array {
-    const encodedData = RlpUtils.encodeTrxProto(trxProto);
-    const prefix = `\x19BEATOZ(${chainId}) Signed Message:\n${encodedData.length}`;
-    return new BytesUint8Array(Buffer.concat([Buffer.from(prefix), encodedData]));
-}
 
 function signedResult(trxProto: TrxProto): SignTransactionResult {
     const rawTransaction = Buffer.from(TrxProtoUtils.encode(trxProto).finish());
