@@ -14,11 +14,50 @@
     limitations under the License.
 */
 
-import { AbiError } from '@beatoz/web3-errors';
+import { AbiError, formatValue } from '@beatoz/web3-errors';
+import { bytesToHex } from '@beatoz/web3-utils';
 import { ParamType, Result } from '@ethersproject/abi';
 import { HexString, AbiInput, DecodedParams } from '@beatoz/web3-types';
 import ethersAbiCoder from '../ethers_abi_coder.js';
 import { formatParam, isAbiFragment, mapTypes, modifyParams } from '../utils.js';
+
+// Checks the kind of each value against its ABI type, through arrays and
+// tuples, before the coder sees it. ethers' coder takes anything for a bool
+// (`value ? 1 : 0`, so the string 'false' encodes true) and anything with a
+// toString for a string, and refuses a Uint8Array for bytes (#213).
+const checkKinds = (type: ParamType, value: unknown, path: string): unknown => {
+    if (type.baseType === 'array') {
+        return Array.isArray(value)
+            ? value.map((v, i) => checkKinds(type.arrayChildren, v, `${path}[${i}]`))
+            : value;
+    }
+    if (type.baseType === 'tuple') {
+        if (Array.isArray(value)) {
+            return type.components.map((c, i) => checkKinds(c, value[i], `${path}.${c.name || i}`));
+        }
+        if (typeof value === 'object' && value !== null) {
+            const out: Record<string, unknown> = { ...value };
+            type.components.forEach((c, i) => {
+                const key = c.name in out ? c.name : String(i);
+                out[key] = checkKinds(c, out[key], `${path}.${c.name || i}`);
+            });
+            return out;
+        }
+        return value;
+    }
+    if (type.baseType === 'bool' && typeof value !== 'boolean') {
+        const hint =
+            value === 'true' || value === 'false' ? `; write ${value}, not '${value}'` : '';
+        throw new AbiError(`${path} must be true or false, got ${formatValue(value)}${hint}`);
+    }
+    if (type.baseType === 'string' && typeof value !== 'string') {
+        throw new AbiError(`${path} must be a string, got ${formatValue(value)}`);
+    }
+    if (type.baseType.startsWith('bytes') && value instanceof Uint8Array) {
+        return bytesToHex(value);
+    }
+    return value;
+};
 
 export const encodeParameters = (abi: ReadonlyArray<AbiInput>, params: unknown[]): string => {
     try {
@@ -37,7 +76,16 @@ export const encodeParameters = (abi: ReadonlyArray<AbiInput>, params: unknown[]
                 type = item as unknown as string;
             }
 
-            const newParam = formatParam(type, param);
+            const paramType =
+                typeof item === 'string' ? ParamType.from(item) : ParamType.from(item as never);
+            const newParam = formatParam(
+                type,
+                checkKinds(
+                    paramType,
+                    param,
+                    (item as { name?: string }).name || `argument ${index}`,
+                ),
+            );
 
             if (typeof type === 'string' && type.includes('tuple')) {
                 const coder = ethersAbiCoder._getCoder(ParamType.from(type));
@@ -51,6 +99,8 @@ export const encodeParameters = (abi: ReadonlyArray<AbiInput>, params: unknown[]
             modifiedParams,
         );
     } catch (err) {
+        // A value of the wrong kind is reported as such, not as a coder failure.
+        if (err instanceof AbiError) throw err;
         throw new AbiError('Parameter encoding error', { cause: err });
     }
 };

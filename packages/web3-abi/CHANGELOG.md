@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Encoding checks the kind of `bool` and `string` values,
+  through arrays and tuples (#213). A `bool` takes only `true` or `false`: the
+  coder encoded any truthy value as true, so the string `'false'` sent `true`
+  to a contract without an error. A `string` takes only a string. Anything else
+  throws `AbiError` naming the argument, such as
+  `approved must be true or false, got "false"; write false, not 'false'`.
+  Numbers, addresses and hex are taken as before.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
   had not been accurate for some time: several dependencies already required
   Node 18 or later. Three things set the floor, and the highest wins:
@@ -98,6 +106,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   workspace packages and excluding `src/` from all of them.
 
 ### Fixed
+
+- A `Uint8Array` is taken for `bytes` and `bytesN`, and encodes as its hex does
+  (#213); it threw `invalid arrayify value`.
 
 - A parameter object without `name`, such as `{ type: 'uint256' }`, encodes and
   decodes. It was taken for the simplified struct form `{ StructName: { ... } }`

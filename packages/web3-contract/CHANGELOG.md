@@ -38,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** Method arguments are checked as `@beatoz/web3-abi` now
+  checks them (#213): a `bool` argument takes only `true` or `false`, and a
+  `string` argument only a string.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
   had not been accurate for some time: several dependencies already required
   Node 18 or later. Three things set the floor, and the highest wins:
