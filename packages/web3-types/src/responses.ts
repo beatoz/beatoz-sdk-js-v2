@@ -849,7 +849,8 @@ export interface AccountResponse {
  */
 export interface StakesResponse {
     key: string;
-    value?: StakesValue[];
+    /** The account's stakes; empty when it has none (the node sends `null`). */
+    value: StakesValue[];
     /** The block height the query was answered at. */
     height: string;
 }

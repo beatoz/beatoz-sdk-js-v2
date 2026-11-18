@@ -53,6 +53,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** `StakesResponse.value` is always an array, empty for an
+  account with no stakes. The node sends `null` then (a nil slice in
+  beatoz-go's `queryStakes`), which reached the caller under a type that said
+  `undefined` or an array; `ResponsesDecoder.decodeStakes` turns it into `[]`.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
   had not been accurate for some time: several dependencies already required
   Node 18 or later. Three things set the floor, and the highest wins:
