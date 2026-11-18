@@ -123,6 +123,14 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-abi`, `@beatoz/web3-contract`: **BREAKING:** Encoding checks the kind of `bool` and `string` values,
+  through arrays and tuples (#213). A `bool` takes only `true` or `false`: the
+  coder encoded any truthy value as true, so the string `'false'` sent `true`
+  to a contract without an error. A `string` takes only a string. Anything else
+  throws `AbiError` naming the argument, such as
+  `approved must be true or false, got "false"; write false, not 'false'`.
+  Numbers, addresses and hex are taken as before.
+
 - `@beatoz/web3-accounts`: Keys and signatures are computed with `ethereum-cryptography`'s
   `secp256k1-compat` (noble) instead of the `secp256k1` package (#194), which
   falls back to `elliptic` in browsers and wherever its native build is
@@ -846,6 +854,9 @@ entries below name the packages they apply to.
   excluded them.
 
 ### Fixed
+
+- `@beatoz/web3-abi`: A `Uint8Array` is taken for `bytes` and `bytesN`, and encodes as its hex does
+  (#213); it threw `invalid arrayify value`.
 
 - `@beatoz/web3-accounts`: A transaction whose `time` is 0 (1970-01-01) is signed over the bytes the
   node verifies (#192). `ethereumjs-util` encoded that 0 as `0x00`, where the
