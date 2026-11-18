@@ -15,6 +15,13 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-accounts`: No longer depends on `ethereumjs-util` (#192), a 2019 release no longer
+  maintained, which brought `pbkdf2` (a moderate advisory) and `elliptic`
+  into every install for two calls. The signed RLP is encoded with
+  `@ethereumjs/rlp`, and `getContractAddress` hashes with `ethereum-cryptography`.
+  The bytes are the same for every transaction, checked over 814 cases of all
+  eight types, except the one below.
+
 - `@beatoz/web3-methods`, `@beatoz/web3-rpc`: `web3.beatoz.vmEstimateGas` and
   `web3.beatoz.blockSearch` (#48). **BREAKING** in `@beatoz/web3-rpc`:
   `blockSearch` returns the decoded `BlockSearchResponse` instead of the raw
@@ -832,6 +839,11 @@ entries below name the packages they apply to.
   bytes.
 
 ### Fixed
+
+- `@beatoz/web3-accounts`: A transaction whose `time` is 0 (1970-01-01) is signed over the bytes the
+  node verifies (#192). `ethereumjs-util` encoded that 0 as `0x00`, where the
+  node (go-ethereum rlp, a `uint64`) writes `0x80`, so the node would have
+  refused its signature.
 
 - `@beatoz/web3-accounts`: after `wallet.remove()`, `wallet.get(address)`
   could return another account, and so sign with another key (#139). The

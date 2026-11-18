@@ -15,8 +15,8 @@
 */
 
 import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
-import BN from 'bn.js';
-import { generateAddress } from 'ethereumjs-util';
+import { RLP } from '@ethereumjs/rlp';
+import { keccak256 } from 'ethereum-cryptography/keccak.js';
 import { toChecksumAddress } from '@beatoz/web3-utils';
 
 /**
@@ -35,10 +35,7 @@ export function getContractAddress(from: string, nonce: number): string {
             `nonce must be a non-negative safe integer, got ${formatValue(nonce)}`,
         );
     }
-    return toChecksumAddress(
-        '0x' +
-            generateAddress(Buffer.from(hex, 'hex'), new BN(nonce).toArrayLike(Buffer)).toString(
-                'hex',
-            ),
-    );
+    // RLP encodes a nonce of 0 as the empty string, as go-ethereum does.
+    const hash = keccak256(RLP.encode([Buffer.from(hex, 'hex'), nonce]));
+    return toChecksumAddress('0x' + Buffer.from(hash.slice(-20)).toString('hex'));
 }

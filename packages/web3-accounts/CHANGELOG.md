@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- No longer depends on `ethereumjs-util` (#192), a 2019 release no longer
+  maintained, which brought `pbkdf2` (a moderate advisory) and `elliptic`
+  into every install for two calls. The signed RLP is encoded with
+  `@ethereumjs/rlp`, and `getContractAddress` hashes with `ethereum-cryptography`.
+  The bytes are the same for every transaction, checked over 814 cases of all
+  eight types, except the one below.
+
 - `long` is now `^5.3.2`, up from an exact `5.2.3` (#17). `protobufjs`
   ^7.6.6 depends on `long` ^5.3.2, so the pin installed a second copy;
   encoded transactions are byte for byte the same.
@@ -193,6 +200,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   eight types beatoz-go accepts, and the integration suites pass.
 
 ### Fixed
+
+- A transaction whose `time` is 0 (1970-01-01) is signed over the bytes the
+  node verifies (#192). `ethereumjs-util` encoded that 0 as `0x00`, where the
+  node (go-ethereum rlp, a `uint64`) writes `0x80`, so the node would have
+  refused its signature.
 
 - `Wallet.remove()` left lookups by address pointing at the wrong account
   (#139). Removing moves every later account down one place, but the address

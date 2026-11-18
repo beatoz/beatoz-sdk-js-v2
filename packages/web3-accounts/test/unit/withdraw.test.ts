@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import { rlp } from 'ethereumjs-util';
+import { RLP } from '@ethereumjs/rlp';
 import { privateKeyToAccount, TrxProtoBuilder, TrxProtoUtils } from '../../src';
 import { RlpUtils } from '../../src/tx/trx_rlp';
 import { BytesUint8Array } from '@beatoz/web3-types';
@@ -49,7 +49,7 @@ const GAS_PRICE = 7;
 const TYPE = 8;
 const PAYLOAD = 9;
 const signedFields = (tx: ReturnType<typeof build>) =>
-    rlp.decode(RlpUtils.encodeTrxProto(tx)) as unknown as Buffer[];
+    (RLP.decode(RlpUtils.encodeTrxProto(tx)) as Uint8Array[]).map((field) => Buffer.from(field));
 
 describe('buildWithdrawTrx', () => {
     it.each([
