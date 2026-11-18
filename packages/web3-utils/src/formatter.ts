@@ -193,10 +193,10 @@ export const convert = (
         if (Array.isArray(value)) {
             let _schemaProp = schemaProp;
 
-            // TODO This is a naive approach to solving the issue of
-            // a schema using oneOf. This chunk of code was intended to handle
-            // BlockSchema.transactions
-            // TODO BlockSchema.transactions are not being formatted
+            // For an array under a oneOf, the branch is picked by the type of
+            // the first element only (object or not). It came from web3.js,
+            // whose block schema listed transactions as hashes or objects; no
+            // schema in this SDK uses oneOf.
             if (schemaProp?.oneOf !== undefined) {
                 // The following code is basically saying:
                 // if the schema specifies oneOf, then we are to loop

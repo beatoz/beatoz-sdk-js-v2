@@ -136,6 +136,15 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The JSON schemas from web3.js are removed but `logSchema`,
+  which `decodeEventABI` uses (#202): `accessListItemSchema`,
+  `accessListSchema`, `accessListResultSchema`, `chainSchema`, `hardforkSchema`,
+  `customChainSchema`, `transactionSchema`, `transactionInfoSchema`,
+  `blockSchema`, `blockHeaderSchema`, `syncSchema`, `transactionReceiptSchema`,
+  `SignatureObjectSchema`, `feeHistorySchema`, `storageProofSchema` and
+  `accountSchema`. They described Ethereum JSON-RPC results, and nothing used
+  them. The contract package's event encoding gives the same results.
+
 - **BREAKING:** `web3.beatoz.dumpConsensusState` and `consensusState` are
   removed (#38); see web3-rpc.
 
