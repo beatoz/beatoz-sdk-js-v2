@@ -14,7 +14,7 @@
     limitations under the License.
 */
 import { createHash } from 'crypto';
-import secp256k1 from 'secp256k1';
+import * as secp256k1 from 'ethereum-cryptography/secp256k1-compat.js';
 import { InvalidInputError } from '@beatoz/web3-errors';
 import { privateKeyToAccount, TrxProtoBuilder, Web3Account } from '../../src';
 import { RlpUtils } from '../../src/tx/trx_rlp';

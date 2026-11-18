@@ -123,6 +123,14 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3-accounts`: Keys and signatures are computed with `ethereum-cryptography`'s
+  `secp256k1-compat` (noble) instead of the `secp256k1` package (#194), which
+  falls back to `elliptic` in browsers and wherever its native build is
+  missing; `elliptic` carries an advisory with no fixed version. Signatures,
+  public keys and addresses are the same, byte for byte, over 1,200 cases.
+  `secp256k1` and `@types/secp256k1` are no longer dependencies, and no
+  native addon is built at install.
+
 - All packages: **BREAKING:** The minimum Node version is 22.22.2, raised from
   16.19, which had not been accurate for some time: several dependencies
   already required Node 18 or later. Three things set the floor, and the
