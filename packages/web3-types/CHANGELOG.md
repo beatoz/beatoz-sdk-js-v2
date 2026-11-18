@@ -190,6 +190,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** `BytesUint8Array.fromWords` and `toWords` are removed, and
+  with them the dependencies on `crypto-js` and `@types/crypto-js` (#193).
+  They converted to and from `crypto-js` word arrays, which nothing in the SDK
+  used, and `crypto-js` is no longer developed (npm marks it deprecated), so
+  every install printed its warning. Use `fromHex`/`toHex`, or convert with
+  `crypto-js` directly if you hold its word arrays.
+
 - **BREAKING:** `DumpConsensusStateResponse`, `ConsensusStateResponse` and the
   types only they used (`RoundState`, `PeerInfo`, `PeerState`,
   `PeerRoundState`, `LastCommitInfo`, `DumpConsensusValidators`,
@@ -255,8 +262,8 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 - **BREAKING:** `BytesUint8Array.parse(d, enc)` is gone. It took `any` and an
   encoding name and only called `fromHex` or `fromWords`, so a wrong input
-  compiled and failed at run time. Call `BytesUint8Array.fromHex(hex)` or
-  `BytesUint8Array.fromWords(words)` instead.
+  compiled and failed at run time. Call `BytesUint8Array.fromHex(hex)` instead;
+  `fromWords` is gone too (#193).
 
 - **BREAKING:** `Web3BaseProviderConstructor` is gone. Its `net?: Socket`
   parameter was the only reason this package's declarations imported Node's

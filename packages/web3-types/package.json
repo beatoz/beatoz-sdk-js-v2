@@ -49,8 +49,6 @@
     "devDependencies": {},
     "dependencies": {
         "@beatoz/web3-errors": "^1.6.5",
-        "@types/crypto-js": "^4.1.1",
-        "crypto-js": "^4.1.1",
         "long": "^5.3.2",
         "readonly-date": "^1.0.0"
     },
