@@ -1,6 +1,7 @@
 {
     "name": "@beatoz/web3-providers-ws",
     "version": "1.6.5",
+    "description": "WebSocket provider for a BEATOZ node, with subscriptions.",
     "main": "./lib/esm/index.js",
     "types": "./lib/types/index.d.ts",
     "exports": {
@@ -18,6 +19,14 @@
         "dapp"
     ],
     "homepage": "https://github.com/beatoz/beatoz-sdk-js-v2",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/beatoz/beatoz-sdk-js-v2.git",
+        "directory": "packages/web3-providers-ws"
+    },
+    "bugs": {
+        "url": "https://github.com/beatoz/beatoz-sdk-js-v2/issues"
+    },
     "author": {
         "name": "BEATOZ Team",
         "email": "dev@beatoz.io",
