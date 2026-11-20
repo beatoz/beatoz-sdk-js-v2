@@ -37,6 +37,27 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- **BREAKING:** The validator no longer uses `is-my-json-valid` (#226). It
+  required Node's `util`, so a webpack 5 app failed to build
+  (`Can't resolve 'util'`), and it compiled each schema with `new Function`,
+  which a page that forbids `unsafe-eval` in its Content-Security-Policy
+  (browser extensions under Manifest V3, many production sites) does not
+  allow. The package checks the schemas itself, for the keywords the SDK
+  builds from ABI types and the ones web3.js's validator also takes: `type`,
+  `items` (a tuple or one schema), `minItems`, `maxItems`, `format`,
+  `required` (`true`, or a list of property names), `properties` and `oneOf`.
+  The errors are the ones `is-my-json-valid` gave, message, path and order
+  included; `test/fixtures/validator_baseline.jsonl` records its answers for
+  2,800 inputs, and the validator gives the same. A schema passed to
+  `validateJSONSchema` with any other keyword (`pattern`, `enum`, `$ref`,
+  `minimum`, ...) or type throws `InvalidInputError` instead of being
+  checked, and the string formats `is-my-json-valid` had built in (`email`,
+  `date-time`, `uri`, ...) are not checked, as an unknown format was not
+  before. `Schema` lists only those keywords. `is-my-json-valid` and the six
+  packages it brought (`generate-function`, `generate-object-property`,
+  `is-property`, `is-my-ip-valid`, `jsonpointer`, `xtend`) are no longer
+  installed.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
   had not been accurate for some time: several dependencies already required
   Node 18 or later. Three things set the floor, and the highest wins:
@@ -79,6 +100,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Removed
 
+- **BREAKING:** The `Validate` type, `is-my-json-valid`'s compiled
+  validator (#226). `RawValidationError` is now declared in the package with
+  the same fields.
+
 - **BREAKING:** The CommonJS build is gone. `lib/commonjs` is no longer built
   or published, and the package ships ESM only.
 
@@ -105,6 +130,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   workspace packages and excluding `src/` from all of them.
 
 ### Fixed
+
+- `validateJSONSchema` with a `properties` schema that has no `type`, given
+  `null`, threw a `TypeError` from inside `is-my-json-valid` (#226). It now
+  reports each required property as missing.
 
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`

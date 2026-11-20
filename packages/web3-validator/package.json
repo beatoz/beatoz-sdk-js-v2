@@ -65,8 +65,7 @@
     "dependencies": {
         "@beatoz/web3-errors": "^1.6.5",
         "@beatoz/web3-types": "^1.6.5",
-        "ethereum-cryptography": "2.1.2",
-        "is-my-json-valid": "^2.20.6"
+        "ethereum-cryptography": "2.1.2"
     },
     "peerDependencies": {
         "typescript": ">=5.8"
