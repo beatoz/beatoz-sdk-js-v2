@@ -145,6 +145,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- `new Web3()` no longer fails in a browser app bundled with Vite
+  (`EventEmitter is not a constructor`) (#222). `Web3EventEmitter` wrapped
+  Node's `events` module, which browser bundlers do not provide; it is now
+  implemented in the package, with Node's order of calls and removals.
+  `setMaxListenerWarningThreshold` keeps its value but no longer warns.
+
 - `setProvider()` with a URL now builds one provider. It built two and kept the
   second, so for a `ws://` URL the first opened a socket that nothing referenced
   and nothing could close, and a Node process that called it never exited on
