@@ -94,3 +94,28 @@ describe('BytesUint8Array class tests', () => {
         expect(bytes.toHex()).toBe('123abc');
     });
 });
+
+describe('base64 without the Buffer global (#220)', () => {
+    const buffer = globalThis.Buffer;
+    const samples = [0, 1, 2, 3, 31, 32, 33, 255, 256, 70000].map((n) =>
+        Uint8Array.from({ length: n }, (_, i) => (i * 37 + n) & 0xff),
+    );
+    const expected = samples.map((b) => buffer.from(b).toString('base64'));
+
+    beforeAll(() => {
+        (globalThis as { Buffer?: unknown }).Buffer = undefined;
+    });
+    afterAll(() => {
+        globalThis.Buffer = buffer;
+    });
+
+    test('bytesToB64 writes what Buffer writes', () => {
+        samples.forEach((b, i) => expect(BytesUint8Array.bytesToB64(b)).toBe(expected[i]));
+    });
+
+    test('b64ToBytes reads it back', () => {
+        samples.forEach((b, i) =>
+            expect(Array.from(BytesUint8Array.b64ToBytes(expected[i]))).toEqual(Array.from(b)),
+        );
+    });
+});

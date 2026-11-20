@@ -317,3 +317,26 @@ describe('rpc methods send what the node reads', () => {
         }
     });
 });
+
+// A browser has no Buffer (#220): the same requests are sent without it.
+describe('rpc methods send the same without the Buffer global', () => {
+    const buffer = globalThis.Buffer;
+    beforeAll(() => {
+        (globalThis as { Buffer?: unknown }).Buffer = undefined;
+    });
+    afterAll(() => {
+        globalThis.Buffer = buffer;
+    });
+    beforeEach(() => {
+        sent.length = 0;
+    });
+
+    it.each(cases)('%s', async (_name, call, expected) => {
+        try {
+            await call();
+        } catch (e) {
+            if (e !== stop) throw e;
+        }
+        expect(sent).toEqual([expected]);
+    });
+});

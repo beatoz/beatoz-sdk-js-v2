@@ -16,7 +16,13 @@
 import { createHash } from 'crypto';
 import * as secp256k1 from 'ethereum-cryptography/secp256k1-compat.js';
 import { BytesUint8Array } from '@beatoz/web3-types';
-import { PrvKey, PubKey, TrxProtoBuilder, privateKeyToAccount } from '../../src';
+import {
+    PrvKey,
+    PubKey,
+    TrxProtoBuilder,
+    getContractAddress,
+    privateKeyToAccount,
+} from '../../src';
 
 // The hashes come from ethereum-cryptography so that the package builds for a
 // browser (#218). These check them against Node's crypto, which 1.x used.
@@ -70,5 +76,60 @@ describe('hashes match Node crypto', () => {
         const raw = BytesUint8Array.b64ToBytes(rawTransaction);
         expect(transactionHash).toBe(new BytesUint8Array(node('sha256', raw)).toHex());
         expect(TrxProtoBuilder.decodeTransaction(raw).hash).toBe(transactionHash);
+    });
+});
+
+// A browser has no Buffer (#220): signing gives the same bytes without it.
+describe('signing without the Buffer global', () => {
+    const buffer = globalThis.Buffer;
+    const key = new PrvKey().exportKey().toHex();
+    const tx = () =>
+        TrxProtoBuilder.buildTransferTrxProto({
+            from: privateKeyToAccount(key).address,
+            to: '15633e505d01691a71f40049e15ba1340c0eea29',
+            time: new Date('2026-11-21T00:00:00Z'),
+            nonce: 3,
+            gas: 1000000,
+            gasPrice: '250000000000',
+            amount: '1000000000000000000',
+        });
+    const withBuffer = (['v0', 'v1'] as const).map((scheme) =>
+        privateKeyToAccount(key).signTransaction(tx(), '0x1234', { scheme }),
+    );
+    const payerKey = new PrvKey().exportKey().toHex();
+    const signedTx = () => {
+        const t = tx();
+        TrxProtoBuilder.signTrxProto(t, privateKeyToAccount(key), '0x1234');
+        return t;
+    };
+    const payerWithBuffer = privateKeyToAccount(payerKey).signTransactionAsPayer(
+        signedTx(),
+        '0x1234',
+    );
+    const contract = getContractAddress(privateKeyToAccount(key).address, 7);
+
+    beforeAll(() => {
+        (globalThis as { Buffer?: unknown }).Buffer = undefined;
+    });
+    afterAll(() => {
+        globalThis.Buffer = buffer;
+    });
+
+    it('signs as sender, with v0 and v1', () => {
+        (['v0', 'v1'] as const).forEach((scheme, i) =>
+            expect(privateKeyToAccount(key).signTransaction(tx(), '0x1234', { scheme })).toEqual(
+                withBuffer[i],
+            ),
+        );
+    });
+
+    it('signs as payer', () => {
+        expect(privateKeyToAccount(payerKey).signTransactionAsPayer(signedTx(), '0x1234')).toEqual(
+            payerWithBuffer,
+        );
+    });
+
+    it('computes a contract address', () => {
+        expect(getContractAddress(privateKeyToAccount(key).address, 7)).toBe(contract);
     });
 });

@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Added
 
+- `BytesUint8Array.bytesToB64(bytes)`: base64 of a `Uint8Array`, the
+  reverse of `b64ToBytes` (#220). web3-accounts and web3-rpc use it in place
+  of Node's `Buffer`.
+
 - `SignScheme` (`'v0' | 'v1'`) and `SignOptions`; `Web3BaseWalletAccount.signTransaction`
   takes `SignOptions` as an optional third argument (#119).
 
@@ -311,6 +315,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   workspace packages and excluding `src/` from all of them.
 
 ### Fixed
+
+- `BytesUint8Array.b64ToBytes` used Node's `Buffer` where there is no
+  `window`, so it threw in a web worker (#220). It uses `atob`, a global in
+  browsers, workers and Node.
 
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`

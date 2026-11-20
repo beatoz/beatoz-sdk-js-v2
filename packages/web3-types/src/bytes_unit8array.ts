@@ -65,20 +65,23 @@ export class BytesUint8Array extends Uint8Array {
         return true;
     }
 
+    // atob and btoa are globals in browsers, web workers and Node 16+, where
+    // Buffer is Node's only (#220).
     static b64ToBytes(base64: string): BytesUint8Array {
-        const binary_string =
-            typeof window !== 'undefined'
-                ? window.atob(base64)
-                : Uint8Array.from(Buffer.from(base64, 'base64'));
-        const len = binary_string.length;
-        const bytes = new BytesUint8Array(len);
-        for (let i = 0; i < len; i++) {
-            if (typeof binary_string === 'string') {
-                bytes[i] = binary_string.charCodeAt(i);
-            } else {
-                bytes[i] = binary_string[i];
-            }
+        const binary = atob(base64);
+        const bytes = new BytesUint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
         }
         return bytes;
+    }
+
+    static bytesToB64(bytes: Uint8Array): string {
+        let binary = '';
+        // In chunks: String.fromCharCode takes each byte as an argument.
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        }
+        return btoa(binary);
     }
 }

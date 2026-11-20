@@ -147,7 +147,7 @@ function parseAddress(name: string, hex: string, allowEmpty = false): BytesUint8
  * the transaction as `invalid signature`.
  */
 function toUint256Bytes(n: BN): Uint8Array {
-    return n.isZero() ? new Uint8Array() : new Uint8Array(n.toArrayLike(Buffer));
+    return n.isZero() ? new Uint8Array() : new Uint8Array(n.toArray());
 }
 
 function decodeTransaction(d: BytesUint8Array): DecodedTransaction {

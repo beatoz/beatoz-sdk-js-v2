@@ -140,6 +140,11 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- Requests no longer use Node's `Buffer` for base64 (#220), so
+  `blockByHash`, `tx`, the broadcasts, `checkTx`, `vmCall` and
+  `vmEstimateGas` work in a browser app bundled with Vite or webpack 5, which
+  threw `Buffer is not defined`. The requests are byte-identical.
+
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`
   files as ES modules rather than CommonJS. Without it the runtime half of the

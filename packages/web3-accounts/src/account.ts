@@ -21,6 +21,7 @@ import { HexString, TrxProto, BytesUint8Array, SignOptions } from '@beatoz/web3-
 import { TrxProtoUtils } from './tx/trx_pb.js';
 import { checkScheme, signingPreimage, withSchemeV } from './tx/sign_scheme.js';
 import { sha256 } from 'ethereum-cryptography/sha256.js';
+import { equalsBytes } from 'ethereum-cryptography/utils.js';
 
 export const create = (): Web3Account => {
     const prvKey = new PrvKey();
@@ -108,7 +109,7 @@ export const signTransactionAsPayer = (
         );
     }
     const payer = new PubKey(privateKeyToPrvKey(privateKey)).toAddress();
-    if (Buffer.compare(payer, trxProto.from) === 0) {
+    if (equalsBytes(payer, trxProto.from)) {
         throw new InvalidInputError(
             'the payer must not be the sender; a sender pays its own fee without a payer',
         );
@@ -122,9 +123,9 @@ export const signTransactionAsPayer = (
 };
 
 function signedResult(trxProto: TrxProto): SignTransactionResult {
-    const rawTransaction = Buffer.from(TrxProtoUtils.encode(trxProto).finish());
+    const rawTransaction = TrxProtoUtils.encode(trxProto).finish();
     return {
-        rawTransaction: rawTransaction.toString('base64'),
+        rawTransaction: BytesUint8Array.bytesToB64(rawTransaction),
         transactionHash: new BytesUint8Array(sha256(rawTransaction)).toHex(),
     };
 }

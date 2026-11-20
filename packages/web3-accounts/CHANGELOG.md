@@ -300,6 +300,12 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- Signing no longer uses Node's `Buffer` (#220), so `signTransaction`,
+  `signTransactionAsPayer`, `TrxProtoBuilder.signTrxProto` and
+  `getContractAddress` work in a browser app bundled with Vite or webpack 5,
+  which threw `Buffer is not defined`. Signatures are byte-identical.
+  `RlpUtils.encodeTrxProto` returns a `Uint8Array` instead of a `Buffer`.
+
 - The package no longer imports Node's `crypto` (#218), so a browser app
   bundled with Vite or webpack 5 can sign: webpack 5 failed to build with
   `Can't resolve 'crypto'`, and Vite left `createHash` undefined. sha256,
