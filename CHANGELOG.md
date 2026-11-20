@@ -905,6 +905,10 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-types`: no longer imports Node's `assert` (#223), so a
+  browser app bundled with webpack 5 builds. A bad `block_id_flag` throws
+  `InvalidResponseError` instead of `AssertionError`.
+
 - `@beatoz/web3-core`: `new Web3()` no longer fails in a browser app bundled
   with Vite (#222); `Web3EventEmitter` no longer uses Node's `events`.
 

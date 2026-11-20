@@ -316,6 +316,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- The decoder no longer imports Node's `assert` (#223), so a browser app
+  bundled with webpack 5 builds (`Can't resolve 'assert'`). A commit
+  signature's `block_id_flag` that is not one of `BlockIdFlag`'s numbers
+  throws `InvalidResponseError` naming it, like any other bad value in a
+  response; it threw Node's `AssertionError`, and took a flag's name such as
+  `'Commit'`.
+
 - `BytesUint8Array.b64ToBytes` used Node's `Buffer` where there is no
   `window`, so it threw in a web worker (#220). It uses `atob`, a global in
   browsers, workers and Node.

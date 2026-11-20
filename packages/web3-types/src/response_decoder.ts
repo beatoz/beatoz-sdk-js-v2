@@ -53,7 +53,7 @@ import {
 } from './responses.js';
 import { apiToSmallInt } from './inthelpers.js';
 import { BytesUint8Array } from './bytes_unit8array.js';
-import assert from 'assert';
+import { formatValue, InvalidResponseError } from '@beatoz/web3-errors';
 
 // Zero for every typed rule parameter, in the JSON type the node uses for it.
 const ruleZeros: responses.RuleResponse['value'] = {
@@ -535,8 +535,16 @@ function decodeBlockResponse(data: RpcBlockResponse): responses.BlockResponse {
     };
 }
 
+// Without Node's assert, which browser bundlers do not provide, and with the
+// error every other bad value in a response gives (#223).
 function decodeBlockIdFlag(blockIdFlag: number): BlockIdFlag {
-    assert(blockIdFlag in BlockIdFlag);
+    if (typeof blockIdFlag !== 'number' || BlockIdFlag[blockIdFlag] === undefined) {
+        throw new InvalidResponseError(
+            `a block_id_flag in the response must be one of ${Object.values(BlockIdFlag)
+                .filter((v) => typeof v === 'number')
+                .join(', ')}, got ${formatValue(blockIdFlag)}`,
+        );
+    }
     return blockIdFlag;
 }
 
