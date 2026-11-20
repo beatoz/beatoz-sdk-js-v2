@@ -300,6 +300,13 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
+- The package no longer imports Node's `crypto` (#218), so a browser app
+  bundled with Vite or webpack 5 can sign: webpack 5 failed to build with
+  `Can't resolve 'crypto'`, and Vite left `createHash` undefined. sha256,
+  ripemd160 and new keys' random bytes come from `ethereum-cryptography`, which
+  the package already used for keccak256 and secp256k1. Hashes and signatures
+  are unchanged.
+
 - A transaction whose `time` is 0 (1970-01-01) is signed over the bytes the
   node verifies (#192). `ethereumjs-util` encoded that 0 as `0x00`, where the
   node (go-ethereum rlp, a `uint64`) writes `0x80`, so the node would have

@@ -905,6 +905,10 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-accounts`: no longer imports Node's `crypto` (#218), so a
+  browser app bundled with Vite or webpack 5 can sign. Hashes and signatures
+  are unchanged.
+
 - `@beatoz/web3-abi`: A `Uint8Array` is taken for `bytes` and `bytesN`, and encodes as its hex does
   (#213); it threw `invalid arrayify value`.
 

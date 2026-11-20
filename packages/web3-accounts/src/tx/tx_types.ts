@@ -16,7 +16,9 @@
 
 import { keccak256 } from 'ethereum-cryptography/keccak.js';
 import { BytesUint8Array } from '@beatoz/web3-types';
-import { createHash, randomBytes } from 'crypto';
+import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
+import { ripemd160 } from 'ethereum-cryptography/ripemd160.js';
+import { sha256 } from 'ethereum-cryptography/sha256.js';
 // The secp256k1 package's API, computed by noble (pure JS) rather than
 // elliptic, which the secp256k1 package falls back to in browsers.
 import * as secp256k1 from 'ethereum-cryptography/secp256k1-compat.js';
@@ -182,18 +184,13 @@ export class PubKey {
     }
 
     shaAddress(): BytesUint8Array {
-        const sha256 = createHash('sha256');
         const decompressed = new BytesUint8Array([...this.x, ...this.y]);
-        const hash = sha256.update(decompressed).digest();
+        const hash = sha256(decompressed);
         return new BytesUint8Array(hash.subarray(hash.length - 20));
     }
 
     btcAddress(): BytesUint8Array {
-        const sha256 = createHash('sha256');
-        const ripemd160 = createHash('ripemd160');
-        const hash = sha256.update(this.compressed).digest();
-        const addr = ripemd160.update(hash).digest();
-        return new BytesUint8Array(addr);
+        return new BytesUint8Array(ripemd160(sha256(this.compressed)));
     }
 
     ethAddress(): BytesUint8Array {
@@ -204,8 +201,7 @@ export class PubKey {
     }
 
     verify(sig: Uint8Array, msg: Uint8Array): boolean {
-        const sha256 = createHash('sha256');
-        const hmsg = sha256.update(msg).digest();
+        const hmsg = sha256(msg);
         const _sig = sig.subarray(0, 64);
 
         return secp256k1.ecdsaVerify(_sig, hmsg, this.compressed);
@@ -222,15 +218,14 @@ export class PrvKey {
     constructor() {
         let rn;
         do {
-            rn = randomBytes(32);
+            rn = getRandomBytesSync(32);
         } while (!secp256k1.privateKeyVerify(rn));
 
         this.d = new BytesUint8Array(rn);
     }
 
     sign(msg: Uint8Array): { signature: Uint8Array; recid: number } {
-        const sha256 = createHash('sha256');
-        const hmsg = sha256.update(msg).digest();
+        const hmsg = sha256(msg);
         return secp256k1.ecdsaSign(hmsg, this.d);
     }
 

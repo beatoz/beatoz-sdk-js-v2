@@ -20,7 +20,7 @@ import { BytesUint8Array } from '@beatoz/web3-types';
 import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import BN from 'bn.js';
 import { fromNanoSecond, getNanoSecond } from '@beatoz/web3-utils';
-import { createHash } from 'crypto';
+import { sha256 } from 'ethereum-cryptography/sha256.js';
 import { TrxProtoUtils } from './trx_pb.js';
 import { SignOptions, TrxProto } from '@beatoz/web3-types';
 import { checkScheme, schemeOf, signingPreimage, withSchemeV } from './sign_scheme.js';
@@ -153,11 +153,8 @@ function toUint256Bytes(n: BN): Uint8Array {
 function decodeTransaction(d: BytesUint8Array): DecodedTransaction {
     const tx = trxPb.TrxProtoUtils.decode(d);
 
-    const sha256 = createHash('sha256');
-    const hash = sha256.update(d).digest();
-
     const fields = {
-        hash: hash.toString('hex'),
+        hash: new BytesUint8Array(sha256(d)).toHex(),
         version: tx.version,
         time: fromNanoSecond(tx.time),
         nonce: tx.nonce.toNumber(),

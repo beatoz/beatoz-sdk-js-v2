@@ -20,7 +20,7 @@ import { PrvKey, PubKey } from './tx/tx_types.js';
 import { HexString, TrxProto, BytesUint8Array, SignOptions } from '@beatoz/web3-types';
 import { TrxProtoUtils } from './tx/trx_pb.js';
 import { checkScheme, signingPreimage, withSchemeV } from './tx/sign_scheme.js';
-import { createHash } from 'crypto';
+import { sha256 } from 'ethereum-cryptography/sha256.js';
 
 export const create = (): Web3Account => {
     const prvKey = new PrvKey();
@@ -123,9 +123,8 @@ export const signTransactionAsPayer = (
 
 function signedResult(trxProto: TrxProto): SignTransactionResult {
     const rawTransaction = Buffer.from(TrxProtoUtils.encode(trxProto).finish());
-    const transactionHash = createHash('sha256').update(rawTransaction).digest();
     return {
         rawTransaction: rawTransaction.toString('base64'),
-        transactionHash: transactionHash.toString('hex'),
+        transactionHash: new BytesUint8Array(sha256(rawTransaction)).toHex(),
     };
 }
