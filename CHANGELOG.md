@@ -905,6 +905,11 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-accounts`, `@beatoz/web3-rpc`, `@beatoz/web3-types`: no
+  longer use Node's `Buffer` (#220), so signing and requests work in a
+  browser app bundled with Vite or webpack 5. Signatures and requests are
+  byte-identical. New `BytesUint8Array.bytesToB64`.
+
 - `@beatoz/web3-accounts`: no longer imports Node's `crypto` (#218), so a
   browser app bundled with Vite or webpack 5 can sign. Hashes and signatures
   are unchanged.

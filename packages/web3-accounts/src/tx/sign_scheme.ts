@@ -16,6 +16,7 @@
 
 import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
 import { SignScheme, TrxProto } from '@beatoz/web3-types';
+import { concatBytes, hexToBytes, utf8ToBytes } from 'ethereum-cryptography/utils.js';
 import { RlpUtils } from './trx_rlp.js';
 
 /**
@@ -35,10 +36,10 @@ export function signingPreimage(
 ): Uint8Array {
     const rlp = RlpUtils.encodeTrxProto(trxProto);
     if (scheme === 'v1') {
-        return new Uint8Array(Buffer.concat([rlp, chainIdBytes(chainId)]));
+        return concatBytes(rlp, chainIdBytes(chainId));
     }
     const prefix = `\x19BEATOZ(${chainId}) Signed Message:\n${rlp.length}`;
-    return new Uint8Array(Buffer.concat([Buffer.from(prefix), rlp]));
+    return concatBytes(utf8ToBytes(prefix), rlp);
 }
 
 /** The scheme a signature was made with, from its last byte (`v`). */
@@ -68,7 +69,7 @@ export function checkScheme(scheme: unknown): SignScheme {
 
 // The chain id as the node's uint256 holds it (beatoz-go cmd/config/config.go:
 // hex with 0x, decimal without), as its minimal big-endian bytes; 0 is empty.
-function chainIdBytes(chainId: string): Buffer {
+function chainIdBytes(chainId: string): Uint8Array {
     let value: bigint;
     if (/^0x[0-9a-fA-F]+$/.test(chainId)) {
         value = BigInt(chainId);
@@ -83,6 +84,6 @@ function chainIdBytes(chainId: string): Buffer {
     if (hex.length > 64) {
         throw new InvalidInputError(`chainId must fit in 256 bits, got ${formatValue(chainId)}`);
     }
-    if (hex === '0') return Buffer.alloc(0);
-    return Buffer.from(hex.length % 2 ? '0' + hex : hex, 'hex');
+    if (hex === '0') return new Uint8Array();
+    return hexToBytes(hex.length % 2 ? '0' + hex : hex);
 }

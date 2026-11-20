@@ -28,7 +28,7 @@ import {
 import * as trxPb from './trx_pb.js';
 
 export const RlpUtils = {
-    encodeTrxProto(trx: TrxProto): Buffer {
+    encodeTrxProto(trx: TrxProto): Uint8Array {
         let payload;
         switch (trx.type) {
             case 1: // transfer
@@ -107,6 +107,6 @@ export const RlpUtils = {
             payload,
             trx.sig,
         ]);
-        return Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength);
+        return encoded;
     },
 };

@@ -139,7 +139,7 @@ export async function blockByHash(
     return ResponsesDecoder.decodeBlockByHash(
         await requestManager.send({
             method: 'block_by_hash',
-            params: { hash: Buffer.from(hash).toString('base64') },
+            params: { hash: BytesUint8Array.bytesToB64(hash) },
         }),
     );
 }
@@ -307,7 +307,7 @@ export async function tx(
     return ResponsesDecoder.decodeTx(
         await requestManager.send({
             method: 'tx',
-            params: { hash: Buffer.from(hash).toString('base64'), prove: true },
+            params: { hash: BytesUint8Array.bytesToB64(hash), prove: true },
         }),
     );
 }
@@ -366,7 +366,7 @@ export async function checkTx(
     return ResponsesDecoder.decodeCheckTx(
         await requestManager.send({
             method: 'check_tx',
-            params: { tx: Buffer.from(txbz).toString('base64') },
+            params: { tx: BytesUint8Array.bytesToB64(txbz) },
         }),
     );
 }
@@ -392,7 +392,7 @@ export async function broadcastTxAsync(
     return ResponsesDecoder.decodeBroadcastTxAsync(
         await requestManager.send({
             method: 'broadcast_tx_async',
-            params: { tx: Buffer.from(txbz).toString('base64') },
+            params: { tx: BytesUint8Array.bytesToB64(txbz) },
         }),
     );
 }
@@ -407,7 +407,7 @@ export async function broadcastTxSync(
     return ResponsesDecoder.decodeBroadcastTxSync(
         await requestManager.send({
             method: 'broadcast_tx_sync',
-            params: { tx: Buffer.from(txbz).toString('base64') },
+            params: { tx: BytesUint8Array.bytesToB64(txbz) },
         }),
     );
 }
@@ -422,7 +422,7 @@ export async function broadcastTxCommit(
     return ResponsesDecoder.decodeBroadcastTxCommit(
         await requestManager.send({
             method: 'broadcast_tx_commit',
-            params: { tx: Buffer.from(txbz).toString('base64') },
+            params: { tx: BytesUint8Array.bytesToB64(txbz) },
         }),
     );
 }
@@ -627,7 +627,7 @@ export async function vmCall(
                 addr: addr,
                 to: to,
                 height: height.toString(10),
-                data: Buffer.from(BytesUint8Array.fromHex(data)).toString('base64'),
+                data: BytesUint8Array.bytesToB64(BytesUint8Array.fromHex(data)),
             },
         }),
     );
@@ -653,7 +653,7 @@ export async function vmEstimateGas(
                 addr: addr,
                 to: to,
                 height: '0',
-                data: Buffer.from(BytesUint8Array.fromHex(data)).toString('base64'),
+                data: BytesUint8Array.bytesToB64(BytesUint8Array.fromHex(data)),
             },
         }),
     );
