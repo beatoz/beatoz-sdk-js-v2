@@ -116,6 +116,8 @@ const browserContext = () => {
         TextEncoder,
         TextDecoder,
         crypto: webcrypto,
+        atob,
+        btoa,
         console,
         setTimeout,
         clearTimeout,
