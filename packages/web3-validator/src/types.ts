@@ -15,7 +15,6 @@
 */
 
 import { AbiParameter } from '@beatoz/web3-types';
-import { ValidationError } from 'is-my-json-valid';
 
 export type ValidInputTypes = Uint8Array | bigint | string | number | boolean;
 export type BeatozBaseTypes = 'bool' | 'bytes' | 'string' | 'uint' | 'int' | 'address' | 'tuple';
@@ -46,98 +45,47 @@ export type Web3ValidationOptions = {
     readonly silent: boolean;
 };
 
-// is-my-json-valid types
 export type Json = string | number | boolean | Array<Json> | { [id: string]: Json };
 
+/**
+ * A JSON schema as the validator checks it: the keywords the SDK builds from
+ * ABI types, and the ones web3.js's validator also takes (#226). Any other
+ * keyword makes the validator throw `InvalidInputError`.
+ */
 export type Schema = {
-    // version
-    $schema?: string;
-    $vocabulary?: string;
-    // pointers
-    id?: string;
-    $id?: string;
-    $anchor?: string;
-    $ref?: string;
-    definitions?: { [id: string]: Schema };
-    $defs?: { [id: string]: Schema };
-    $recursiveRef?: string;
-    $recursiveAnchor?: boolean;
-    // generic
+    /** `array`, `object`, `string`, `number`, `integer`, `boolean` or `null`, or a list of them. */
     type?: string | Array<string>;
-    required?: Array<string> | boolean;
-    default?: Json;
-    // constant values
-    enum?: Array<Json>;
-    const?: Json;
-    // logical checks
-    not?: Schema;
-    allOf?: Array<Schema>;
-    anyOf?: Array<Schema>;
-    oneOf?: Array<Schema>;
-    if?: Schema;
-    then?: Schema;
-    else?: Schema;
-    // numbers
-    maximum?: number;
-    minimum?: number;
-    exclusiveMaximum?: number | boolean;
-    exclusiveMinimum?: number | boolean;
-    multipleOf?: number;
-    divisibleBy?: number;
-    // arrays, basic
-    maxItems?: number;
+    items?: Schema | Schema[];
     minItems?: number;
-    additionalItems?: Schema;
-    // arrays, complex
-    contains?: Schema;
-    minContains?: number;
-    maxContains?: number;
-    uniqueItems?: boolean;
-    // strings
-    maxLength?: number;
-    minLength?: number;
+    maxItems?: number;
+    /** A format of the package's own: `address`, `uint256`, `bytes32`, ... */
     format?: string;
-    pattern?: string;
-    // strings content
-    contentEncoding?: string;
-    contentMediaType?: string;
-    contentSchema?: Schema;
-    // objects
+    required?: Array<string> | boolean;
     properties?: { [id: string]: Schema };
-    maxProperties?: number;
-    minProperties?: number;
-    additionalProperties?: Schema;
-    patternProperties?: { [pattern: string]: Schema };
-    propertyNames?: Schema;
-    dependencies?: { [id: string]: Array<string> | Schema };
-    dependentRequired?: { [id: string]: Array<string> };
-    dependentSchemas?: { [id: string]: Schema };
-    // see-through
-    unevaluatedProperties?: Schema;
-    unevaluatedItems?: Schema;
-    // Unused meta keywords not affecting validation (annotations and comments)
-    // https://json-schema.org/understanding-json-schema/reference/generic.html
-    // https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.9
+    oneOf?: Array<Schema>;
+    // Annotations, which do not change what passes.
+    $id?: string;
+    id?: string;
+    $schema?: string;
     title?: string;
     description?: string;
-    deprecated?: boolean;
+    $comment?: string;
+    default?: Json;
+    examples?: Array<Json>;
     readOnly?: boolean;
     writeOnly?: boolean;
-    examples?: Array<Json>;
-    $comment?: string;
-    // optimization hint and error filtering only, does not affect validation result
-    discriminator?: { propertyName: string; mapping?: { [value: string]: string } };
-    readonly beatoz?: string;
-    items?: Schema | Schema[];
+    deprecated?: boolean;
 };
 
-export interface Validate {
-    (value: Json): boolean;
-
-    errors?: ValidationError[];
-}
-
-export type RawValidationError = ValidationError & {
+/**
+ * An error as the schema check reports it, in the shape is-my-json-valid
+ * gave, before the validator turns it into a `Web3ValidationErrorObject`.
+ */
+export type RawValidationError = {
+    field: string;
+    message: string;
+    value: unknown;
+    type: string;
     schemaPath: string[];
 };
 

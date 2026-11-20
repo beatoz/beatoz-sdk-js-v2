@@ -15,12 +15,9 @@
 */
 
 import { Web3ValidationErrorObject } from '@beatoz/web3-types';
-import { toHex, utf8ToBytes } from 'ethereum-cryptography/utils.js';
-import { blake2b } from 'ethereum-cryptography/blake2b.js';
-import validator from 'is-my-json-valid';
-import formats from './formats.js';
 import { Web3ValidatorError } from './errors.js';
-import { Validate, Json, Schema, RawValidationError } from './types.js';
+import { checkSchema } from './schema_check.js';
+import { Json, Schema, RawValidationError } from './types.js';
 
 export class Validator {
     private static validatorInstance?: Validator;
@@ -34,34 +31,10 @@ export class Validator {
         return Validator.validatorInstance;
     }
 
-    private readonly _schemas: Map<string, Validate> = new Map();
-
-    public getSchema(key: string) {
-        return this._schemas.get(key);
-    }
-
-    public addSchema(key: string, schema: Schema) {
-        this._schemas.set(key, this.createValidator(schema));
-    }
-
-    private createValidator(schema: Schema): Validate {
-        // @ts-expect-error validator params correction
-        return validator(schema, {
-            formats,
-            greedy: true,
-            verbose: true,
-            additionalProperties: false,
-        }) as Validate;
-    }
-
     public validate(schema: Schema, data: Json, options?: { silent?: boolean }) {
-        const localValidate = this.getOrCreateValidator(schema);
-        if (!localValidate(data)) {
-            const errors = this.convertErrors(
-                localValidate.errors as RawValidationError[],
-                schema,
-                data,
-            );
+        const rawErrors = checkSchema(schema, data);
+        if (rawErrors.length > 0) {
+            const errors = this.convertErrors(rawErrors, schema, data);
             if (errors) {
                 if (options?.silent) {
                     return errors;
@@ -143,21 +116,6 @@ export class Validator {
             });
         }
         return undefined;
-    }
-
-    public getOrCreateValidator(schema: Schema): Validate {
-        const key = Validator.getKey(schema);
-        let _validator = this.getSchema(key);
-        if (!_validator) {
-            this.addSchema(key, schema);
-            _validator = this.getSchema(key);
-        }
-
-        return _validator!;
-    }
-
-    public static getKey(schema: Schema) {
-        return toHex(blake2b(utf8ToBytes(JSON.stringify(schema))));
     }
 
     private getObjectValueByPath(obj: object, pointer: string, objpath?: object[]) {
