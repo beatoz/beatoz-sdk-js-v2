@@ -905,6 +905,9 @@ entries below name the packages they apply to.
 
 ### Fixed
 
+- `@beatoz/web3-core`: `new Web3()` no longer fails in a browser app bundled
+  with Vite (#222); `Web3EventEmitter` no longer uses Node's `events`.
+
 - `@beatoz/web3-accounts`, `@beatoz/web3-rpc`, `@beatoz/web3-types`: no
   longer use Node's `Buffer` (#220), so signing and requests work in a
   browser app bundled with Vite or webpack 5. Signatures and requests are
