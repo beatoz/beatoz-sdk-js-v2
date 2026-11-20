@@ -77,7 +77,7 @@ function refuse(message: string): never {
 }
 
 /** Throws for a keyword or type the checker does not take, whatever the data. */
-export function assertSupportedSchema(schema: unknown): void {
+function assertSupportedSchema(schema: unknown): void {
     if (typeof schema !== 'object' || schema === null || Array.isArray(schema)) {
         refuse(`a schema must be an object, got ${formatValue(schema)}`);
     }
