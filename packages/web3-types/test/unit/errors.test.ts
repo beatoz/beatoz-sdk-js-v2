@@ -14,7 +14,8 @@
     limitations under the License.
 */
 import { InvalidInputError, InvalidResponseError } from '@beatoz/web3-errors';
-import { BytesUint8Array, ResponsesDecoder } from '../../src';
+import { BlockIdFlag, BytesUint8Array, ResponsesDecoder } from '../../src';
+import events from './fixtures/subscription_events.json';
 
 // A response whose values are not the shapes the node sends is the node's
 // fault, not the caller's: decoding it throws InvalidResponseError.
@@ -43,5 +44,31 @@ describe('decoding errors', () => {
 
     it('refuses bad hex from the caller as an InvalidInputError', () => {
         expect(() => BytesUint8Array.fromHex('zz')).toThrow(InvalidInputError);
+    });
+});
+
+// The commit the node sent for block 2905, with its signature's flag replaced.
+const commitWithFlag = (flag: unknown) => {
+    const block = events.newBlock.data.value.block;
+    const commit = JSON.parse(JSON.stringify(block.last_commit));
+    commit.signatures[0].block_id_flag = flag;
+    return () =>
+        ResponsesDecoder.decodeCommit(
+            response({ canonical: true, signed_header: { header: block.header, commit } }),
+        );
+};
+
+describe('block_id_flag (#223)', () => {
+    it('reads each flag the node defines', () => {
+        for (const flag of [0, 1, 2, 3, -1]) {
+            expect(commitWithFlag(flag)().signed_header.commit.signatures[0].block_id_flag).toBe(
+                flag as BlockIdFlag,
+            );
+        }
+    });
+
+    it.each([[4], ['Commit'], ['2'], [null]])('refuses %p as an InvalidResponseError', (flag) => {
+        expect(commitWithFlag(flag)).toThrow(InvalidResponseError);
+        expect(commitWithFlag(flag)).toThrow('a block_id_flag in the response must be one of');
     });
 });
