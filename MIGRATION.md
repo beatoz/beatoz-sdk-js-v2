@@ -81,6 +81,11 @@ try {
 ```
 
 Code that parsed the old error message reads `data` instead.
+
+`Web3ValidatorError.errors` name the failing keyword and, as JSON pointers,
+where the value is (`instancePath: '/0/1'`) and which part of the schema
+failed. In 1.x `keyword` held a field name and nested paths were wrong; the
+message for a top-level value reads as before.
 [docs/errors.md](docs/errors.md) lists every class.
 
 ## 4. Contracts

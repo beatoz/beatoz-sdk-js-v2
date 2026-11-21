@@ -15,26 +15,36 @@
 */
 
 import { checkAddressCheckSum, isAddress } from '../../../src/validation/address';
+import { InvalidInputError } from '@beatoz/web3-errors';
 import * as fs from 'fs';
 import * as path from 'path';
-import { InvalidInputError } from '@beatoz/web3-errors';
 import { validator } from '../../../src';
-import { cases, serialize } from './schema_cases';
+import { cases, verdict } from './schema_cases';
 
-// What is-my-json-valid 2.20.6 answered for each case, recorded before the
-// validator stopped using it (#226). The validator must answer the same.
-const baseline: Array<{ label: string; result: unknown }> = fs
+// Whether is-my-json-valid 2.20.6 passed or refused each case, recorded before
+// the validator stopped using it (#226).
+const baseline: Array<{ label: string; verdict: string }> = fs
     .readFileSync(path.join(__dirname, '../../fixtures/validator_baseline.jsonl'), 'utf8')
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
 
-// Where is-my-json-valid threw a TypeError (reading a property of null), the
-// validator now answers; these cases are checked below instead.
-const crashed = (result: unknown) =>
-    (result as { thrown?: { $error?: string } }).thrown?.$error === 'TypeError';
+// The answers #229 changed on purpose.
+// - `properties` apply to an object only: is-my-json-valid read them from any
+//   value, so a number lacked "a", and null threw a TypeError.
+const propertiesOfNonObject = (label: string) =>
+    label.startsWith('validateJSONSchema({"properties":{"a":{"format":"uint","required":true}');
+// - array elements are checked against their size, and every row of a nested
+//   array is checked.
+const nowRefused = new Set([
+    'validate(["uint8[2]"], [[256,256]])',
+    'validate(["uint8[2]"], [["0xabababababababababababababababababababab","0xabababababababababababababababababababab"]])',
+    'validate(["bytes32[1]"], [["0xabababababababababababababababababababab"]])',
+    'validate(["bytes32[1]"], [[[1]]])',
+    'validate(["int8[2][]"], [[[1,2],[3]]])',
+]);
 
-describe('validator answers as is-my-json-valid did', () => {
+describe('validator passes and refuses as is-my-json-valid did', () => {
     const all = cases();
 
     it('has the recorded cases', () => {
@@ -42,28 +52,22 @@ describe('validator answers as is-my-json-valid did', () => {
         expect(all.length).toBeGreaterThan(2500);
     });
 
-    it('gives the recorded result for each case', () => {
-        const mismatches: string[] = [];
+    it('gives the recorded answer, but where #229 changed it', () => {
+        const unexpected: string[] = [];
+        const refused: string[] = [];
         all.forEach((c, i) => {
-            if (crashed(baseline[i].result)) return;
-            const got = serialize(c.run());
-            if (JSON.stringify(got) !== JSON.stringify(baseline[i].result)) {
-                mismatches.push(
-                    `${c.label}\n  was ${JSON.stringify(baseline[i].result)}\n  now ${JSON.stringify(got)}`,
-                );
+            const was = baseline[i].verdict;
+            const now = verdict(c.run());
+            if (now === was) return;
+            if (now === 'pass' && propertiesOfNonObject(c.label)) return;
+            if (was === 'pass' && now === 'fail' && nowRefused.has(c.label)) {
+                refused.push(c.label);
+                return;
             }
+            unexpected.push(`${c.label}: was ${was}, now ${now}`);
         });
-        expect(mismatches.slice(0, 5)).toEqual([]);
-    });
-
-    it('answers where is-my-json-valid threw a TypeError', () => {
-        const fixed = all.filter((_, i) => crashed(baseline[i].result));
-        expect(fixed).toHaveLength(2);
-        for (const c of fixed) {
-            expect(serialize(c.run())).toEqual({
-                silent: [expect.objectContaining({ instancePath: '/a', message: 'is required' })],
-            });
-        }
+        expect(unexpected).toEqual([]);
+        expect(refused.sort()).toEqual([...nowRefused].sort());
     });
 });
 

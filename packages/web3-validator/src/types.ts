@@ -77,16 +77,4 @@ export type Schema = {
     deprecated?: boolean;
 };
 
-/**
- * An error as the schema check reports it, in the shape is-my-json-valid
- * gave, before the validator turns it into a `Web3ValidationErrorObject`.
- */
-export type RawValidationError = {
-    field: string;
-    message: string;
-    value: unknown;
-    type: string;
-    schemaPath: string[];
-};
-
 export type JsonSchema = Schema;

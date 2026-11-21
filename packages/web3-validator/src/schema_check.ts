@@ -15,8 +15,9 @@
 */
 
 import { formatValue, InvalidInputError } from '@beatoz/web3-errors';
+import { Web3ValidationErrorObject } from '@beatoz/web3-types';
 import formats from './formats.js';
-import { Json, RawValidationError, Schema } from './types.js';
+import { Json, Schema } from './types.js';
 
 /*
  * Checks a value against the JSON schemas the validator builds from ABI types,
@@ -26,9 +27,9 @@ import { Json, RawValidationError, Schema } from './types.js';
  *
  * It takes the keywords web3.js's validator also takes (`type`, `items`,
  * `minItems`, `maxItems`, `format`, `required`, `properties`, `oneOf`), and
- * gives the errors is-my-json-valid gave for them, field names and order
- * included: `Validator.convertErrors` turns those into the SDK's errors, and
- * test/fixtures/validator_baseline.jsonl holds what is-my-json-valid answered.
+ * checks them in is-my-json-valid's order. Each error names its keyword, the
+ * value's place in the data and the keyword's place in the schema, as JSON
+ * pointers (#229).
  */
 
 const TYPES: Record<string, (value: unknown) => boolean> = {
@@ -111,59 +112,66 @@ function assertSupportedSchema(schema: unknown): void {
     }
 }
 
-// is-my-json-valid names a field by the code it generated: `.name` for a
-// property that is an identifier, `["name"]` otherwise (so `["0"]` for a tuple
-// item), and `.<index>` for an element of an array. Identifiers are taken as
-// ASCII here; it also took other Unicode letters.
-const IDENTIFIER = /^[$A-Z_a-z][$\w]*$/;
-const childField = (field: string, key: string) =>
-    IDENTIFIER.test(key) ? `${field}.${key}` : `${field}[${JSON.stringify(key)}]`;
+// A JSON pointer (RFC 6901) from path segments.
+const pointer = (segments: string[]) =>
+    segments.map((s) => `/${s.replace(/~/g, '~0').replace(/\//g, '~1')}`).join('');
 
-type Context = { errors: RawValidationError[]; count: number };
+type Context = { errors: Web3ValidationErrorObject[]; count: number };
 
 function visit(
     value: unknown,
     node: Schema,
-    field: string,
+    dataPath: string[],
     schemaPath: string[],
     report: boolean,
     ctx: Context,
 ): void {
     const tuple = Array.isArray(node.items);
     const type = tuple ? 'array' : node.type;
-    const error = (message: string, errorField = field, errorValue: unknown = value) => {
+    const error = (
+        keyword: string,
+        message: string,
+        params: Record<string, unknown>,
+        at: string[] = dataPath,
+    ) => {
         ctx.count += 1;
         if (report) {
             ctx.errors.push({
-                field: errorField,
+                keyword,
+                instancePath: pointer(at),
+                schemaPath: `#${pointer([...schemaPath, keyword])}`,
+                params,
                 message,
-                value: errorValue,
-                type: type as string,
-                schemaPath,
             });
         }
     };
 
     if (value === undefined) {
-        if (node.required === true) error('is required');
+        if (node.required === true) {
+            error('required', 'is required', { missingProperty: dataPath[dataPath.length - 1] });
+        }
         return;
     }
 
     const types = ([] as Array<string | undefined>).concat(type);
     if (!types.some((t) => TYPES[t ?? 'any'](value))) {
-        error('is the wrong type');
+        error('type', `must be ${types.join(' or ')}`, { value, type });
         return;
     }
 
     if (node.format && hasOwn(formats, node.format)) {
-        if (!formats[node.format](value)) error(`must be ${node.format} format`);
+        if (!formats[node.format](value)) {
+            error('format', `must pass "${node.format}" validation`, {
+                value,
+                format: node.format,
+            });
+        }
     }
 
     if (Array.isArray(node.required) && TYPES.object(value)) {
         for (const name of node.required) {
             if ((value as Record<string, unknown>)[name] === undefined) {
-                // is-my-json-valid gave the object as the value.
-                error('is required', childField(field, name), value);
+                error('required', 'is required', { missingProperty: name }, [...dataPath, name]);
             }
         }
     }
@@ -173,7 +181,7 @@ function visit(
             visit(
                 item,
                 node.items as Schema,
-                `${field}.${i}`,
+                [...dataPath, String(i)],
                 [...schemaPath, 'items'],
                 report,
                 ctx,
@@ -184,34 +192,51 @@ function visit(
     if (node.oneOf && node.oneOf.length > 0) {
         const before = ctx.count;
         let passes = 0;
-        for (const option of node.oneOf) {
-            visit(value, option, field, schemaPath, false, ctx);
+        node.oneOf.forEach((option, i) => {
+            visit(value, option, dataPath, [...schemaPath, 'oneOf', String(i)], false, ctx);
             if (ctx.count === before) passes += 1;
             else ctx.count = before;
+        });
+        if (passes !== 1) {
+            error('oneOf', 'must match exactly one schema in oneOf', {
+                value,
+                passingSchemas: passes,
+            });
         }
-        if (passes !== 1) error('no (or more than one) schemas match');
     }
 
     if (node.maxItems !== undefined && Array.isArray(value) && value.length > node.maxItems) {
-        error('has more items than allowed');
+        error('maxItems', `must NOT have more than ${node.maxItems} items`, {
+            limit: node.maxItems,
+        });
     }
     if (node.minItems !== undefined && Array.isArray(value) && value.length < node.minItems) {
-        error('has less items than allowed');
+        error('minItems', `must NOT have fewer than ${node.minItems} items`, {
+            limit: node.minItems,
+        });
     }
 
-    const properties: Record<string, Schema> | undefined = tuple
-        ? Object.fromEntries((node.items as Schema[]).map((item, i) => [String(i), item]))
-        : node.properties;
-    if (properties) {
-        const skipNull = Array.isArray(type) && type.includes('null') && value === null;
-        for (const key of skipNull ? [] : Object.keys(properties)) {
-            // is-my-json-valid threw a TypeError reading a property of null.
-            const child = value === null ? undefined : (value as Record<string, unknown>)[key];
+    if (tuple) {
+        (node.items as Schema[]).forEach((item, i) =>
             visit(
-                child,
-                properties[key],
-                childField(field, key),
-                tuple ? [...schemaPath, key] : [...schemaPath, 'properties', key],
+                (value as unknown[])[i],
+                item,
+                [...dataPath, String(i)],
+                [...schemaPath, 'items', String(i)],
+                report,
+                ctx,
+            ),
+        );
+    }
+    // Properties apply to an object only. is-my-json-valid read them from any
+    // value, so a string's characters counted and null threw a TypeError.
+    if (node.properties && TYPES.object(value)) {
+        for (const key of Object.keys(node.properties)) {
+            visit(
+                (value as Record<string, unknown>)[key],
+                node.properties[key],
+                [...dataPath, key],
+                [...schemaPath, 'properties', key],
                 report,
                 ctx,
             );
@@ -220,11 +245,11 @@ function visit(
 }
 
 /** The errors of `data` against `schema`, empty when it passes. */
-export function checkSchema(schema: Schema, data: Json | undefined): RawValidationError[] {
+export function checkSchema(schema: Schema, data: Json | undefined): Web3ValidationErrorObject[] {
     assertSupportedSchema(schema);
     const ctx: Context = { errors: [], count: 0 };
-    // is-my-json-valid read undefined data as null, which JSON has.
+    // Undefined data is read as null, which JSON has, as is-my-json-valid did.
     // eslint-disable-next-line unicorn/no-null
-    visit(data === undefined ? null : data, schema, 'data', [], true, ctx);
+    visit(data === undefined ? null : data, schema, [], [], true, ctx);
     return ctx.errors;
 }

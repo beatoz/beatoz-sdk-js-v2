@@ -33,9 +33,9 @@ const formats: { [key: string]: (data: unknown) => boolean } = {
     number: (data: unknown) => isNumber(data as ValidInputTypes),
     string: (data: unknown) => isString(data as ValidInputTypes),
 };
-// generate formats for all numbers types
-for (let i = 3; i <= 8; i += 1) {
-    const bitSize = 2 ** i;
+// Every size Solidity has, 8 to 256 bits in steps of 8 (#229). Only the powers
+// of two had a format, so uint24 or int40 values were not checked at all.
+for (let bitSize = 8; bitSize <= 256; bitSize += 8) {
     formats[`int${bitSize}`] = (data) => isInt(data as ValidInputTypes, { bitSize });
     formats[`uint${bitSize}`] = (data) => isUInt(data as ValidInputTypes, { bitSize });
 }

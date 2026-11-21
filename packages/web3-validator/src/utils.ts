@@ -63,7 +63,7 @@ export const parseBaseType = <T = (typeof VALID_BEATOZ_BASE_TYPES)[number]>(
         baseTypeSize = parseInt(strippedType.substring(3), 10);
         strippedType = 'int';
     } else if (strippedType.startsWith('uint')) {
-        baseTypeSize = parseInt(type.substring(4), 10);
+        baseTypeSize = parseInt(strippedType.substring(4), 10);
         strippedType = 'uint';
     } else if (strippedType.startsWith('bytes')) {
         baseTypeSize = parseInt(strippedType.substring(5), 10);
@@ -168,73 +168,31 @@ export const abiSchemaToJsonSchema = (
             }
         }
 
-        const { baseType, isArray, arraySizes } = parseBaseType(abiType);
+        const { baseType, baseTypeSize, arraySizes } = parseBaseType(abiType);
 
-        let childSchema: JsonSchema;
-        let lastSchema = schema;
-        for (let i = arraySizes.length - 1; i > 0; i -= 1) {
-            childSchema = {
-                type: 'array',
-                items: [],
-                maxItems: arraySizes[i],
-                minItems: arraySizes[i],
-            };
-
-            if (arraySizes[i] < 0) {
-                delete childSchema.maxItems;
-                delete childSchema.minItems;
+        // The element: a tuple's own schema, or the base type with its size
+        // (uint8, bytes4). Arrays lost the size, so their elements were
+        // checked as uint or bytes of any size (#229).
+        let item: JsonSchema =
+            baseType === 'tuple'
+                ? abiSchemaToJsonSchema(abiComponents, abiName)
+                : {
+                      ...convertBeatozType(
+                          baseType ? `${String(baseType)}${baseTypeSize ?? ''}` : abiType,
+                      ),
+                  };
+        // Then each array dimension, innermost first: uint8[2][3] is three
+        // arrays of two. Each one is an array of the next, where a nested
+        // dimension used to become a one-item tuple, so only the first row
+        // was checked (#229).
+        for (const size of arraySizes) {
+            item = { type: 'array', items: item };
+            if (size >= 0) {
+                item.minItems = size;
+                item.maxItems = size;
             }
-
-            lastSchema.items = childSchema;
-            lastSchema = childSchema;
         }
-
-        if (baseType === 'tuple' && !isArray) {
-            const nestedTuple = abiSchemaToJsonSchema(abiComponents, abiName);
-            nestedTuple.$id = abiName;
-            (lastSchema.items as JsonSchema[]).push(nestedTuple);
-        } else if (baseType === 'tuple' && isArray) {
-            const arraySize = arraySizes[0];
-            const item: JsonSchema = {
-                $id: abiName,
-                type: 'array',
-                items: abiSchemaToJsonSchema(abiComponents, abiName),
-                maxItems: arraySize,
-                minItems: arraySize,
-            };
-
-            if (arraySize < 0) {
-                delete item.maxItems;
-                delete item.minItems;
-            }
-
-            (lastSchema.items as JsonSchema[]).push(item);
-        } else if (isArray) {
-            const arraySize = arraySizes[0];
-            const item: JsonSchema = {
-                type: 'array',
-                $id: abiName,
-                items: convertBeatozType(String(baseType)),
-                minItems: arraySize,
-                maxItems: arraySize,
-            };
-
-            if (arraySize < 0) {
-                delete item.maxItems;
-                delete item.minItems;
-            }
-
-            (lastSchema.items as JsonSchema[]).push(item);
-        } else if (Array.isArray(lastSchema.items)) {
-            // Array of non-tuple items
-            lastSchema.items.push({ $id: abiName, ...convertBeatozType(abiType) });
-        } else {
-            // Nested object
-            ((lastSchema.items as JsonSchema).items as JsonSchema[]).push({
-                $id: abiName,
-                ...convertBeatozType(abiType),
-            });
-        }
+        (schema.items as JsonSchema[]).push({ $id: abiName, ...item });
     }
 
     return schema;

@@ -46,9 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
   builds from ABI types and the ones web3.js's validator also takes: `type`,
   `items` (a tuple or one schema), `minItems`, `maxItems`, `format`,
   `required` (`true`, or a list of property names), `properties` and `oneOf`.
-  The errors are the ones `is-my-json-valid` gave, message, path and order
-  included; `test/fixtures/validator_baseline.jsonl` records its answers for
-  2,800 inputs, and the validator gives the same. A schema passed to
+  It passes and refuses what `is-my-json-valid` did, but where #229 below
+  changed it on purpose; `test/fixtures/validator_baseline.jsonl` records its
+  answers for 2,800 inputs. A schema passed to
   `validateJSONSchema` with any other keyword (`pattern`, `enum`, `$ref`,
   `minimum`, ...) or type throws `InvalidInputError` instead of being
   checked, and the string formats `is-my-json-valid` had built in (`email`,
@@ -101,8 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 ### Removed
 
 - **BREAKING:** The `Validate` type, `is-my-json-valid`'s compiled
-  validator (#226). `RawValidationError` is now declared in the package with
-  the same fields.
+  validator, and `RawValidationError`, its error (#226, #229). The validator
+  reports `Web3ValidationErrorObject`s directly.
 
 - **BREAKING:** The CommonJS build is gone. `lib/commonjs` is no longer built
   or published, and the package ships ESM only.
@@ -131,9 +131,36 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Fixed
 
-- `validateJSONSchema` with a `properties` schema that has no `type`, given
-  `null`, threw a `TypeError` from inside `is-my-json-valid` (#226). It now
-  reports each required property as missing.
+- **BREAKING:** Array parameters are checked element by element against
+  their type's size (#229): `uint8[2]` took `[1, 300]`, `bytes4[]` took a
+  5-byte value, because an array's elements were checked as `uint` or
+  `bytes` of any size. A nested array checks every row: `bool[2][3]` checked
+  only the first, as its schema made the inner dimension a one-item tuple,
+  which also replaced the other parameters' schemas when it came after
+  them. Contract arguments were still refused by the ABI coder, so nothing
+  wrong was sent; `validate` and the `utils` that use it accepted them.
+
+- **BREAKING:** `int` and `uint` of every size, 8 to 256 bits in steps of 8,
+  are checked (#229). Only the powers of two had a format, so `uint24` or
+  `int40` took any value.
+
+- **BREAKING:** Each validation error names its keyword (`format`, `type`,
+  `required`, `minItems`, `maxItems`, `oneOf`), the value's place in the data
+  (`instancePath`, a JSON pointer such as `/0/1/0`) and the keyword's place
+  in the schema (`schemaPath`, such as `#/items/0/items/1/format`) (#229).
+  For anything nested they were wrong: `keyword` held is-my-json-valid's
+  field name (`data["0"]`), `instancePath` was `/0/items` for an element of
+  an array parameter and `/1/0` for `[0][1][0]` of a tuple, and a length
+  error named the parameter list's length: a `uint8[2]` given three items
+  read `must NOT have more than 1 items`. The thrown message for a
+  top-level value is unchanged (`value "9.5" at "/0" must pass "int"
+  validation`). A wrong type reads `must be array` instead of
+  `is the wrong type`, and `oneOf` reads
+  `must match exactly one schema in oneOf`.
+
+- `validateJSONSchema` applies `properties` to objects only (#229).
+  `is-my-json-valid` read them from any value, so `1` lacked a required
+  property and `null` threw a `TypeError` from inside it.
 
 - The published type declarations now follow ES module rules. `lib/types/` gets
   a `package.json` marking it as ESM, so a consumer's compiler reads the `.d.ts`

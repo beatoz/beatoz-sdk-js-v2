@@ -156,11 +156,16 @@ entries below name the packages they apply to.
 
 - `@beatoz/web3-validator`: **BREAKING:** no longer uses `is-my-json-valid`
   (#226), which broke webpack 5 builds (`Can't resolve 'util'`) and pages
-  that forbid `eval`. The package checks its schemas itself and gives the
-  same errors. `validateJSONSchema` takes `type`, `items`, `minItems`,
+  that forbid `eval`. The package checks its schemas itself. `validateJSONSchema` takes `type`, `items`, `minItems`,
   `maxItems`, `format`, `required`, `properties` and `oneOf`, and throws
   `InvalidInputError` for any other keyword. The `Validate` type is removed.
   Seven packages fewer are installed.
+
+- `@beatoz/web3-validator`: **BREAKING:** array elements are checked against
+  their size (`uint8[2]` took `[1, 300]`), every row of a nested array is
+  checked, `uint24`, `int40` and the other multiples of 8 bits are checked,
+  and each error's `keyword`, `instancePath` and `schemaPath` say what failed
+  and where, as JSON pointers (#229); for anything nested they were wrong.
 
 - `@beatoz/web3-contract`: **BREAKING:** A contract method's `send()` and `broadcast()` throw
   `TransactionFailedError` (`stage`, the node's `code` and `log`, `hash`) when
