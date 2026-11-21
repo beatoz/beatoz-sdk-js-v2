@@ -309,20 +309,12 @@ export function cases(): Case[] {
     return out;
 }
 
-// What a case gave, as JSON that keeps bigints, bytes, undefined and NaN apart
-// and records a thrown error by class and message.
-export function serialize(result: unknown): unknown {
-    return JSON.parse(
-        JSON.stringify(result, (_k, x: unknown) => {
-            if (typeof x === 'bigint') return { $bigint: x.toString() };
-            if (x instanceof Uint8Array) return { $bytes: Array.from(x) };
-            if (x === undefined) return { $undefined: true };
-            if (typeof x === 'number' && !Number.isFinite(x)) return { $number: String(x) };
-            if (x instanceof Error) {
-                // Its errors, if any, are the ones validate() returns with silent.
-                return { $error: x.constructor.name, message: x.message };
-            }
-            return x;
-        }),
-    );
+// Whether a case passed, failed with the validator's error, or threw anything
+// else.
+export function verdict(result: unknown): string {
+    const { silent, thrown } = result as { silent?: unknown; thrown?: unknown };
+    if (thrown instanceof Error && thrown.name !== 'Web3ValidatorError') {
+        return `threw ${thrown.constructor.name}`;
+    }
+    return Array.isArray(silent) ? 'fail' : 'pass';
 }
