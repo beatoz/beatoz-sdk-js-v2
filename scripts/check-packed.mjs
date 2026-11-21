@@ -30,6 +30,12 @@
  *       `@beatoz` packages it declares; it has to load with import and require.
  *   node scripts/check-packed.mjs publint <dir>
  *       run publint on each tarball.
+ *   node scripts/check-packed.mjs bundlers <dir>
+ *       install every tarball into one new project, and Vite and webpack 5
+ *       into another, then run scripts/browser-bundlers/bundle.mjs: each
+ *       bundler bundles the packages for a browser with no Node polyfills, and
+ *       the bundle has to sign and validate where only a browser's globals
+ *       exist (#228).
  *
  * The packages still carry the version 1.x has on npm, so a missing tarball
  * would be filled from the registry without a word. Every install checks that
@@ -49,7 +55,7 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const [command, dirArg, ...rest] = process.argv.slice(2);
 if (!command || !dirArg) {
     console.error(
-        'usage: check-packed.mjs <pack|install|standalone|publint> <dir> [--typescript <version>]',
+        'usage: check-packed.mjs <pack|install|standalone|publint|bundlers> <dir> [--typescript <version>]',
     );
     process.exit(2);
 }
@@ -231,6 +237,44 @@ if (command === 'pack') {
         for (const message of messages)
             console.error(`  ${message.type}: ${formatMessage(message, pkg)}`);
     }
+} else if (command === 'bundlers') {
+    // Pinned, so a new bundler release cannot turn a pull request red; raise
+    // them on purpose.
+    const bundlers = ['vite@8.3.8', 'webpack@5.113.0'];
+    ok = run(`bundle the packages with ${bundlers.join(' and ')}`, () => {
+        // The bundlers go in a project of their own: webpack depends on the
+        // npm `events` package, and installed next to the SDK it would answer
+        // an `import 'events'` in the SDK and hide it. The app project has
+        // only the SDK and what the SDK declares.
+        const app = installProject([...packages.keys()]);
+        const tools = fs.mkdtempSync(path.join(os.tmpdir(), 'beatoz-check-bundlers-'));
+        try {
+            fs.writeFileSync(
+                path.join(tools, 'package.json'),
+                JSON.stringify({ name: 'bundlers', version: '0.0.0', private: true }),
+            );
+            execFileSync(
+                npm,
+                ['install', '--no-audit', '--no-fund', '--loglevel=error', ...bundlers],
+                {
+                    cwd: tools,
+                    stdio: ['ignore', 'ignore', 'inherit'],
+                },
+            );
+            fs.copyFileSync(
+                path.join(here, 'browser-bundlers', 'entry.js'),
+                path.join(app, 'entry.js'),
+            );
+            execFileSync(
+                process.execPath,
+                [path.join(here, 'browser-bundlers', 'bundle.mjs'), app, tools],
+                { cwd: app, stdio: 'inherit' },
+            );
+        } finally {
+            fs.rmSync(app, { recursive: true, force: true });
+            fs.rmSync(tools, { recursive: true, force: true });
+        }
+    });
 } else {
     console.error(`unknown command: ${command}`);
     ok = false;

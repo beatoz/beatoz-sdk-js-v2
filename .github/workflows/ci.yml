@@ -62,6 +62,13 @@ jobs:
       - name: Check the build output
         if: github.event_name != 'pull_request' || !github.event.pull_request.draft
         run: node scripts/check-dist.mjs
+      # The packages as npm would publish them, bundled for a browser by Vite
+      # and webpack 5 with no Node polyfills, as an app would (#228).
+      - name: Bundle for a browser
+        if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+        run: |
+          node scripts/check-packed.mjs pack "$RUNNER_TEMP/packed"
+          node scripts/check-packed.mjs bundlers "$RUNNER_TEMP/packed"
 
   integration:
     name: Integration tests

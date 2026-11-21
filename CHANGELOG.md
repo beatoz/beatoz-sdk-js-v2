@@ -148,6 +148,12 @@ entries below name the packages they apply to.
 
 ### Changed
 
+- `@beatoz/web3`, `@beatoz/web3-validator`: the `dist/*.min.js` bundles are
+  built without Node fallbacks (`crypto-browserify`, `readable-stream`, the
+  `path` and `constants` ports) or the injected `Buffer` and `process`
+  (#228); the packages no longer use them. `web3.min.js` goes from 372 KB to
+  326 KB.
+
 - `@beatoz/web3-validator`: **BREAKING:** no longer uses `is-my-json-valid`
   (#226), which broke webpack 5 builds (`Can't resolve 'util'`) and pages
   that forbid `eval`. The package checks its schemas itself and gives the
@@ -1064,6 +1070,16 @@ entries below name the packages they apply to.
 
 These do not change the published output, and are listed because they explain
 the version jump.
+
+- CI bundles the packages for a browser on every pull request (#228):
+  `check-packed.mjs bundlers` installs the packed packages into one project
+  and Vite 8 and webpack 5 into another, so nothing the bundlers depend on
+  (webpack brings the npm `events`) can stand in for a Node module. Each
+  bundles them with no polyfills, failing on a build error or a module Vite
+  externalizes, and the bundle has to make a `Web3`, sign and verify with v0
+  and v1, encode contract arguments and validate, where only a browser's
+  globals exist. Until now no check did this, so the Node imports fixed in
+  #218, #220, #222, #223 and #226 went unnoticed.
 
 - Build toolchain moved to TypeScript 6.0.3 from 4.9.5, with
   `moduleResolution: bundler`. The published output is unchanged.
