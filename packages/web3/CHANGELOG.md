@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org). See
 
 ### Changed
 
+- `dist/web3.min.js` is built without Node fallbacks or the injected
+  `Buffer` and `process` (#228), which the SDK no longer uses: 326 KB, from
+  372 KB. It still sets the global `BeatozWeb3`.
+
 - **BREAKING:** The minimum Node version is 22.22.2, raised from 16.19, which
   had not been accurate for some time: several dependencies already required
   Node 18 or later. Three things set the floor, and the highest wins:

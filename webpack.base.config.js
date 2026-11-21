@@ -49,26 +49,15 @@ function getWebPackConfig(packagePath, filename, library, entry, tsconf) {
         },
         resolve: {
             extensions: ['.ts', '.js'],
-            fallback: {
-                stream: require.resolve('readable-stream'),
-                path: require.resolve('path-browserify'),
-                constants: require.resolve('constants-browserify'),
-                crypto: require.resolve('crypto-browserify'),
-                fs: false,
-                assert: false,
-            },
+            // No Node fallbacks or globals: the packages use none (#228), and
+            // providing them here would hide one that comes back from
+            // check-dist, which runs these bundles without Node.
             extensionAlias: {
                 '.js': ['.js', '.ts'],
             },
         },
         devtool: 'source-map',
         plugins: [
-            // webpack 5 no longer provides Node's globals: polyfills such as
-            // util read process at load time, and the SDK uses Buffer.
-            new webpack.ProvidePlugin({
-                process: 'process/browser.js',
-                Buffer: ['buffer', 'Buffer'],
-            }),
             new webpack.IgnorePlugin({
                 checkResource(resource) {
                     // "@ethereumjs/common/genesisStates" consists ~800KB static files which are no more needed

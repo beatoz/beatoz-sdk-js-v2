@@ -5,11 +5,10 @@
     "workspaces": {
         ".": {
             "entry": ["scripts/**/*.{js,mjs}", "webpack.base.config.js"],
-            // Browser bundle (build:web) polyfills. webpack.base.config.js
-            // resolves the first two, which knip does not credit; webpack
-            // picks up assert and buffer for dependencies that require them.
-            // Removing any of them changes the bundle (#163).
-            "ignoreDependencies": ["constants-browserify", "crypto-browserify", "assert", "buffer"],
+            // webpack picks up assert and buffer for dependencies that require
+            // them in the browser bundles (build:web); removing them changes
+            // the bundle (#163). The SDK itself uses neither (#228).
+            "ignoreDependencies": ["assert", "buffer"],
         },
         "packages/*": {
             // Type tests (test/types/*.types.ts) are compiled by test:types,
